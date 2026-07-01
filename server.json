@@ -1,0 +1,44 @@
+{
+  "servers": {
+    "production": {
+      "name": "236",
+      "host": "192.168.0.236",
+      "services": {
+        "backend": { "port": 8800, "type": "fastapi", "status": "active" },
+        "dashboard": { "port": 5888, "type": "vite-vue3", "status": "active" },
+        "ruoyi-backend": { "port": 48080, "type": "spring-boot", "status": "active" },
+        "ruoyi-frontend": { "port": 5666, "type": "vben-vue3", "status": "active" },
+        "mysql": { "port": 3306, "type": "docker", "status": "active" },
+        "redis": { "port": 6379, "type": "docker", "status": "active" }
+      }
+    },
+    "korean-proxy": {
+      "name": "OCE580",
+      "host": "47.98.184.188",
+      "type": "socks5-tunnel",
+      "ssh": {
+        "user": "root",
+        "key": "/home/samuel/.openclaw/workspace/dev_agent/server-management/ToOCE580.pem",
+        "port": 22
+      },
+      "tunnel": {
+        "type": "SOCKS5 dynamic forwarding",
+        "local_port": 10800,
+        "command": "ssh -o StrictHostKeyChecking=no -f -N -D 127.0.0.1:10800 -i <key> root@47.98.184.188",
+        "status": "active"
+      },
+      "git_proxy": {
+        "url": "socks5h://127.0.0.1:10800",
+        "configured_for": "https://github.com"
+      },
+      "services": {
+        "nginx": { "port": 80, "status": "active" },
+        "nginx-alt": { "port": 58080, "status": "active" },
+        "frps": { "port": 7000, "status": "active" },
+        "wechat-api": { "port": 8080, "type": "python", "status": "active" }
+      }
+    }
+  },
+  "version": "1.0.0",
+  "updated": "2026-07-01"
+}
