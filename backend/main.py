@@ -1,18 +1,53 @@
 """
-合同管理系统 FastAPI 后端
-SQLite 只读 API - 供独立展示面板使用
+合同管理系统 FastAPI 后端 + 静态文件服务
+SQLite 只读 API + Vue3 仪表盘静态文件
 
 启动: uvicorn backend.main:app --host 0.0.0.0 --port 8800
+访问: http://192.168.0.236:8800 (API + Dashboard)
 """
 import sqlite3
 from pathlib import Path
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
 
 app = FastAPI(title='Contract Management API', version='1.0.0')
-app.add_middleware(CORSMiddleware, allow_origins=['*'], allow_methods=['*'], allow_headers=['*'])
+app.add_middleware(CORSMiddleware, allow_origins=['*'], allow_methods=['*'], allow_headers=['*'], allow_credentials=True)
 
 DB_PATH = Path(__file__).parent.parent / 'database' / 'project_management.db'
+
+# ===== Vben-compatible response wrapper =====
+def vben_response(data):
+    """Wrap data in Vben's expected format: {code: 0, data: ...}"""
+    return {'code': 0, 'data': data, 'message': 'success'}
+
+def vben_list(page: int, size: int, total: int, items: list):
+    """Paginated list in Vben format"""
+    return {'code': 0, 'data': {'total': total, 'page': page, 'size': size, 'items': items}, 'message': 'success'}
+
+# ===== Vben Auth Mock Endpoints =====
+@app.post('/api/auth/login')
+def vben_login():
+    return vben_response({'accessToken': 'vben-dev-token', 'refreshToken': 'vben-refresh-token', 'expires': 9999999999})
+
+@app.get('/api/auth/codes')
+def vben_codes():
+    return vben_response(['*'])
+
+@app.get('/api/user/info')
+def vben_user_info():
+    return vben_response({'username': 'admin', 'realName': 'Admin', 'roles': ['admin'], 'homePath': '/dashboard'})
+
+@app.get('/api/menu/list')
+def vben_menu_list():
+    return vben_response([{
+        'path': '/dashboard', 'name': 'Dashboard', 'component': 'BasicLayout',
+        'meta': {'title': 'Dashboard', 'icon': 'lucide:layout-dashboard'},
+        'children': [
+            {'path': '/dashboard/analytics', 'name': 'Analytics', 'component': '/dashboard/analytics/index', 'meta': {'title': 'Analytics'}},
+        ]
+    }])
 
 def get_db():
     conn = sqlite3.connect(str(DB_PATH))
@@ -41,7 +76,7 @@ def get_stats():
     deliverables = db.execute('SELECT COUNT(*) FROM deliverables').fetchone()[0]
     db.close()
     rate = round(fin['pay'] / fin['inv'] * 100, 1) if fin['inv'] else 0
-    return {
+    return vben_response({
         'contract_count': c,
         'total_amount': round(total_amt, 2),
         'invoiced': round(fin['inv'], 2),
@@ -52,7 +87,7 @@ def get_stats():
         'stages': stages,
         'payments': payments,
         'deliverables': deliverables,
-    }
+    })
 
 # ---- Contracts list ----
 @app.get('/api/contracts')
@@ -80,7 +115,7 @@ def get_contracts(page: int = 1, size: int = 20, search: str = '', sort: str = '
         LIMIT ? OFFSET ?
     ''', params + [size, offset]).fetchall()
     db.close()
-    return {'total': total, 'page': page, 'size': size, 'items': [dict(r) for r in rows]}
+    return vben_list(page, size, total, [dict(r) for r in rows])
 
 # ---- Contract detail ----
 @app.get('/api/contracts/{contract_id}')
@@ -94,7 +129,7 @@ def get_contract(contract_id: str):
     deliverables = [dict(r) for r in db.execute('SELECT * FROM deliverables WHERE contract_id=?', (contract_id,)).fetchall()]
     finance = db.execute('SELECT * FROM current_finance_view WHERE project_id=?', (contract_id,)).fetchone()
     db.close()
-    return {'contract': dict(row), 'stages': stages, 'payments': payments, 'deliverables': deliverables, 'finance': dict(finance) if finance else None}
+    return vben_response({'contract': dict(row), 'stages': stages, 'payments': payments, 'deliverables': deliverables, 'finance': dict(finance) if finance else None})
 
 # ---- Finance summary ----
 @app.get('/api/finance/summary')
@@ -109,7 +144,7 @@ def get_finance_summary():
         ORDER BY cv.invoice_total DESC
     ''').fetchall()
     db.close()
-    return {'items': [dict(r) for r in rows]}
+    return vben_response({'items': [dict(r) for r in rows]})
 
 # ---- Finance trend (by batch) ----
 @app.get('/api/finance/trend')
@@ -126,7 +161,7 @@ def get_finance_trend():
         ORDER BY import_time
     ''').fetchall()
     db.close()
-    return {'trends': [dict(r) for r in rows]}
+    return vben_response({'trends': [dict(r) for r in rows]})
 
 # ---- Top customers ----
 @app.get('/api/finance/top-customers')
@@ -141,7 +176,7 @@ def get_top_customers(limit: int = 10):
         LIMIT ?
     ''', (limit,)).fetchall()
     db.close()
-    return {'customers': [dict(r) for r in rows]}
+    return vben_response({'customers': [dict(r) for r in rows]})
 
 # ---- Project types distribution (with extended categories) ----
 @app.get('/api/stats/types')
@@ -157,7 +192,7 @@ def get_type_distribution():
         ORDER BY total DESC
     ''').fetchall()
     db.close()
-    return {'types': [dict(r) for r in rows]}
+    return vben_response({'types': [dict(r) for r in rows]})
 
 # ---- Invoices ----
 @app.get('/api/invoices')
@@ -172,7 +207,7 @@ def get_invoices(project_id: str = '', page: int = 1, size: int = 50):
     rows = db.execute(f'SELECT * FROM invoices {where} ORDER BY invoice_date DESC LIMIT ? OFFSET ?',
         params + [size, (page-1)*size]).fetchall()
     db.close()
-    return {'total': total, 'page': page, 'items': [dict(r) for r in rows]}
+    return vben_list(page, size, total, [dict(r) for r in rows])
 
 # ---- Invoice summary by project ----
 @app.get('/api/invoices/summary')
@@ -190,7 +225,7 @@ def get_invoice_summary():
         ORDER BY invoiced DESC
     ''').fetchall()
     db.close()
-    return {'items': [dict(r) for r in rows]}
+    return vben_response({'items': [dict(r) for r in rows]})
 
 # ---- Suppliers ----
 @app.get('/api/suppliers')
@@ -201,7 +236,7 @@ def get_suppliers():
         ORDER BY total_contract_amount DESC
     ''').fetchall()
     db.close()
-    return {'items': [dict(r) for r in rows]}
+    return vben_response({'items': [dict(r) for r in rows]})
 
 @app.get('/api/suppliers/{supplier_id}')
 def get_supplier(supplier_id: str):
@@ -246,17 +281,3 @@ def get_db_summary():
             result[t] = 0
     db.close()
     return result
-
-@app.get('/api/projects/progress')
-def get_project_progress():
-    db = get_db()
-    rows = db.execute('''
-        SELECT c.project_name, c.contract_id, c.contract_amount, c.project_type,
-               ps.overall_progress, ps.stage_progress, ps.payment_progress,
-               ps.deliverable_progress, ps.status, ps.risk_level
-        FROM project_status ps
-        JOIN contracts c ON ps.contract_id = c.contract_id
-        ORDER BY ps.overall_progress DESC
-    ''').fetchall()
-    db.close()
-    return {'items': [dict(r) for r in rows], 'stats': {'total': len(rows)}}
