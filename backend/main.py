@@ -246,3 +246,17 @@ def get_db_summary():
             result[t] = 0
     db.close()
     return result
+
+@app.get('/api/projects/progress')
+def get_project_progress():
+    db = get_db()
+    rows = db.execute('''
+        SELECT c.project_name, c.contract_id, c.contract_amount, c.project_type,
+               ps.overall_progress, ps.stage_progress, ps.payment_progress,
+               ps.deliverable_progress, ps.status, ps.risk_level
+        FROM project_status ps
+        JOIN contracts c ON ps.contract_id = c.contract_id
+        ORDER BY ps.overall_progress DESC
+    ''').fetchall()
+    db.close()
+    return {'items': [dict(r) for r in rows], 'stats': {'total': len(rows)}}
