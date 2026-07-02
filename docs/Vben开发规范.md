@@ -170,18 +170,18 @@ onMounted(async () => {
 
 ---
 
-## 三、当前页面合规分析（2026-07-02）
+## 三、当前页面合规分析（2026-07-02 更新）
 
-| 文件 | 合规状态 | 问题 |
-|------|---------|------|
-| `ui/src/api/contracts.ts` | ❌ 不合规 | 使用 `baseRequestClient`，应改为 `requestClient` |
-| `ui/src/api/invoices.ts` | ❌ 不合规 | 同上 |
-| `ui/src/api/suppliers.ts` | ❌ 不合规 | 同上 |
-| `ui/src/views/contracts/index.vue` | ❌ 不合规 | 使用 `a-table`，应改为 `useVbenVxeGrid` |
-| `ui/src/views/contracts/detail.vue` | ❌ 不合规 | 缺少 Vben 页面布局包装 |
-| `ui/src/views/invoices/index.vue` | ❌ 不合规 | 使用 `a-table`，应改为 `useVbenVxeGrid` |
-| `ui/src/views/suppliers/index.vue` | ❌ 不合规 | 自定义卡片布局，应改为 `useVbenVxeGrid` |
-| 路由文件 (3个) | ✅ 基本合规 | 使用 `ignoreAccess: true` + `#/` 路径，需确认 meta 完整性 |
+| 文件 | 合规状态 | 说明 |
+|------|:-------:|------|
+| `ui/src/api/contracts.ts` | ✅ 合规 | 使用 `requestClient` |
+| `ui/src/api/invoices.ts` | ✅ 合规 | 使用 `requestClient` |
+| `ui/src/api/suppliers.ts` | ✅ 合规 | 使用 `requestClient` |
+| `ui/src/views/contracts/index.vue` | ✅ 合规 | 使用 `useVbenVxeGrid` |
+| `ui/src/views/contracts/detail.vue` | ⚠️ 基本合规 | 使用 Vben 页面布局，可进一步优化 |
+| `ui/src/views/invoices/index.vue` | ✅ 合规 | 使用 `useVbenVxeGrid` |
+| `ui/src/views/suppliers/index.vue` | ✅ 合规 | 使用 `useVbenVxeGrid` |
+| 路由文件 (4个) | ✅ 合规 | `path: ''` + `ignoreAccess: true` + `#/` 路径别名 |
 
 ---
 
