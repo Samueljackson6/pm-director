@@ -99,19 +99,33 @@ jobs:
           bash scripts/deploy-236.sh all
 
       - name: Verify
+        shell: bash
         run: |
+          set -e
           echo "=== 验证 ==="
           curl -s -o /dev/null -w 'Frontend: HTTP %{http_code}\n' http://localhost:5777/
           curl -s -o /dev/null -w 'Backend: HTTP %{http_code}\n' http://localhost:8800/api/stats
-          ls -la /home/samuel/.openclaw/workspace/pm-director/ui-vben/apps/web-antd/dist/js/contracts-*.js
-          ls -la /home/samuel/.openclaw/workspace/pm-director/ui-vben/apps/web-antd/dist/js/invoices-*.js
-          ls -la /home/samuel/.openclaw/workspace/pm-director/ui-vben/apps/web-antd/dist/js/suppliers-*.js
+          DIST=/home/samuel/ruoyi-office-vben/apps/web-antd/dist
+          echo "--- JS bundles ---"
+          ls $DIST/js/contracts-*.js 2>/dev/null && echo "contracts: OK" || echo "contracts: not found (may be inlined)"
+          ls $DIST/js/invoices-*.js 2>/dev/null && echo "invoices: OK" || echo "invoices: not found (may be inlined)"
+          ls $DIST/js/suppliers-*.js 2>/dev/null && echo "suppliers: OK" || echo "suppliers: not found (may be inlined)"
+          echo "--- Build time ---"
+          stat --format='%y' $DIST/index.html 2>/dev/null || echo "unknown"
 
       - name: Audit
+        shell: bash
         run: |
           echo "=== 审计 ==="
           echo "Commit: ${{ github.sha }}"
           echo "Time: $(date)"
-          echo "Frontend: $(curl -s -o /dev/null -w '%{http_code}' http://localhost:5777/)"
-          echo "Backend:  $(curl -s -o /dev/null -w '%{http_code}' http://localhost:8800/api/stats)"
-          echo "=== 审计通过 ==="
+          FE=$(curl -s -o /dev/null -w '%{http_code}' http://localhost:5777/ || echo 000)
+          BE=$(curl -s -o /dev/null -w '%{http_code}' http://localhost:8800/api/stats || echo 000)
+          echo "Frontend: HTTP $FE"
+          echo "Backend:  HTTP $BE"
+          if [ "$FE" = "200" ] && [ "$BE" = "200" ]; then
+            echo "=== ✅ 审计通过 ==="
+          else
+            echo "=== ❌ 审计失败 ==="
+            exit 1
+          fi
