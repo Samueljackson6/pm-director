@@ -27,17 +27,21 @@ def vben_list(page: int, size: int, total: int, items: list):
     return {'code': 0, 'data': {'total': total, 'page': page, 'size': size, 'items': items}, 'message': 'success'}
 
 # ===== Vben Auth Mock Endpoints =====
-@app.post('/api/auth/login')
+@app.post('/system/auth/login')
 def vben_login():
     return vben_response({'accessToken': 'vben-dev-token', 'refreshToken': 'vben-refresh-token', 'expires': 9999999999})
 
-@app.get('/api/auth/codes')
-def vben_codes():
-    return vben_response(['*'])
+@app.post('/system/captcha/get')
+def vben_captcha():
+    return vben_response({'captchaEnabled': False})
 
-@app.get('/api/user/info')
+@app.get('/system/user/info')
 def vben_user_info():
     return vben_response({'username': 'admin', 'realName': 'Admin', 'roles': ['admin'], 'homePath': '/dashboard'})
+
+@app.get('/system/auth/get-permission-info')
+def vben_permission_info():
+    return vben_response({'userPermissions': ['*'], 'rolePermissions': ['*']})
 
 @app.get('/api/menu/list')
 def vben_menu_list():

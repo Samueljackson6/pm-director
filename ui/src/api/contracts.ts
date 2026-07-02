@@ -29,20 +29,20 @@ export interface PaginatedResult<T> {
 
 /** 合同列表（分页），requestClient 自动解包 data 字段 */
 export async function getContractsApi(params?: any) {
-  return requestClient.get<PaginatedResult<ContractItem>>('/contracts', { params })
+  return requestClient.get<PaginatedResult<ContractItem>>('/api/contracts', { params })
 }
 
 /** 合同详情 */
 export async function getContractDetailApi(id: string) {
-  return requestClient.get<ContractDetail>('/contracts/' + id)
+  return requestClient.get<ContractDetail>('/api/contracts/' + id)
 }
 
 /** 统计数据 */
 export async function getStatsApi() {
-  return requestClient.get('/stats')
+  return requestClient.get('/api/stats')
 }
 
 /** 合同类型分布 */
 export async function getTypesApi() {
-  return requestClient.get('/stats/types')
+  return requestClient.get('/api/stats/types')
 }

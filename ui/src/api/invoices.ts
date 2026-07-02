@@ -18,10 +18,10 @@ export interface InvoiceSummary {
 
 /** 发票列表 */
 export async function getInvoicesApi(params?: any) {
-  return requestClient.get('/invoices', { params })
+  return requestClient.get('/api/invoices', { params })
 }
 
 /** 发票汇总（按项目） */
 export async function getInvoiceSummaryApi() {
-  return requestClient.get('/invoices/summary')
+  return requestClient.get('/api/invoices/summary')
 }

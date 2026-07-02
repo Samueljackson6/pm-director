@@ -14,10 +14,10 @@ export interface SupplierItem {
 
 /** 供应商列表 */
 export async function getSuppliersApi() {
-  return requestClient.get('/suppliers')
+  return requestClient.get('/api/suppliers')
 }
 
 /** 供应商详情 */
 export async function getSupplierDetailApi(id: string) {
-  return requestClient.get('/suppliers/' + id)
+  return requestClient.get('/api/suppliers/' + id)
 }
