@@ -41,7 +41,7 @@ deploy_frontend() {
   cp $PM_DIR/ui/src/views/invoices/index.vue $VBEN_DIR/src/views/invoices/
   cp $PM_DIR/ui/src/views/suppliers/index.vue $VBEN_DIR/src/views/suppliers/
   cp $PM_DIR/ui/src/views/dashboard/index.vue $VBEN_DIR/src/views/dashboard/
-  cp $PM_DIR/ui/src/router/routes/modules/*.ts $VBEN_DIR/src/router/routes/modules/
+  # 注意：路由文件已移除，统一由后端 get-permission-info 的 menus 字段动态生成
 
   # Step 2: Build
   echo "Building Vben..."

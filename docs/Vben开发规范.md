@@ -228,4 +228,53 @@ curl http://192.168.0.236:5777/
 
 ---
 
-**遵守原则**：所有 Vben 框架上的开发必须严格遵循官方规范，不得混用 Ant Design 原生组件与 Vben 封装组件。
+## 七、强制铁律（所有变更必须遵守）
+
+> **所有 Vben 框架相关的开发、维护、修改、配置，必须先查阅官方文档（https://doc.vben.pro/）再动手。** 这是不可违反的铁律。
+
+### 7.1 变更前必须做的
+
+1. **查官方文档** — 打开 [doc.vben.pro](https://doc.vben.pro/) 找到对应主题
+2. **确认数据格式** — 所有 API 响应格式、菜单结构、路由配置必须以官方文档为准
+3. **不得凭猜测改代码** — 不确定时必须查文档或问用户，不可自行推断
+
+### 7.2 后端接入规范（来自官方文档）
+
+`accessMode: 'backend'` 模式下，后端 `get-permission-info` 返回的菜单数据必须遵循以下格式：
+
+```typescript
+// 官方规范：https://doc.vben.pro/guide/in-depth/access.html
+interface BackendMenu {
+  name: string;           // 路由名称（唯一）
+  path: string;           // 路由路径
+  redirect?: string;      // 重定向（可选）
+  component?: string;     // 组件路径，去掉 views/ 和 .vue
+  meta: {
+    title: string;        // 菜单标题
+    icon?: string;        // 图标
+    order?: number;       // 排序
+    [key: string]: any;   // 其他元数据
+  };
+  children?: BackendMenu[];
+}
+```
+
+**注意**：RuoYi-Office-Vben 修改版额外要求 `id`、`parentId`、`visible` 等字段，见 `convertServerMenuToRouteRecordStringComponent` 函数的预期输入格式。
+
+### 7.3 变更前后验证
+
+```bash
+# 每次修改后必须验证
+curl -s http://localhost:8800/system/auth/get-permission-info | jq '.data.menus'
+# 确认菜单结构正确后，再清浏览器缓存测试
+```
+
+### 7.4 违规记录
+
+| 日期 | 违规内容 | 后果 | 修正措施 |
+|------|---------|------|---------|
+| 2026-07-02 | 未查官方文档，凭猜测修改菜单格式 | 菜单重复、404 报错、列表无数据 | 删除硬编码路由文件，统一后端数据源 |
+
+---
+
+**遵守原则**：所有 Vben 框架上的开发必须严格遵循官方规范，不得混用 Ant Design 原生组件与 Vben 封装组件。**查文档→改代码→验证，三步缺一不可。**
