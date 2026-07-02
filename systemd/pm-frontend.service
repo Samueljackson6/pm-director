@@ -1,0 +1,27 @@
+# pm-director 前端服务 (Vben Admin 5 static files)
+# 安装: sudo cp systemd/pm-frontend.service /etc/systemd/system/
+# 启动: sudo systemctl daemon-reload && sudo systemctl enable --now pm-frontend
+# 状态: sudo systemctl status pm-frontend
+# 日志: sudo journalctl -u pm-frontend -f
+
+[Unit]
+Description=pm-director Vben Frontend (port 5777)
+After=network.target
+StartLimitIntervalSec=60
+StartLimitBurst=3
+
+[Service]
+Type=simple
+User=samuel
+Group=samuel
+WorkingDirectory=/home/samuel/.openclaw/workspace/pm-director/ui-vben/apps/web-antd/dist
+ExecStart=/usr/bin/python3 -m http.server 5777 --bind 0.0.0.0
+Restart=always
+RestartSec=5
+
+# 日志管理
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

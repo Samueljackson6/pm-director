@@ -1,0 +1,25 @@
+# pm-director 后端服务 (FastAPI)
+# 安装: sudo cp systemd/pm-backend.service /etc/systemd/system/
+# 启动: sudo systemctl daemon-reload && sudo systemctl enable --now pm-backend
+# 状态: sudo systemctl status pm-backend
+# 日志: sudo journalctl -u pm-backend -f
+
+[Unit]
+Description=pm-director FastAPI Backend (port 8800)
+After=network.target
+StartLimitIntervalSec=60
+StartLimitBurst=3
+
+[Service]
+Type=simple
+User=samuel
+Group=samuel
+WorkingDirectory=/home/samuel/.openclaw/workspace/pm-director
+ExecStart=/usr/bin/python3 -m uvicorn backend.main:app --host 0.0.0.0 --port 8800
+Restart=always
+RestartSec=5
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

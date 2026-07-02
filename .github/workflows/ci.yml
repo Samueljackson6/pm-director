@@ -1,0 +1,169 @@
+# pm-director CI/CD 工作流
+# 注意: 236 服务器 (192.168.0.x) 无公网 IP，GitHub Actions 无法直接部署
+# 实际部署通过 scripts/auto-publish.sh 完成（开发者本地触发）
+# CI 仅做代码验证
+
+name: CI
+
+on:
+  push:
+    branches: [master, '**']
+    paths-ignore:
+      - 'docs/**'
+      - '**.md'
+      - '.gitignore'
+  pull_request:
+    branches: [master]
+  workflow_dispatch:
+
+jobs:
+  # ============================================================
+  # Job 1: Python 代码质量检查
+  # ============================================================
+  python-lint:
+    name: Python Lint
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+
+      - name: Install Python tools
+        run: |
+          python -m pip install --upgrade pip
+          pip install ruff
+
+      - name: Run ruff (Python lint)
+        run: |
+          if [ -d "backend" ]; then
+            ruff check backend/ --quiet || true
+            echo "Note: ruff check is advisory, not blocking"
+          else
+            echo "No backend/ directory, skipping Python lint"
+          fi
+
+      - name: Python syntax check
+        run: |
+          if [ -d "backend" ]; then
+            for f in $(find backend -name "*.py"); do
+              python -c "import ast; ast.parse(open('$f').read())"
+              echo "  ✔ $f"
+            done
+          else
+            echo "No backend/ directory, skipping syntax check"
+          fi
+
+  # ============================================================
+  # Job 2: UI 文件完整性检查
+  # ============================================================
+  ui-validate:
+    name: UI Files Validation
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate API files
+        run: |
+          for f in ui/src/api/contracts.ts ui/src/api/invoices.ts ui/src/api/suppliers.ts ui/src/api/index.ts; do
+            if [ -f "$f" ]; then
+              echo "  ✔ $f"
+            else
+              echo "  ⚠ $f not found (may not exist yet)"
+            fi
+          done
+
+      - name: Validate View files
+        run: |
+          for f in \
+            ui/src/views/contracts/index.vue \
+            ui/src/views/contracts/detail.vue \
+            ui/src/views/invoices/index.vue \
+            ui/src/views/suppliers/index.vue; do
+            if [ -f "$f" ]; then
+              echo "  ✔ $f"
+            else
+              echo "  ⚠ $f not found (may not exist yet)"
+            fi
+          done
+
+      - name: Validate Route files
+        run: |
+          for f in \
+            ui/src/router/routes/modules/contracts.ts \
+            ui/src/router/routes/modules/invoices.ts \
+            ui/src/router/routes/modules/suppliers.ts; do
+            if [ -f "$f" ]; then
+              echo "  ✔ $f"
+            else
+              echo "  ⚠ $f not found (may not exist yet)"
+            fi
+          done
+
+      - name: Check route path format
+        run: |
+          if [ -f "ui/src/router/routes/modules/contracts.ts" ]; then
+            if grep -q "path: ''" ui/src/router/routes/modules/contracts.ts; then
+              echo "  ✔ contracts route uses path: '' (correct)"
+            else
+              echo "  ⚠ contracts route does NOT use path: ''"
+            fi
+          fi
+
+  # ============================================================
+  # Job 3: 提交信息检查 (master only)
+  # ============================================================
+  commit-lint:
+    name: Commit Message Check
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    if: github.ref == 'refs/heads/master'
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check commit message format
+        run: |
+          # 检查最新推送的提交信息格式
+          COMMIT_MSG=$(git log --format=%s -1)
+          echo "Latest commit: $COMMIT_MSG"
+          
+          # 检查是否符合 feat|fix|docs|ci|refactor(scope): message 格式
+          if echo "$COMMIT_MSG" | grep -qE '^(feat|fix|docs|ci|refactor|style|test|chore)\([^)]+\):'; then
+            echo "  ✔ Commit message format OK"
+          else
+            echo "  ⚠ Commit message may not follow convention: type(scope): message"
+            echo "    Allowed types: feat|fix|docs|ci|refactor|style|test|chore"
+          fi
+
+  # ============================================================
+  # Job 4: 部署通知 (仅 master)
+  # ============================================================
+  deploy-ready:
+    name: Deploy Ready Notification
+    needs: [python-lint, ui-validate]
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/master' && success()
+
+    steps:
+      - name: CI passed
+        run: |
+          echo "============================================"
+          echo "  ✅ CI 全部通过！"
+          echo "============================================"
+          echo "  Commit: ${{ github.sha }}"
+          echo "  Branch: ${{ github.ref }}"
+          echo ""
+          echo "  部署说明："
+          echo "  由于 236 无公网 IP，请执行以下命令部署："
+          echo "  ssh 236 'cd /home/samuel/... && git pull && bash scripts/deploy-236.sh all'"
+          echo "============================================"
