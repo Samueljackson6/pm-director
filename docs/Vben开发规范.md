@@ -2,30 +2,37 @@
 
 > **更新**：2026-07-02
 > **Vben 版本**：5.7.0
-> **官方文档**：https://doc.vben.pro/
-> **官方文档本地副本**：`<RuoYi-Office>/docs/vben-official/`（待同步）
+> **官方文档 **：https://doc.vben.pro/
+> **本地文档索引**：`docs/vben-official-index.md`（**强制先读**）
+> **GitHub 仓库**：https://github.com/vbenjs/vue-vben-admin
+> **RuoYi-Office-Vben 基底**：https://gitee.com/yudaocode/yudao-ui-admin-vben
 
 ---
 
-## 一、Vben 官方文档索引
+## 一、Vben 官方文档本地索引
 
-所有 Vben 框架相关开发必须遵循官方规范。以下为官方文档索引：
+**所有 Vben 框架相关的开发/维护/配置/发布，必须先查阅 `docs/vben-official-index.md` 找到对应主题，阅读官方说明后再动手。** 这是铁的纪律。
 
-| 主题 | 官方链接 | 本地参考 | 优先级 |
-|------|---------|---------|--------|
-| 快速开始 | https://doc.vben.pro/guide/introduction/quick-start.html | - | ⭐⭐⭐ |
-| **路由和菜单** | https://doc.vben.pro/guide/essentials/route.html | - | ⭐⭐⭐ |
-| **构建与部署** | https://doc.vben.pro/guide/essentials/build.html | - | ⭐⭐⭐ |
-| **服务端交互** | https://doc.vben.pro/guide/essentials/server.html | - | ⭐⭐⭐ |
-| **Vxe Table 表格** | https://doc.vben.pro/components/common-ui/vben-vxe-table.html | - | ⭐⭐⭐ |
-| 本地开发 | https://doc.vben.pro/guide/essentials/development.html | - | ⭐⭐ |
-| 配置 | https://doc.vben.pro/guide/essentials/settings.html | - | ⭐⭐ |
-| 权限 | https://doc.vben.pro/guide/in-depth/access.html | - | ⭐⭐ |
-| 目录说明 | https://doc.vben.pro/guide/project/dir.html | - | ⭐⭐ |
-| 样式 | https://doc.vben.pro/guide/essentials/styles.html | - | ⭐ |
-| 图标 | https://doc.vben.pro/guide/essentials/icons.html | - | ⭐ |
-| 国际化 | https://doc.vben.pro/guide/in-depth/locale.html | - | ⭐ |
-| Vben Form 表单 | https://doc.vben.pro/components/common-ui/vben-form.html | - | ⭐⭐ |
+文档索引文件：**[`docs/vben-official-index.md`](./vben-official-index.md)**
+
+该索引包含：
+- ✅ 官方文档完整结构导航（14 个主题）
+- ✅ 按使用频率分级的快速入口
+- ✅ GitHub 社区资源索引（Issue、Discussions、示例代码）
+- ✅ 常见问题速查表
+- ✅ 当前项目的配置对照
+
+**优先级提醒**：
+| 主题 | 优先级 | 理由 |
+|------|:------:|------|
+| 路由和菜单 | ⭐⭐⭐ | 动态路由生成、菜单格式是当前最大问题来源 |
+| 权限/访问控制 | ⭐⭐⭐ | 后端模式 `accessMode: backend` 是本项目核心 |
+| 服务端交互 | ⭐⭐⭐ | API 封装、响应格式、错误拦截直接影响前端功能 |
+| 构建与部署 | ⭐⭐⭐ | 环境变量、构建配置、部署方案 |
+| Vxe Table | ⭐⭐⭐ | 项目所有列表页面都依赖该组件 |
+| 登录 | ⭐⭐ | 登录流程、API 要求（若需修改时查阅） |
+| 配置 | ⭐⭐ | 应用设置（若需修改时查阅） |
+| 其他 | ⭐ | 按需查阅 | |
 
 ---
 
@@ -228,24 +235,52 @@ curl http://192.168.0.236:5777/
 
 ---
 
-## 七、强制铁律（所有变更必须遵守）
+## 七、Vben 框架铁律（2026-07-02 强制执行）
 
-> **所有 Vben 框架相关的开发、维护、修改、配置，必须先查阅官方文档（https://doc.vben.pro/）再动手。** 这是不可违反的铁律。
+> **本项目的 Vben 框架开发、维护、配置、发布、调试——所有相关活动，必须先查阅官方文档再动手。** 这是不可违反的底线。
 
-### 7.1 变更前必须做的
+### 7.1 适用范围
 
-1. **查官方文档** — 打开 [doc.vben.pro](https://doc.vben.pro/) 找到对应主题
-2. **确认数据格式** — 所有 API 响应格式、菜单结构、路由配置必须以官方文档为准
-3. **不得凭猜测改代码** — 不确定时必须查文档或问用户，不可自行推断
+本铁律覆盖所有与 Vben 框架相关的活动：
 
-### 7.2 后端接入规范（来自官方文档）
+| 活动类型 | 包含内容 | 必须参考文档 |
+|---------|---------|------------|
+| **开发** | 路由配置、菜单生成、页面组件、API 封装、表单/表格 | 对应官方文档章节 |
+| **修改** | 框架源码修改、现有页面改版、组件替换 | 权限/路由/组件文档 |
+| **配置** | 环境变量、偏好设置、权限模式、构建配置 | 配置/开发/部署文档 |
+| **发布/部署** | 构建优化、Nginx 配置、CDN 部署、环境切换 | 构建与部署文档 |
+| **后端接入** | `get-permission-info` 格式、菜单数据结构、API 响应格式 | 权限/服务端交互文档 |
+| **调试排错** | 页面空白、API 报错、路由不显示、菜单不见 | 常见问题速查 + 社区 Issue |
+| **UI 定制** | 主题、样式覆盖、暗黑模式 | 样式文档 + 品牌定制 |
+| **升级迁移** | Vben 版本升级、破坏性变更适配 | 迁移文档 + 仓库 Release Notes |
 
-`accessMode: 'backend'` 模式下，后端 `get-permission-info` 返回的菜单数据必须遵循以下格式：
+### 7.2 操作流程（三步强制）
+
+```
+步骤 1：查文档
+   ├── 打开 docs/vben-official-index.md
+   ├── 找到对应主题的官方文档链接
+   └── 完整阅读相关章节
+
+步骤 2：改代码
+   ├── 严格按文档规范的格式编写
+   ├── 可疑/不确定的地方：再去查一次文档
+   └── 文档不足时：搜索 GitHub Issues/Discussions
+
+步骤 3：验证
+   ├── curl 验证 API 响应格式
+   ├── 浏览器清缓存后测试
+   └── 确认 Console 无报错
+```
+
+### 7.3 后端接入规范（官方认证）
+
+`accessMode: 'backend'` 模式下，`get-permission-info` 返回的菜单数据格式：
 
 ```typescript
 // 官方规范：https://doc.vben.pro/guide/in-depth/access.html
 interface BackendMenu {
-  name: string;           // 路由名称（唯一）
+  name: string;           // 路由名称（必须唯一）
   path: string;           // 路由路径
   redirect?: string;      // 重定向（可选）
   component?: string;     // 组件路径，去掉 views/ 和 .vue
@@ -253,28 +288,33 @@ interface BackendMenu {
     title: string;        // 菜单标题
     icon?: string;        // 图标
     order?: number;       // 排序
-    [key: string]: any;   // 其他元数据
+    [key: string]: any;   // 其他元数据，如 affixTab、keepAlive
   };
   children?: BackendMenu[];
 }
 ```
 
-**注意**：RuoYi-Office-Vben 修改版额外要求 `id`、`parentId`、`visible` 等字段，见 `convertServerMenuToRouteRecordStringComponent` 函数的预期输入格式。
+**注意**：RuoYi-Office-Vben 定制版额外使用 `convertServerMenuToRouteRecordStringComponent()` 做格式转换，需要额外字段见 `packages/utils/src/helpers/generate-menus.ts`。
 
-### 7.3 变更前后验证
+### 7.4 何时去 GitHub/社区搜索
 
-```bash
-# 每次修改后必须验证
-curl -s http://localhost:8800/system/auth/get-permission-info | jq '.data.menus'
-# 确认菜单结构正确后，再清浏览器缓存测试
-```
+以下情况，官方文档不足以解决问题时：
 
-### 7.4 违规记录
+| 场景 | 搜索位置 | 搜索方法 |
+|------|---------|---------|
+| 遇到 Bug | `vue-vben-admin` Issues | `label:bug` + 关键词搜索 |
+| 不确定用法 | 官方 Playground 示例 | 查找对应功能的实现代码 |
+| 版本兼容问题 | Release Notes + Breaking Changes | 查看版本间的破坏性变更 |
+| RuoYi-Office 定制问题 | RuoYi-Office-Vben 仓库 | 查看其与原生 Vben 的差异 |
+| 最佳实践 | Discussions / Stack Overflow | 搜索 "Vben Admin 5 + 关键词" |
+
+### 7.5 违规记录
 
 | 日期 | 违规内容 | 后果 | 修正措施 |
 |------|---------|------|---------|
-| 2026-07-02 | 未查官方文档，凭猜测修改菜单格式 | 菜单重复、404 报错、列表无数据 | 删除硬编码路由文件，统一后端数据源 |
+| 2026-07-02 | 未查官方文档，凭猜测修改 `get-permission-info` 菜单格式 | 菜单重复×2、404 报错、列表无法加载 | 删除硬编码路由文件，按官方规范统一后端数据源 |
+| 2026-07-02 | 未查官方文档，凭猜测修改 CORS 配置 | CORS 不合规，潜在跨域问题 | 查阅 MDN CORS 规范后修复 |
 
 ---
 
-**遵守原则**：所有 Vben 框架上的开发必须严格遵循官方规范，不得混用 Ant Design 原生组件与 Vben 封装组件。**查文档→改代码→验证，三步缺一不可。**
+**遵守原则**：查文档 → 改代码 → 验证，三步缺一不可。不确定的先去查再回来，不要猜。
