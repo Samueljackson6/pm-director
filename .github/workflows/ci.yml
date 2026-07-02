@@ -1,13 +1,12 @@
 # pm-director CI/CD 工作流
-# 注意: 236 服务器 (192.168.0.x) 无公网 IP，GitHub Actions 无法直接部署
-# 实际部署通过 scripts/auto-publish.sh 完成（开发者本地触发）
-# CI 仅做代码验证
+# 236 自托管 Runner (236-runner) 负责部署
+# GitHub-hosted runner 负责代码验证
 
-name: CI
+name: CI/CD
 
 on:
   push:
-    branches: [master, '**']
+    branches: [master]
     paths-ignore:
       - 'docs/**'
       - '**.md'
@@ -18,7 +17,7 @@ on:
 
 jobs:
   # ============================================================
-  # Job 1: Python 代码质量检查
+  # Job 1: Python 代码质量检查 (GitHub-hosted)
   # ============================================================
   python-lint:
     name: Python Lint
@@ -32,138 +31,85 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-          cache: 'pip'
 
-      - name: Install Python tools
-        run: |
-          python -m pip install --upgrade pip
-          pip install ruff
-
-      - name: Run ruff (Python lint)
-        run: |
-          if [ -d "backend" ]; then
-            ruff check backend/ --quiet || true
-            echo "Note: ruff check is advisory, not blocking"
-          else
-            echo "No backend/ directory, skipping Python lint"
-          fi
+      - name: Install tools
+        run: pip install ruff
 
       - name: Python syntax check
         run: |
           if [ -d "backend" ]; then
             for f in $(find backend -name "*.py"); do
-              python -c "import ast; ast.parse(open('$f').read())"
-              echo "  ✔ $f"
+              python -c "import ast; ast.parse(open('$f').read())" && echo "  OK $f"
             done
-          else
-            echo "No backend/ directory, skipping syntax check"
+            ruff check backend/ --quiet || true
           fi
 
   # ============================================================
-  # Job 2: UI 文件完整性检查
+  # Job 2: UI 文件完整性 (GitHub-hosted)
   # ============================================================
   ui-validate:
-    name: UI Files Validation
+    name: UI Validate
     runs-on: ubuntu-latest
     timeout-minutes: 5
 
     steps:
       - uses: actions/checkout@v4
 
-      - name: Validate API files
-        run: |
-          for f in ui/src/api/contracts.ts ui/src/api/invoices.ts ui/src/api/suppliers.ts ui/src/api/index.ts; do
-            if [ -f "$f" ]; then
-              echo "  ✔ $f"
-            else
-              echo "  ⚠ $f not found (may not exist yet)"
-            fi
-          done
-
-      - name: Validate View files
+      - name: Check UI files
         run: |
           for f in \
-            ui/src/views/contracts/index.vue \
-            ui/src/views/contracts/detail.vue \
-            ui/src/views/invoices/index.vue \
-            ui/src/views/suppliers/index.vue; do
-            if [ -f "$f" ]; then
-              echo "  ✔ $f"
-            else
-              echo "  ⚠ $f not found (may not exist yet)"
-            fi
-          done
-
-      - name: Validate Route files
-        run: |
-          for f in \
+            ui/src/api/contracts.ts ui/src/api/invoices.ts ui/src/api/suppliers.ts \
+            ui/src/views/contracts/index.vue ui/src/views/contracts/detail.vue \
+            ui/src/views/invoices/index.vue ui/src/views/suppliers/index.vue \
             ui/src/router/routes/modules/contracts.ts \
             ui/src/router/routes/modules/invoices.ts \
             ui/src/router/routes/modules/suppliers.ts; do
-            if [ -f "$f" ]; then
-              echo "  ✔ $f"
-            else
-              echo "  ⚠ $f not found (may not exist yet)"
-            fi
+            [ -f "$f" ] && echo "  OK $f" || echo "  MISSING $f"
           done
 
       - name: Check route path format
         run: |
-          if [ -f "ui/src/router/routes/modules/contracts.ts" ]; then
-            if grep -q "path: ''" ui/src/router/routes/modules/contracts.ts; then
-              echo "  ✔ contracts route uses path: '' (correct)"
+          for f in ui/src/router/routes/modules/*.ts; do
+            if grep -q "path: ''" "$f" 2>/dev/null; then
+              echo "  OK $(basename $f) path:''"
             else
-              echo "  ⚠ contracts route does NOT use path: ''"
+              echo "  WARN $(basename $f) no path:''"
             fi
-          fi
+          done
 
   # ============================================================
-  # Job 3: 提交信息检查 (master only)
+  # Job 3: 部署到 236 (自托管 Runner)
   # ============================================================
-  commit-lint:
-    name: Commit Message Check
-    runs-on: ubuntu-latest
-    timeout-minutes: 3
-    if: github.ref == 'refs/heads/master'
+  deploy:
+    name: 部署到236
+    needs: [python-lint, ui-validate]
+    runs-on: [self-hosted, 236, production]
+    if: github.ref == 'refs/heads/master' && success()
+    timeout-minutes: 30
 
     steps:
       - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
-      - name: Check commit message format
+      - name: Deploy backend + frontend
         run: |
-          # 检查最新推送的提交信息格式
-          COMMIT_MSG=$(git log --format=%s -1)
-          echo "Latest commit: $COMMIT_MSG"
-          
-          # 检查是否符合 feat|fix|docs|ci|refactor(scope): message 格式
-          if echo "$COMMIT_MSG" | grep -qE '^(feat|fix|docs|ci|refactor|style|test|chore)\([^)]+\):'; then
-            echo "  ✔ Commit message format OK"
-          else
-            echo "  ⚠ Commit message may not follow convention: type(scope): message"
-            echo "    Allowed types: feat|fix|docs|ci|refactor|style|test|chore"
-          fi
+          echo "=== 开始部署 ==="
+          rsync -a --delete "${{ github.workspace }}/" /home/samuel/.openclaw/workspace/pm-director/
+          bash /home/samuel/.openclaw/workspace/pm-director/scripts/deploy-236.sh all
 
-  # ============================================================
-  # Job 4: 部署通知 (仅 master)
-  # ============================================================
-  deploy-ready:
-    name: Deploy Ready Notification
-    needs: [python-lint, ui-validate]
-    runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/master' && success()
-
-    steps:
-      - name: CI passed
+      - name: Verify
         run: |
-          echo "============================================"
-          echo "  ✅ CI 全部通过！"
-          echo "============================================"
-          echo "  Commit: ${{ github.sha }}"
-          echo "  Branch: ${{ github.ref }}"
-          echo ""
-          echo "  部署说明："
-          echo "  由于 236 无公网 IP，请执行以下命令部署："
-          echo "  ssh 236 'cd /home/samuel/... && git pull && bash scripts/deploy-236.sh all'"
-          echo "============================================"
+          echo "=== 验证 ==="
+          curl -s -o /dev/null -w 'Frontend: HTTP %{http_code}\n' http://localhost:5777/
+          curl -s -o /dev/null -w 'Backend: HTTP %{http_code}\n' http://localhost:8800/api/stats
+          ls -la /home/samuel/.openclaw/workspace/pm-director/ui-vben/apps/web-antd/dist/js/contracts-*.js
+          ls -la /home/samuel/.openclaw/workspace/pm-director/ui-vben/apps/web-antd/dist/js/invoices-*.js
+          ls -la /home/samuel/.openclaw/workspace/pm-director/ui-vben/apps/web-antd/dist/js/suppliers-*.js
+
+      - name: Audit
+        run: |
+          echo "=== 审计 ==="
+          echo "Commit: ${{ github.sha }}"
+          echo "Time: $(date)"
+          echo "Frontend: $(curl -s -o /dev/null -w '%{http_code}' http://localhost:5777/)"
+          echo "Backend:  $(curl -s -o /dev/null -w '%{http_code}' http://localhost:8800/api/stats)"
+          echo "=== 审计通过 ==="

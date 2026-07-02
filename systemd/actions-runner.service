@@ -1,0 +1,25 @@
+# GitHub Actions 自托管 Runner (236-runner)
+# 安装: sudo cp systemd/actions-runner.service /etc/systemd/system/
+# 启动: sudo systemctl daemon-reload && sudo systemctl enable --now actions-runner
+# 状态: sudo systemctl status actions-runner
+# 日志: sudo journalctl -u actions-runner -f
+
+[Unit]
+Description=GitHub Actions Self-Hosted Runner (236-runner)
+After=network.target
+StartLimitIntervalSec=60
+StartLimitBurst=3
+
+[Service]
+Type=simple
+User=samuel
+Group=samuel
+WorkingDirectory=/home/samuel/actions-runner
+ExecStart=/home/samuel/actions-runner/bin/Runner.Listener run
+Restart=always
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

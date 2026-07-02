@@ -9,6 +9,7 @@ import type { VxeGridProps } from '#/adapter/vxe-table'
 import { useVbenVxeGrid } from '#/adapter/vxe-table'
 import { getContractsApi, type ContractItem } from '#/api/contracts'
 import { useRouter } from 'vue-router'
+import { onMounted } from 'vue'
 
 const router = useRouter()
 
@@ -77,8 +78,10 @@ const gridOptions: VxeGridProps<ContractItem> = {
 
 const [Grid, gridApi] = useVbenVxeGrid({ gridOptions })
 
-// 双击行跳转详情
-gridApi.on('cell-dblclick', ({ row }: { row: ContractItem }) => {
-  router.push({ name: 'ContractDetail', params: { id: row.contract_id } })
+onMounted(() => {
+  // 双击行跳转详情
+  gridApi.on('cell-dblclick', ({ row }: { row: ContractItem }) => {
+    router.push({ name: 'ContractDetail', params: { id: row.contract_id } })
+  })
 })
 </script>
