@@ -20,3 +20,5 @@ tools/archive/
 octoparse_data/
 OCdoc/
 OCRdoc/
+ui/node_modules/
+ui/dist/
