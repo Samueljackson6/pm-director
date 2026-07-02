@@ -1,0 +1,113 @@
+- generic:
+  - generic:
+    - generic:
+      - generic:
+        - generic:
+          - generic:
+            - generic:
+              - button:
+                - generic:
+                  - img
+              - button
+              - button
+              - button
+              - button
+              - button
+              - button
+              - button:
+                - img
+            - button:
+              - img
+          - generic:
+            - button:
+              - img
+          - generic:
+            - button "dark":
+              - img
+        - generic:
+          - generic:
+            - img
+            - paragraph: 企业管理一体化平台
+        - generic:
+          - generic:
+            - generic:
+              - img
+              - generic: 开箱即用的大型中后台管理系统
+              - generic: 工程化、高性能、跨组件库的前端模版
+        - generic:
+          - generic:
+            - generic:
+              - generic:
+                - heading [level=2]: 欢迎回来 👋🏻
+                - paragraph:
+                  - generic: 请输入您的帐户信息开始高效办公吧！
+              - generic:
+                - generic:
+                  - generic:
+                    - generic:
+                      - generic:
+                        - combobox [expanded] [active]:
+                          - generic: 请选择租户
+                          - img
+                        - combobox
+                  - generic:
+                    - generic:
+                      - generic:
+                        - textbox:
+                          - /placeholder: 请输入用户名
+                          - text: admin
+                  - generic:
+                    - generic:
+                      - generic:
+                        - generic:
+                          - textbox:
+                            - /placeholder: 请输入密码
+                            - text: admin123
+                          - generic:
+                            - img
+              - generic:
+                - generic:
+                  - generic:
+                    - checkbox
+                    - generic: 记住账号
+                - generic: 忘记密码?
+              - button: 登录
+              - generic:
+                - button: 手机号登录
+                - button: 扫码登录
+              - generic:
+                - generic:
+                  - generic: 其他登录方式
+                - generic:
+                  - button:
+                    - img
+                  - button:
+                    - img
+                  - button:
+                    - img
+                  - button:
+                    - img
+              - generic: 还没有账号? 创建账号
+              - generic:
+                - generic:
+                  - generic: 萌新必读
+                - generic:
+                  - link:
+                    - /url: http://ruoyioffice.com/
+                    - text: 📚 开发指南
+                  - link:
+                    - /url: http://ruoyioffice.com/video/
+                    - text: 🔥 视频教程
+                  - link:
+                    - /url: https://www.iocoder.cn/Interview/good-collection/
+                    - text: ⚡ 面试手册
+                  - link:
+                    - /url: http://static.yudao.iocoder.cn/mp/xinyu370.jpeg
+                    - text: 🤝 外包咨询
+          - generic:
+            - generic:
+              - text: Copyright © 2024
+              - link:
+                - /url: https://gitee.com/yudaocode/yudao-ui-admin-vben
+                - text: 企业管理一体化平台
+  - listbox [ref=e449]

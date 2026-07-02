@@ -1,0 +1,83 @@
+- generic [ref=f9e7]:
+  - generic [ref=f9e8]:
+    - generic [ref=f9e9]:
+      - generic [ref=f9e10]:
+        - generic:
+          - button [ref=f9e11] [cursor=pointer]:
+            - img [ref=f9e13]
+          - button [ref=f9e15] [cursor=pointer]
+          - button [ref=f9e17] [cursor=pointer]
+          - button [ref=f9e19] [cursor=pointer]
+          - button [ref=f9e21] [cursor=pointer]
+          - button [ref=f9e23] [cursor=pointer]
+          - button [ref=f9e25] [cursor=pointer]
+        - button [ref=f9e27] [cursor=pointer]:
+          - img [ref=f9e28]
+      - button [ref=f9e34] [cursor=pointer]:
+        - img [ref=f9e35]
+    - button [ref=f9e38] [cursor=pointer]:
+      - img [ref=f9e39]
+    - button "dark" [ref=f9e44] [cursor=pointer]:
+      - img [ref=f9e45]
+  - generic [ref=f9e53]:
+    - img "企业管理一体化平台" [ref=f9e54]
+    - paragraph [ref=f9e55]: 企业管理一体化平台
+  - generic [ref=f9e59]:
+    - img "87667-SVG8" [ref=f9e60]
+    - generic [ref=f9e364]: 开箱即用的大型中后台管理系统
+    - generic [ref=f9e365]: 工程化、高性能、跨组件库的前端模版
+  - generic [ref=f9e366]:
+    - generic [ref=f9e367]:
+      - generic [ref=f9e368]:
+        - generic [ref=f9e369]:
+          - heading "欢迎回来 👋🏻" [level=2] [ref=f9e370]
+          - paragraph [ref=f9e371]:
+            - generic [ref=f9e372]: 请输入您的帐户信息开始高效办公吧！
+        - generic [ref=f9e374]:
+          - textbox "请输入用户名" [ref=f9e378]: admin
+          - generic [ref=f9e382]:
+            - textbox "请输入密码" [ref=f9e383]: admin123
+            - img [ref=f9e385] [cursor=pointer]
+        - generic [ref=f9e390]:
+          - generic [ref=f9e392]:
+            - checkbox "记住账号" [ref=f9e393] [cursor=pointer]
+            - generic [ref=f9e394] [cursor=pointer]: 记住账号
+          - generic [ref=f9e395] [cursor=pointer]: 忘记密码?
+        - button "login" [active] [ref=f9e396] [cursor=pointer]: 登录
+        - generic [ref=f9e397]:
+          - button "手机号登录" [ref=f9e398] [cursor=pointer]
+          - button "扫码登录" [ref=f9e399] [cursor=pointer]
+        - generic [ref=f9e400]:
+          - generic [ref=f9e403]: 其他登录方式
+          - generic [ref=f9e405]:
+            - button [ref=f9e406] [cursor=pointer]:
+              - img [ref=f9e407]
+            - button [ref=f9e410] [cursor=pointer]:
+              - img [ref=f9e411]
+            - button [ref=f9e413] [cursor=pointer]:
+              - img [ref=f9e414]
+            - button [ref=f9e425] [cursor=pointer]:
+              - img [ref=f9e426]
+        - generic [ref=f9e428]: 还没有账号? 创建账号
+        - generic [ref=f9e429]:
+          - generic [ref=f9e432]: 萌新必读
+          - generic [ref=f9e434]:
+            - link "📚 开发指南" [ref=f9e435] [cursor=pointer]:
+              - /url: http://ruoyioffice.com/
+            - link "🔥 视频教程" [ref=f9e436] [cursor=pointer]:
+              - /url: http://ruoyioffice.com/video/
+            - link "⚡ 面试手册" [ref=f9e437] [cursor=pointer]:
+              - /url: https://www.iocoder.cn/Interview/good-collection/
+            - link "🤝 外包咨询" [ref=f9e438] [cursor=pointer]:
+              - /url: http://static.yudao.iocoder.cn/mp/xinyu370.jpeg
+      - generic [ref=f9e442]:
+        - generic [ref=f9e443]:
+          - text: 请完成安全验证
+          - img [ref=f9e445] [cursor=pointer]
+        - generic [ref=f9e448]:
+          - img [ref=f9e452] [cursor=pointer]
+          - generic [ref=f9e457]: 请按住滑块拖动
+    - generic [ref=f9e440]:
+      - text: Copyright © 2024
+      - link "企业管理一体化平台" [ref=f9e441] [cursor=pointer]:
+        - /url: https://gitee.com/yudaocode/yudao-ui-admin-vben
