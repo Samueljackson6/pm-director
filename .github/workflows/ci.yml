@@ -94,7 +94,8 @@ jobs:
         run: |
           echo "=== 开始部署 ==="
           cd /home/samuel/.openclaw/workspace/pm-director
-          git pull origin master 2>&1
+          git fetch origin master
+          git reset --hard origin/master
           bash scripts/deploy-236.sh all
 
       - name: Verify
