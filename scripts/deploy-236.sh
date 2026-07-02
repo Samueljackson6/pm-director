@@ -14,8 +14,8 @@ PM_DIR=/home/samuel/.openclaw/workspace/pm-director
 deploy_backend() {
   echo ">>> Deploying Backend..."
   cd $PM_DIR
-  git fetch origin master
-  git reset --hard origin/master
+  git fetch origin master 2>/dev/null || true
+  git reset --hard origin/master 2>/dev/null || true
 
   systemctl --user restart pm-backend
   sleep 3

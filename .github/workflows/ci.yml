@@ -93,9 +93,9 @@ jobs:
       - name: Deploy backend + frontend
         run: |
           echo "=== 开始部署 ==="
+          rsync -a --exclude='database/' --exclude='cache/' --exclude='ui-vben/' \
+            "${{ github.workspace }}/" /home/samuel/.openclaw/workspace/pm-director/
           cd /home/samuel/.openclaw/workspace/pm-director
-          git fetch origin master
-          git reset --hard origin/master
           bash scripts/deploy-236.sh all
 
       - name: Verify
