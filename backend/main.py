@@ -39,9 +39,93 @@ def vben_captcha():
 def vben_user_info():
     return vben_response({'username': 'admin', 'realName': 'Admin', 'roles': ['admin'], 'homePath': '/dashboard'})
 
+@app.post('/system/auth/logout')
+def vben_logout():
+    return vben_response(True)
+
+@app.post('/system/auth/refresh-token')
+def vben_refresh_token(refreshToken: str = ''):
+    return vben_response({'accessToken': 'vben-dev-token', 'refreshToken': 'vben-refresh-token', 'expires': 9999999999})
+
 @app.get('/system/auth/get-permission-info')
 def vben_permission_info():
-    return vben_response({'userPermissions': ['*'], 'rolePermissions': ['*']})
+    return vben_response({
+        'user': {
+            'userId': '1',
+            'username': 'admin',
+            'nickname': '管理员',
+            'avatar': '',
+            'homePath': '/dashboard',
+            'roles': ['admin'],
+        },
+        'roles': ['admin'],
+        'permissions': ['*:*:*'],
+        'menus': [{
+            'name': 'Dashboard',
+            'path': '/dashboard',
+            'component': 'BasicLayout',
+            'meta': {
+                'title': '概览',
+                'icon': 'lucide:layout-dashboard',
+                'order': 0,
+                'ignoreAccess': True,
+            },
+            'children': [{
+                'name': 'Analytics',
+                'path': 'analytics',
+                'component': '/dashboard/analytics/index',
+                'meta': {'title': '分析页', 'ignoreAccess': True},
+            }],
+        }, {
+            'name': 'ContractManagement',
+            'path': '/contracts',
+            'component': 'BasicLayout',
+            'meta': {
+                'title': '合同管理',
+                'icon': 'lucide:file-text',
+                'order': 1,
+                'ignoreAccess': True,
+            },
+            'children': [{
+                'name': 'ContractList',
+                'path': 'list',
+                'component': '/contracts/index',
+                'meta': {'title': '合同列表', 'ignoreAccess': True},
+            }],
+        }, {
+            'name': 'InvoiceManagement',
+            'path': '/invoices',
+            'component': 'BasicLayout',
+            'meta': {
+                'title': '发票管理',
+                'icon': 'lucide:receipt',
+                'order': 2,
+                'ignoreAccess': True,
+            },
+            'children': [{
+                'name': 'InvoiceList',
+                'path': 'list',
+                'component': '/invoices/index',
+                'meta': {'title': '发票列表', 'ignoreAccess': True},
+            }],
+        }, {
+            'name': 'SupplierManagement',
+            'path': '/suppliers',
+            'component': 'BasicLayout',
+            'meta': {
+                'title': '供应商管理',
+                'icon': 'lucide:building',
+                'order': 3,
+                'ignoreAccess': True,
+            },
+            'children': [{
+                'name': 'SupplierList',
+                'path': 'list',
+                'component': '/suppliers/index',
+                'meta': {'title': '供应商列表', 'ignoreAccess': True},
+            }],
+        }],
+    })
 
 @app.get('/api/menu/list')
 def vben_menu_list():
