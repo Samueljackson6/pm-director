@@ -1,0 +1,15 @@
+[Unit]
+Description=pm-director Backend (FastAPI port 8800)
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/python3 -m uvicorn backend.main:app --host 0.0.0.0 --port 8800
+WorkingDirectory=/home/samuel/.openclaw/workspace/pm-director
+Restart=always
+RestartSec=5
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=default.target

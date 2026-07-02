@@ -17,16 +17,14 @@ deploy_backend() {
   git fetch origin master
   git reset --hard origin/master
 
-  pkill -f 'uvicorn backend.main' 2>/dev/null || true
-  sleep 1
-  setsid python3 -m uvicorn backend.main:app --host 0.0.0.0 --port 8800 > /tmp/pm-backend.log 2>&1 &
+  systemctl --user restart pm-backend
   sleep 3
 
   STATUS=$(curl -s -o /dev/null -w '%{http_code}' http://localhost:8800/api/stats)
   echo "Backend: HTTP $STATUS"
   if [ "$STATUS" != "200" ]; then
     echo "ERROR: Backend failed to start!"
-    tail -5 /tmp/pm-backend.log
+    journalctl --user -u pm-backend -n 10 --no-pager
     exit 1
   fi
 }
@@ -56,17 +54,14 @@ deploy_frontend() {
 
   # Step 3: Restart server
   echo "Restarting frontend server..."
-  pkill -f 'http.server 5777' 2>/dev/null || true
-  sleep 1
-  setsid python3 -m http.server 5777 --bind 0.0.0.0 \
-    --directory $VBEN_DIR/dist > /tmp/vben5777.log 2>&1 &
+  systemctl --user restart pm-frontend
   sleep 3
 
   STATUS=$(curl -s -o /dev/null -w '%{http_code}' http://localhost:5777/)
   echo "Frontend: HTTP $STATUS"
   if [ "$STATUS" != "200" ]; then
     echo "ERROR: Frontend failed to start!"
-    tail -5 /tmp/vben5777.log
+    journalctl --user -u pm-frontend -n 10 --no-pager
     exit 1
   fi
 }
