@@ -1,0 +1,79 @@
+# pm-director 部署工作流
+# 注意: 236 服务器无公网 IP，当前采用 SSH 隧道部署模式
+# 需要在 GitHub Secrets 中配置:
+#   SSHHOST=192.168.0.236
+#   SSHUSER=samuel
+#   SSHKEY= <private key>
+#   或通过 SSH_JUMP_HOST (跳板机 47.98.184.188) 中转
+
+name: Deploy to 236
+
+on:
+  push:
+    branches: [master]
+    paths:
+      - 'ui/**'
+      - 'backend/**'
+      - 'docker-compose.yml'
+      - 'scripts/deploy-236.sh'
+  workflow_dispatch: # 手动触发
+
+jobs:
+  deploy-backend:
+    name: Deploy Backend
+    runs-on: ubuntu-latest
+    if: contains(join(github.event.commits.*.files, ' '), 'backend/')
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SSH_HOST || '192.168.0.236' }}
+          username: ${{ secrets.SSH_USER || 'samuel' }}
+          key: ${{ secrets.SSH_KEY }}
+          port: ${{ secrets.SSH_PORT || '22' }}
+          script: |
+            cd /home/samuel/.openclaw/workspace/pm-director
+            git pull origin master
+            pkill -f 'uvicorn backend.main' 2>/dev/null
+            nohup python3 -m uvicorn backend.main:app --host 0.0.0.0 --port 8800 > /tmp/pm-backend.log 2>&1 &
+            sleep 2
+            curl -s -o /dev/null -w 'Backend: HTTP %{http_code}\n' http://localhost:8800/api/stats
+
+  deploy-frontend:
+    name: Deploy Frontend
+    runs-on: ubuntu-latest
+    if: contains(join(github.event.commits.*.files, ' '), 'ui/')
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SSH_HOST || '192.168.0.236' }}
+          username: ${{ secrets.SSH_USER || 'samuel' }}
+          key: ${{ secrets.SSH_KEY }}
+          port: ${{ secrets.SSH_PORT || '22' }}
+          script: |
+            VBEN=/home/samuel/.openclaw/workspace/pm-director/ui-vben/apps/web-antd
+            UI=/home/samuel/.openclaw/workspace/pm-director/ui
+
+            # 同步自定义代码
+            cp $UI/src/api/*.ts $VBEN/src/api/
+            cp $UI/src/views/contracts/index.vue $VBEN/src/views/contracts/
+            cp $UI/src/views/contracts/detail.vue $VBEN/src/views/contracts/
+            cp $UI/src/views/invoices/index.vue $VBEN/src/views/invoices/
+            cp $UI/src/views/suppliers/index.vue $VBEN/src/views/suppliers/
+            cp $UI/src/router/routes/modules/*.ts $VBEN/src/router/routes/modules/
+
+            # 构建
+            cd /home/samuel/.openclaw/workspace/pm-director/ui-vben
+            npx pnpm -F @vben/web-antd build
+
+            # 重启
+            pkill -f 'http.server 5777' 2>/dev/null
+            nohup python3 -m http.server 5777 --bind 0.0.0.0 \
+              --directory $VBEN/dist > /tmp/vben5777.log 2>&1 &
+            sleep 2
+            curl -s -o /dev/null -w 'Frontend: HTTP %{http_code}\n' http://localhost:5777/

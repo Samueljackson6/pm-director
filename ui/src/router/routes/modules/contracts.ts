@@ -3,7 +3,7 @@ const routes: RouteRecordRaw[] = [{
   meta: { icon: 'lucide:file-text', order: 1, title: 'Contracts', ignoreAccess: true },
   name: 'Contracts', path: '/contracts',
   children: [{
-    name: 'ContractList', path: 'index',
+    name: 'ContractList', path: '',
     component: () => import('#/views/contracts/index.vue'),
     meta: { title: 'All Contracts', ignoreAccess: true }
   }, {
