@@ -47,6 +47,15 @@ def vben_logout():
 def vben_refresh_token(refreshToken: str = ''):
     return vben_response({'accessToken': 'vben-dev-token', 'refreshToken': 'vben-refresh-token', 'expires': 9999999999})
 
+# ===== RuoYi-Office dashboard API mocks =====
+@app.get('/system/dict-data/simple-list')
+def vben_dict_data():
+    return vben_response([])
+
+@app.get('/system/notify-message/get-unread-count')
+def vben_notify_unread():
+    return vben_response(0)
+
 @app.get('/system/auth/get-permission-info')
 def vben_permission_info():
     return vben_response({
