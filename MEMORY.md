@@ -1,6 +1,6 @@
 # MEMORY.md - 项目总监长期记忆
 
-> 最后更新:2026-07-01
+> 最后更新:2026-07-02
 
 ---
 
@@ -221,60 +221,35 @@ YYYY-MM-DD：金额元
 
 ## 📋 合同识别专项(2026-06-26 新增)
 
-### 智能识别系统
+### 数据源变更（2026-07-02 重要更新）
 
-**核心文件**:
-- 识别规则:`knowledge-base/80-PM项目管理团队/方法论/合同识别规则库-科研与服务类项目专项.md`
-- 智能解析器:`tools/contract_intelligent_recognizer.py`
-- 缓存管理器:`tools/contract_cache_manager.py`
-- 批量工作流:`tools/batch_contract_workflow.py`
-- 索引:`knowledge-base/80-PM项目管理团队/合同识别专项索引.md`
+**核心变更**：
+- ✅ **主数据源**：手动OCR后的.docx文件（`/home/samuel/OCdoc/已ocr合同`）
+- ✅ **PDF角色**：仅作原始合同存档、审计对照和系统展示
+- ❌ **不再需要**：对PDF扫描件进行PP-StructureV3等自动OCR识别
 
-**支持类型**:
-1. **科研类项目**:研究阶段识别、付款计划提取、阶段-付款对应关系推断
-2. **服务类项目**:工期识别、服务要求提取
+**详见**：`docs/合同识别数据源说明-20260702.md`
 
-**已识别合同**:
-| 合同 | 类型 | 研究阶段 | 付款计划 | 金额 | 状态 |
-|------|------|---------|---------|------|------|
-| 合同1-虚拟电厂 | 科研 | 6个 | 6笔 | 75.44万元 | ✅ 已缓存 |
-| 合同9-断面限额 | 科研 | 5个 | 4笔 | 125.08万元 | ✅ 已缓存 |
-| **总计** | - | - | - | **200.52万元** | **2个** |
+### 已入库数据
 
-**测试验证**:
-- 虚拟电厂合同:6个阶段、6笔付款(75.44万元)、对应关系1:1 ✅
-- 断面限额合同:5个阶段、4笔付款(125.08万元)、对应关系4:5(阶段合并) ✅
+| 数据类型 | 数量 |
+|---------|------|
+| 合同总数（已手动OCR） | 35个 |
+| 标准数据JSON缓存 | 56个 |
+| 数据库 contracts 表 | 30条 |
+| stages 表 | 66条 |
+| payments 表 | 57条 |
+| deliverables 表 | 106条 |
+| invoices 表 | 71条 |
+| stage_payment_link | 38条 |
 
-**识别准确率**:
-- 研究阶段识别:100%
-- 付款计划识别:100%(需手动辅助)
-- 对应关系推断:80%
+### 工具保留用途
 
-**效率提升**:
-- 缓存机制:400倍效率提升(3秒 vs 20分钟)
-- 避免重复OCR:节省大量时间和算力
-
-**发现的问题**:
-1. OCR格式多样性:表格打散、顺序混乱
-2. PP-StructureV3耗时长:67秒/2页、内存~4GB
-3. 复杂付款格式:条款引用模式、合并付款
-
-**下一步计划**:
-1. 对合同10、11、1-雅安运行PP-StructureV3识别
-2. 运行批量识别工作流
-3. 持续优化识别规则
-
-### PP-StructureV3识别
-
-**优势**:
-- 准确率:83.3%(vs 百度OCR 61.1%)
-- 支持跨行跨列表格
-- 自动检测表格位置
-
-**注意事项**:
-- 内存占用大(~4GB)
-- 识别速度慢(67秒/2页)
-- 建议分批识别(10页/批)
+以下工具**保留但不作日常使用**，仅在新增合同或交叉验证时启用：
+- `tools/pp_structure_recognize.py` — PP-StructureV3
+- `tools/contract_intelligent_recognizer.py` — 智能识别器
+- `tools/batch_contract_workflow.py` — 批量工作流
+- `tools/contract_cache_manager.py` — 缓存管理器
 
 ---
 
@@ -567,6 +542,7 @@ result = requests.post(ocr_url, params={'access_token': access_token}, data={'im
 ---
 
 ## 改进日志
+| 2026-07-02 | 数据源变革 | OCR数据源切换为手动.docx，PDF仅作存档。WORKFLOW.md重写。Vben前端确认已部署236。Docker环境验证通过。Git提交7d33635+1。 |
 | 2026-06-30 | 日常归档 | 完成 25 个任务。新增 1 条知识。 |
 | 2026-06-29 | 工作流创建 | 创建合同详细信息补充工作流。制定执行计划（35个合同，分3批）。知识库更新（+3条）。 |
 | 2026-06-29 | 改进执行 | 批量更新签订日期（7条记录）。数据质量从75分→80分。商机项目处理（13个保持不变）。 |
@@ -707,21 +683,32 @@ result = requests.post(ocr_url, params={'access_token': access_token}, data={'im
 
 ### 合同存放信息
 
-**本地路径**：`/home/samuel/OCdoc/已ocr合同`
-**飞书云盘路径**：https://scnfxvn6tpnq.feishu.cn/drive/folder/BVKufHrlHlNOjqdhzGAc7aa8nGf
+**主数据源（OCR后.docx）**：`/home/samuel/OCdoc/已ocr合同`
+**飞书云盘（PDF原件）**：https://scnfxvn6tpnq.feishu.cn/drive/folder/BVKufHrlHlNOjqdhzGAc7aa8nGf
 **folder_token**：BVKufHrlHlNOjqdhzGAc7aa8nGf
 **文件总数**：35个
 **文件格式**：OCR后的.docx文本文件（可直接读取）
 
-### 已完成详细识别的合同
+### 数据源变更说明（2026-07-02）
 
-| 序号 | 项目编号 | 项目名称 | 研究阶段 | 付款计划 | 金额 | 识别状态 | 缓存文件 |
-|------|---------|---------|---------|---------|------|---------|----------|
-| 1 | ZH02-202408007 | 虚拟电厂 | 6个✅ | 6笔✅ | 75.44万 | ✅ 完整 | 4cdcaad5...json |
-| 2 | ZH02-202509025 | 断面限额 | 5个✅ | 4笔✅ | 125.08万 | ✅ 完整 | 266764a3...json |
-| 3 | 合同10 | 川西高原冻融 | - | 2笔✅ | 17.08万 | ✅ 完整 | 合同10-标准数据.json |
-| 4 | 合同11 | 无线电侦测 | 7个✅ | 4笔✅ | 63.5万 | ✅ 完整 | 合同11-标准数据.json |
-| 5 | 合同1-雅安 | 雅安花滩 | - | 2笔✅ | 13.5万 | ✅ 完整 | 合同1-雅安-标准数据.json |
+**📌 重要变更**：
+- **全部35个合同**已通过手动OCR完成，不再需要OCR识别PDF扫描件
+- OCR后的.docx文件是合同信息提取的**主数据源**
+- PDF扫描件仅作为**原始存档、审计对照、系统展示**使用
+- **详见**：`docs/合同识别数据源说明-20260702.md`
+
+### 已入库合同数据
+
+**数据库导入状态**（30条 contracts + 66 stages + 57 payments + 106 deliverables）：
+
+| 指标 | 数值 |
+|------|------|
+| 合同总数（已手动OCR） | 35个 |
+| 标准数据JSON缓存 | 56个 |
+| 已导入数据库 | 30条 |
+| 数据质量评分 | 88.5分 |
+
+**待入库原因**：部分合同JSON数据尚需人工校验和补充（合同编号、金额格式等），非OCR识别问题。
 
 ### 识别数据结构
 
@@ -741,31 +728,24 @@ result = requests.post(ocr_url, params={'access_token': access_token}, data={'im
 
 ### 缓存文件位置
 
-**路径**：`/home/samuel/.openclaw/workspace/pm-director/cache/contracts/`
+**路径**：`cache/contracts/`（本仓库）
 
 **文件类型**：
-1. `*-标准数据.json` - 完整结构化数据
-2. `*_recognized.json` - PP-StructureV3识别结果
-3. `*_text.txt` - OCR提取的纯文本
+1. `*-标准数据.json` - 完整结构化数据（当前实际使用的数据源）
+2. `*_recognized.json` - PP-StructureV3识别结果（旧，保留参考）
+3. `*_text.txt` - OCR提取的纯文本（旧，保留参考）
 
-### 识别工具
+### 工具状态
 
-| 工具 | 路径 | 说明 |
-|------|------|------|
-| 缓存管理器 | `tools/contract_cache_manager.py` | 避免重复OCR |
-| 智能识别器 | `tools/contract_intelligent_recognizer.py` | 自动识别合同类型 |
-| 批量工作流 | `tools/batch_contract_workflow.py` | 批量识别工作流 |
-| PP-StructureV3 | `tools/pp_structure_recognize.py` | PDF OCR识别 |
-
-### 识别准确率
-
-| 项目类型 | 研究阶段 | 付款计划 | 交付物 | 验收信息 |
-|---------|---------|---------|--------|----------|
-| 科研类 | 100% | 90% | 80% | 80% |
-| 服务类 | - | 100% | 100% | 100% |
+| 工具 | 路径 | 当前用途 |
+|------|------|---------|
+| 缓存管理器 | `tools/contract_cache_manager.py` | 管理标准数据JSON缓存 |
+| 智能识别器 | `tools/contract_intelligent_recognizer.py` | 保留备用（新增合同时使用） |
+| 批量工作流 | `tools/batch_contract_workflow.py` | 保留备用 |
+| PP-StructureV3 | `tools/pp_structure_recognize.py` | 保留备用（仅交叉验证时使用） |
 
 ### 待完成工作
 
-- [ ] 补充合同11（无线电侦测）付款计划
-- [ ] 补充合同1-雅安（雅安花滩）付款计划和交付物
-- [ ] 继续识别剩余30个合同
+- [ ] 补充合同JSON中缺失的合同编号和标准格式化数据
+- [ ] 将剩余未入库的JSON数据导入数据库
+- [ ] 整理236服务器上合同PDF原件存放目录

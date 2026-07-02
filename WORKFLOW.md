@@ -1,6 +1,6 @@
 # 合同管理系统 · 开发工作流
 
-> 更新: 2026-07-01 | 环境: 本地开发 + 远程236部署
+> 更新: 2026-07-02 | 环境: 本地开发 + 远程236部署
 
 ---
 
@@ -9,41 +9,66 @@
 | 环境 | 位置 | 用途 | 启动方式 | 关闭方式 |
 |------|------|------|----------|----------|
 | **本地开发** | `D:\Tare-workspace\pm-director\` | 编码、构建、自测 | 手动 | 手动 |
-| **Docker/WSL** | docker-desktop | 测试环境容器 | `wsl -d docker-desktop` | `wsl --shutdown` |
-| **236服务器** | 192.168.0.236 | 生产部署 | systemd/nohup | systemd |
+| **Docker 测试** | Docker Desktop | 后端容器化测试 | `docker compose up -d` | `docker compose down` |
+| **236 生产** | 192.168.0.236 | 生产部署 | systemd / nohup | systemd |
 | **GitHub** | `github.com/Samueljackson6/pm-director` | 代码托管 | — | — |
 
 ## 二、端口分配
 
 | 服务 | 本地开发 | 236生产 | 说明 |
 |------|---------|---------|------|
-| FastAPI后端 | 8800 | 8800 | SQLite 只读API |
-| Vben仪表盘 | 5777 | 5777 | Ant Design Vue |
-| 简易仪表盘 | — | 5888 | 备用(旧版) |
-| RuoYi-Vben | — | 5666 | 独立项目 |
+| FastAPI 后端 | 8800 | 8800 | SQLite 只读 API |
+| Vben 仪表盘(旧版) | — | 5888 | 备用(旧版 ui-dashboard) |
+| Vben 自定义前端 | — | 5777 | 自定义 Vben 页面(待部署) |
+| RuoYi-Vben | — | 5666 | 独立项目，与本系统无关 |
 
 ## 三、开发流程
 
-### 3.1 开始新功能
+### 3.1 后端开发（FastAPI）
 
 ```bash
-# 1. 启动WSL/Docker测试环境（按需）
-wsl -d docker-desktop
-
-# 2. 本地开发（直接Windows）
-cd D:\Tare-workspace\pm-director\vben
-pnpm dev  # 启动Vben dev server → http://localhost:5777
-
-# 3. 构建验证
-pnpm -F @vben/web-antd build
-
-# 4. Git提交
-git add .
-git commit -m 'feat(模块): 说明'
-git push
+# 本地开发（Windows 原生 Python）
+cd D:\Tare-workspace\pm-director
+pip install -r backend/requirements.txt
+uvicorn backend.main:app --host 0.0.0.0 --port 8800 --reload
+# 访问 http://localhost:8800/docs (Swagger)
 ```
 
-### 3.2 代码规范
+### 3.2 Docker 测试
+
+```bash
+# 启动 Docker 测试环境
+cd D:\Tare-workspace\pm-director
+docker compose up -d
+# 访问 http://localhost:8800/
+
+# 关闭释放资源
+docker compose down
+```
+
+### 3.3 前端开发（Vben Admin v5）
+
+> Vben Admin v5 框架是独立项目（通过 npm create / git clone 获得），**不在** pm-director 仓库内。
+> pm-director 只包含自定义 UI 代码，位于 `ui/` 目录。
+
+**开发流程**：
+```bash
+# Vben 框架项目路径（独立）
+cd /home/samuel/.openclaw/workspace/pm-director/ui-vben/apps/web-antd/
+
+# 将 ui/src/ 下的自定义文件复制到框架对应位置
+# 然后启动 dev server
+pnpm dev  # → http://localhost:5777
+
+# 构建
+pnpm -F @vben/web-antd build
+
+# 部署到 236
+scp dist.zip 236:/tmp/
+ssh 236 "unzip /tmp/dist.zip -d /home/samuel/ui-vben/apps/web-antd/dist/"
+```
+
+### 3.4 代码规范
 
 | 规范 | 要求 |
 |------|------|
@@ -55,7 +80,7 @@ git push
 | API 模块 | `src/api/*.ts` |
 | 响应格式 | `{code: 0, data: {...}}` |
 
-### 3.3 API 模块写法
+### 3.5 API 模块写法（ui/src/api/）
 
 ```typescript
 import { requestClient } from '#/api/request';
@@ -65,7 +90,7 @@ export function getContractsApi(params?: any) {
 }
 ```
 
-### 3.4 路由模块写法
+### 3.6 路由模块写法（ui/src/router/routes/modules/）
 
 ```typescript
 import type { RouteRecordRaw } from 'vue-router';
@@ -82,7 +107,7 @@ const routes: RouteRecordRaw[] = [{
 export default routes;
 ```
 
-### 3.5 组件写法
+### 3.7 组件写法（ui/src/views/）
 
 ```vue
 <template>
@@ -107,39 +132,32 @@ onMounted(async () => {
 ## 四、测试流程
 
 ```bash
-# 启动WSL测试环境
-wsl -d docker-desktop
+# 后端 API 测试（直接访问）
+curl http://localhost:8800/api/stats
+curl http://localhost:8800/api/contracts?page=1&size=5
 
-# 在WSL中部署测试
-wsl -d docker-desktop -- docker run ...
-
-# 运行Playwright测试（Windows原生）
+# Docker 测试
 cd D:\Tare-workspace\pm-director
-npx playwright test
-
-# 验证后关闭测试环境释放资源
-wsl --shutdown
+docker compose up -d
+curl http://localhost:8800/api/stats
+docker compose down
 ```
 
-## 五、部署流程
+## 五、部署流程（236 生产服务器）
 
 ```bash
-# 1. 本地构建
-cd D:\Tare-workspace\pm-director\vben
-pnpm -F @vben/web-antd build
+# 1. 后端部署（FastAPI）
+ssh 236
+cd /home/samuel/.openclaw/workspace/pm-director
+git pull  # 或手动同步文件
+pkill -f "uvicorn backend.main" || true
+nohup python3 -m uvicorn backend.main:app --host 0.0.0.0 --port 8800 > /tmp/pm-director.log 2>&1 &
 
-# 2. 复制到236
-scp dist.zip 236:/tmp/
-ssh 236 "unzip /tmp/dist.zip -d /home/samuel/.../ui-vben/apps/web-antd/dist/"
+# 2. Vben 前端构建部署（仅自定义页面更新时）
+# 见 3.3 节
 
-# 3. 重启服务
-ssh 236 "pkill -f 'python3 -m http.server 5777'; cd /.../dist && python3 -m http.server 5777 &"
-
-# 4. 验证
-curl http://192.168.0.236:5777/
-
-# 5. 关闭WSL释放资源
-wsl --shutdown
+# 3. 验证
+curl http://192.168.0.236:8800/api/stats
 ```
 
 ## 六、Git 规范
@@ -155,22 +173,28 @@ feat(模块): 简短说明
 
 ```
 D:\Tare-workspace\pm-director\
-├── backend\main.py         ← FastAPI 后端
-├── database\*.db           ← SQLite 数据库
-├── vben\apps\web-antd\src\
-│   ├── api\                ← API模块
+├── backend\main.py              ← FastAPI 后端
+├── database\project_management.db ← SQLite 数据库
+├── ui\                           ← Vben 自定义前端代码（框架独立存放）
+│   ├── src\api\                  ← API 模块
 │   │   ├── contracts.ts
 │   │   ├── invoices.ts
-│   │   └── suppliers.ts
-│   ├── views\              ← 页面组件
-│   │   ├── contracts/
-│   │   ├── invoices/
-│   │   └── suppliers/
-│   ├── router\routes\modules\  ← 路由模块
-│   │   ├── contracts.ts
-│   │   ├── invoices.ts
-│   │   └── suppliers.ts
-│   └── api\request.ts      ← requestClient配置
-├── docs\vben\              ← Vben官方文档
-└── WORKFLOW.md             ← 本文档
+│   │   ├── suppliers.ts
+│   │   ├── request.ts
+│   │   └── index.ts
+│   ├── src\views\                ← 页面组件
+│   │   ├── contracts\index.vue
+│   │   ├── contracts\detail.vue
+│   │   ├── invoices\index.vue
+│   │   └── suppliers\index.vue
+│   └── src\router\routes\modules\ ← 路由模块
+│       ├── contracts.ts
+│       ├── invoices.ts
+│       └── suppliers.ts
+├── tools\                        ← 工具脚本（OCR识别、合同提取等）
+├── scripts\                      ← 数据脚本
+├── docs\                         ← 项目文档
+├── Dockerfile                    ← Python 3.11-slim
+├── docker-compose.yml            ← 后端容器化
+└── WORKFLOW.md                   ← 本文档
 ```
