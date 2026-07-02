@@ -37,7 +37,7 @@ def vben_captcha():
 
 @app.get('/system/user/info')
 def vben_user_info():
-    return vben_response({'username': 'admin', 'realName': 'Admin', 'roles': ['admin'], 'homePath': '/dashboard'})
+    return vben_response({'username': 'admin', 'realName': 'Admin', 'roles': ['admin'], 'homePath': '/#/dashboard'})
 
 @app.post('/system/auth/logout')
 def vben_logout():
@@ -55,7 +55,7 @@ def vben_permission_info():
             'username': 'admin',
             'nickname': '管理员',
             'avatar': '',
-            'homePath': '/dashboard',
+            'homePath': '/#/dashboard',
             'roles': ['admin'],
         },
         'roles': ['admin'],
