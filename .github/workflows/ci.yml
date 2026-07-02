@@ -93,8 +93,9 @@ jobs:
       - name: Deploy backend + frontend
         run: |
           echo "=== 开始部署 ==="
-          rsync -a --delete "${{ github.workspace }}/" /home/samuel/.openclaw/workspace/pm-director/
-          bash /home/samuel/.openclaw/workspace/pm-director/scripts/deploy-236.sh all
+          cd /home/samuel/.openclaw/workspace/pm-director
+          git pull origin master 2>&1
+          bash scripts/deploy-236.sh all
 
       - name: Verify
         run: |
