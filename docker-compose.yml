@@ -1,4 +1,6 @@
-version: "3.9"
+# pm-director 专用 Docker 部署
+# 注意：此 compose 文件使用独立网络，不会影响其他项目
+name: pm-director
 
 services:
   backend:
@@ -12,8 +14,9 @@ services:
     volumes:
       - ./database:/app/database
       - ./cache:/app/cache
+    networks:
+      - pm-director-net
     restart: unless-stopped
-    command: uvicorn backend.main:app --host 0.0.0.0 --port 8800
 
   frontend:
     build:
@@ -24,4 +27,11 @@ services:
       - "5777:80"
     depends_on:
       - backend
+    networks:
+      - pm-director-net
     restart: unless-stopped
+
+networks:
+  pm-director-net:
+    driver: bridge
+    name: pm-director-net
