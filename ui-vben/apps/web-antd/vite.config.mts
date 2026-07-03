@@ -95,7 +95,6 @@ export default defineConfig(async () => {
             // 修复 ids 默认导出问题
             fixIdsDefaultExportPlugin(),
           ],
-          external: ['jiti'],
         },
       },
     },
