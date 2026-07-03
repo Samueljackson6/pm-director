@@ -8,7 +8,10 @@ WORKDIR /build
 
 # 拷贝 monorepo 配置
 COPY ui-vben/package.json ui-vben/pnpm-lock.yaml ui-vben/pnpm-workspace.yaml ./
-COPY ui-vben/.npmrc ./ 2>/dev/null || true
+COPY ui-vben/.npmrc ./
+
+# 锁定关键依赖版本，避免环境兼容性问题
+RUN apk add --no-cache jq && jq '.pnpm.overrides.sass = "1.80.6" | .pnpm.overrides.jiti = "2.4.2"' package.json > tmp.json && mv tmp.json package.json
 
 # 拷贝 workspace packages
 COPY ui-vben/packages/ ./packages/
@@ -23,15 +26,14 @@ COPY ui/src/api/ ./apps/web-antd/src/api/
 COPY ui/src/views/ ./apps/web-antd/src/views/
 COPY ui/src/router/ ./apps/web-antd/src/router/
 
-# 拷贝 env 文件
-COPY ui/.env* ./apps/web-antd/ 2>/dev/null || true
+# 拷贝 env 文件（可选）
+COPY ui/.env* ./apps/web-antd/
 
 # 安装 pnpm
 RUN corepack enable && corepack prepare pnpm@10 --activate
 
-# 安装依赖（仅生产构建所需）
-RUN pnpm install --frozen-lockfile --offline 2>/dev/null \
- || pnpm install --frozen-lockfile 2>&1 | tail -3
+# 安装依赖
+RUN pnpm install --no-frozen-lockfile 2>&1 | tail -5
 
 # 构建
 RUN pnpm -F @vben/web-antd build
