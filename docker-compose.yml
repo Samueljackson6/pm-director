@@ -5,6 +5,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+      target: backend
     container_name: pm-director-backend
     ports:
       - "8800:8800"
@@ -12,4 +13,15 @@ services:
       - ./database:/app/database
       - ./cache:/app/cache
     restart: unless-stopped
-    command: uvicorn backend.main:app --host 0.0.0.0 --port 8800 --reload
+    command: uvicorn backend.main:app --host 0.0.0.0 --port 8800
+
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+    container_name: pm-director-frontend
+    ports:
+      - "5777:80"
+    depends_on:
+      - backend
+    restart: unless-stopped

@@ -90,28 +90,25 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Deploy backend + frontend
+      - name: Deploy via Docker compose
+        shell: bash
         run: |
-          echo "=== 开始部署 ==="
-          rsync -a --exclude='database/' --exclude='cache/' --exclude='ui-vben/' --exclude='.git/config' \
+          echo "=== 开始 Docker 部署 ==="
+          rsync -a --exclude='database/' --exclude='cache/' --exclude='ui-vben/node_modules' --exclude='.git/config' \
             "${{ github.workspace }}/" /home/samuel/.openclaw/workspace/pm-director/
           cd /home/samuel/.openclaw/workspace/pm-director
-          bash scripts/deploy-236.sh all
+          bash scripts/deploy-docker.sh
 
       - name: Verify
         shell: bash
         run: |
           set -e
           echo "=== 验证 ==="
-          curl -s -o /dev/null -w 'Frontend: HTTP %{http_code}\n' http://localhost:5777/
-          curl -s -o /dev/null -w 'Backend: HTTP %{http_code}\n' http://localhost:8800/api/stats
-          DIST=/home/samuel/ruoyi-office-vben/apps/web-antd/dist
-          echo "--- JS bundles ---"
-          ls $DIST/js/contracts-*.js 2>/dev/null && echo "contracts: OK" || echo "contracts: not found (may be inlined)"
-          ls $DIST/js/invoices-*.js 2>/dev/null && echo "invoices: OK" || echo "invoices: not found (may be inlined)"
-          ls $DIST/js/suppliers-*.js 2>/dev/null && echo "suppliers: OK" || echo "suppliers: not found (may be inlined)"
-          echo "--- Build time ---"
-          stat --format='%y' $DIST/index.html 2>/dev/null || echo "unknown"
+          sleep 5
+          curl -s -o /dev/null -w 'Frontend (Docker): HTTP %{http_code}\n' http://localhost:5777/
+          curl -s -o /dev/null -w 'Backend (Docker): HTTP %{http_code}\n' http://localhost:8800/api/stats
+          echo "--- API 测试 ---"
+          curl -s http://localhost:8800/api/projects?page=1\&size=1 | head -c 100
 
       - name: Audit
         shell: bash
