@@ -4,7 +4,28 @@
 
 ---
 
-## 🐳 Docker 部署迁移（2026-07-03）⭐ 最新
+## ⚠️ RuoYi 项目隔离措施（2026-07-03）⭐ 最新
+
+### 事故
+- 使用 `docker compose -p pm-director rm -f` 时误删了 RuoYi Office 的 MySQL/Redis 容器
+- 原因：Docker Compose 项目检测到"孤儿容器"后一并清理
+- RuoYi 负责的 Agent 正在恢复
+
+### 隔离措施（已实施）
+
+| 措施 | 说明 |
+|------|------|
+| `.env` → `COMPOSE_PROJECT_NAME=pm-director` | 明确项目名称 |
+| `docker-compose.yml` → `networks: pm-director-net` | 独立 bridge 网络 |
+| `deploy-docker.sh` → `--project-directory` 限定作用域 | 不影响其他项目 |
+| 删除 `docker compose down` / `rm -f` 命令 | 避免误清除 |
+| 停用 user-level systemd 服务 | 避免端口冲突 |
+
+### Git Commits
+
+| Commit | 说明 |
+|--------|------|
+| `c27572e` → `617c45f` → `903ff53` | Docker 化 + 隔离 + 文档 |
 
 ### 部署架构变更
 
