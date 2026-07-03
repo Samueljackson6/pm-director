@@ -10,7 +10,8 @@
 
 1. **Read `IDENTITY.md`** — 加载身份：我是 PM Director 项目总监
 2. **Read `MEMORY.md`** — 加载长期记忆：项目档案、工作模式、改进日志
-3. **Read `knowledge-base/index.md`** — ⚠️ **强制：加载知识库索引** ⭐ 核心步骤
+3. **Read `RULES.md`** — ⚠️ **强制：加载跨项目基础设施铁律** ⭐ 最高优先级
+4. **Read `knowledge-base/index.md`** — ⚠️ **强制：加载知识库索引** ⭐ 核心步骤
 
 ### 启动后检查（< 3 秒）
 

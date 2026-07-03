@@ -4,45 +4,59 @@
 
 ---
 
-## 🔗 跨项目基础设施协议（2026-07-03）⭐ 最新
+## ⚠️⚠️⚠️ 最高原则：跨项目基础设施铁律（2026-07-03 强制）⭐ 最高优先级
 
-**文档位置**：`D:\Tare-workspace\RuoYi Office Vben fSamuel\CROSS_PROJECT_INFRA.md`
+**违反后果**：影响 RuoYi Office 项目正常运行，数据丢失
 
-### 我们的连接信息
+**参考文档**：`D:\Tare-workspace\RuoYi Office Vben fSamuel\CROSS_PROJECT_INFRA.md`
 
-| 资源 | 配置 |
-|------|------|
-| MySQL | `127.0.0.1:3306` → 库 `pm_director`，用户 `pm_user` |
-| Redis | `127.0.0.1:6379` → DB 1，key 前缀 `pm:` |
-| 容器管理 | 由 RuoYi 运维负责，我们不操作 `ruoyi-mysql` / `ruoyi-redis` |
+### 核心原则
 
-### 当前阶段
+**❌ 禁止操作共享服务容器**：不停止/重启/修改 `ruoyi-mysql`、`ruoyi-redis` 容器
+**❌ 禁止使用 root 连接数据库**
+**❌ 禁止访问对方项目的数据库或数据**
+**❌ 禁止创建新的 MySQL/Redis 容器**
+**❌ 禁止 DROP DATABASE / FLUSHALL**
+**❌ 禁止在 docker-compose 中使用 `network_mode: host`**
+**❌ 不使用 `docker compose down` / `rm -f`**（会误删他人容器）
 
-pm-director 目前使用 **SQLite**（本地文件 `database/project_management.db`），尚未迁移到共享 MySQL。迁移时机：需时再议（见协议 §5.3 流程）。
+**✅ 只操作自己的 Docker 容器**：`pm-director-backend`、`pm-director-frontend`
+**✅ 使用自己的数据库用户**：`pm_user` / `pm_director` 库
+**✅ Redis Key 加 `pm:` 前缀**，使用 DB 1
+**✅ 敏感信息通过 `.env` 注入**，不写死在代码里
 
-### 我们的 Docker 部署策略
+### 协作修改通知
 
-- ✅ **仅部署自身服务**：FastAPI 后端 + Nginx 前端
-- ✅ **不碰共享服务**：不部署 MySQL/Redis 容器、不改 RuoYi 容器配置
-- ✅ **独立网络**：`pm-director-net`（不与 `ruoyi-net` 冲突）
-- ❌ **不再使用** `docker compose -p pm-director rm -f`（已删除此命令）
+**如果 pm-director 有任何涉及共享基础设施的变更需要通知 RuoYi Office，必须去 RuoYi 项目的文档 `CROSS_PROJECT_INFRA.md` 中进行更新说明。** 这是两个项目之间唯一的协作沟通通道。
 
-### 行为准则摘要（重要）
-
-| 规则 | 说明 |
-|------|------|
-| ✅ 使用 `pm_user` 连接 `pm_director` 数据库 | 不使用 root |
-| ✅ Redis Key 加 `pm:` 前缀 | 使用 DB 1 |
-| ❌ 不修改 `ruoyi-mysql` / `ruoyi-redis` 容器 | 运维归 RuoYi |
-| ❌ 不操作对方数据库 | 权限隔离 |
-| ❌ 不停止/重启共享容器 | 除非紧急修复 |
+变更示例：
+- 需要新的数据库/Redis 资源
+- 表结构变更可能影响共享实例性能
+- 需要停用共享服务进行维护
+- 新增需要共享基础设施的服务
 
 ### 应急恢复
 
-如果再次误删 MySQL/Redis 容器：
+如果再次误删 MySQL/Redis 容器，RuoYi 运维执行：
 ```bash
 docker compose -f /home/samuel/ruoyi-office/script/docker/infra-docker-compose.yml up -d
 ```
+
+### 我们当前的共享资源配置
+
+| 资源 | 配置 | 使用状态 |
+|------|------|---------|
+| MySQL | `127.0.0.1:3306` → 库 `pm_director`，用户 `pm_user` | 🔜 暂用 SQLite，未迁移 |
+| Redis | `127.0.0.1:6379` → DB 1，key 前缀 `pm:` | ⏸️ 尚未使用 |
+| Docker 容器管理 | 由 RuoYi 运维负责 | 我们不操作 |
+
+---
+
+## 🔗 跨项目基础设施协议（2026-07-03）
+
+（详见 CROSS_PROJECT_INFRA.md）
+
+...（原有内容保留）...
 
 ### 部署架构变更
 
