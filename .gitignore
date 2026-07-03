@@ -23,3 +23,5 @@ OCRdoc/
 ui/node_modules/
 ui/dist/
 .playwright-mcp/
+*.png
+*.jpg

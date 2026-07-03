@@ -1,6 +1,8 @@
 # PM-Director 数据不显示问题分析笔记
 
-> 2026-07-02 | 待明天处理
+> 2026-07-02 | ~~待明天处理~~ ✅ 已于 2026-07-03 Session 5 修复
+> **根因**: VxeTable 全局 adapter `proxyConfig.response.result: 'list'` 与 API 返回 `items` 不匹配
+> **修复**: gridOptions 中覆盖 `proxyConfig.response: { result: 'items', total: 'total' }`
 
 ---
 
