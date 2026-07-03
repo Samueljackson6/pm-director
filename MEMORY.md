@@ -4,28 +4,45 @@
 
 ---
 
-## ⚠️ RuoYi 项目隔离措施（2026-07-03）⭐ 最新
+## 🔗 跨项目基础设施协议（2026-07-03）⭐ 最新
 
-### 事故
-- 使用 `docker compose -p pm-director rm -f` 时误删了 RuoYi Office 的 MySQL/Redis 容器
-- 原因：Docker Compose 项目检测到"孤儿容器"后一并清理
-- RuoYi 负责的 Agent 正在恢复
+**文档位置**：`D:\Tare-workspace\RuoYi Office Vben fSamuel\CROSS_PROJECT_INFRA.md`
 
-### 隔离措施（已实施）
+### 我们的连接信息
 
-| 措施 | 说明 |
+| 资源 | 配置 |
 |------|------|
-| `.env` → `COMPOSE_PROJECT_NAME=pm-director` | 明确项目名称 |
-| `docker-compose.yml` → `networks: pm-director-net` | 独立 bridge 网络 |
-| `deploy-docker.sh` → `--project-directory` 限定作用域 | 不影响其他项目 |
-| 删除 `docker compose down` / `rm -f` 命令 | 避免误清除 |
-| 停用 user-level systemd 服务 | 避免端口冲突 |
+| MySQL | `127.0.0.1:3306` → 库 `pm_director`，用户 `pm_user` |
+| Redis | `127.0.0.1:6379` → DB 1，key 前缀 `pm:` |
+| 容器管理 | 由 RuoYi 运维负责，我们不操作 `ruoyi-mysql` / `ruoyi-redis` |
 
-### Git Commits
+### 当前阶段
 
-| Commit | 说明 |
-|--------|------|
-| `c27572e` → `617c45f` → `903ff53` | Docker 化 + 隔离 + 文档 |
+pm-director 目前使用 **SQLite**（本地文件 `database/project_management.db`），尚未迁移到共享 MySQL。迁移时机：需时再议（见协议 §5.3 流程）。
+
+### 我们的 Docker 部署策略
+
+- ✅ **仅部署自身服务**：FastAPI 后端 + Nginx 前端
+- ✅ **不碰共享服务**：不部署 MySQL/Redis 容器、不改 RuoYi 容器配置
+- ✅ **独立网络**：`pm-director-net`（不与 `ruoyi-net` 冲突）
+- ❌ **不再使用** `docker compose -p pm-director rm -f`（已删除此命令）
+
+### 行为准则摘要（重要）
+
+| 规则 | 说明 |
+|------|------|
+| ✅ 使用 `pm_user` 连接 `pm_director` 数据库 | 不使用 root |
+| ✅ Redis Key 加 `pm:` 前缀 | 使用 DB 1 |
+| ❌ 不修改 `ruoyi-mysql` / `ruoyi-redis` 容器 | 运维归 RuoYi |
+| ❌ 不操作对方数据库 | 权限隔离 |
+| ❌ 不停止/重启共享容器 | 除非紧急修复 |
+
+### 应急恢复
+
+如果再次误删 MySQL/Redis 容器：
+```bash
+docker compose -f /home/samuel/ruoyi-office/script/docker/infra-docker-compose.yml up -d
+```
 
 ### 部署架构变更
 
