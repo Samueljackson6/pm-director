@@ -1,5 +1,8 @@
 # pm-director 专用 Docker 部署
-# 注意：此 compose 文件使用独立网络，不会影响其他项目
+# 本 compose 只部署 pm-director 自身的服务（FastAPI + Nginx）
+# 共享基础设施（MySQL、Redis）由 RuoYi Office 管理，参见：
+#   CROSS_PROJECT_INFRA.md (§2 共享服务清单、§4 行为准则)
+# 应急恢复：docker compose -f /home/samuel/ruoyi-office/script/docker/infra-docker-compose.yml up -d
 name: pm-director
 
 services:
