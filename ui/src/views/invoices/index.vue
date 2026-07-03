@@ -46,6 +46,7 @@ const gridOptions: VxeGridProps<InvoiceItem> = {
     { field: 'invoice_no', title: '发票号', width: 160, showOverflow: true },
   ],
   proxyConfig: {
+    response: { result: 'items', total: 'total' },
     ajax: {
       query: async ({ page }) => {
         const data = await getInvoicesApi({ page: page.currentPage, size: page.pageSize })

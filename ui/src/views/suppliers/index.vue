@@ -58,6 +58,7 @@ const gridOptions: VxeGridProps<SupplierItem> = {
     },
   ],
   proxyConfig: {
+    response: { result: 'items', total: 'total' },
     ajax: {
       query: async () => {
         const data = await getSuppliersApi()
