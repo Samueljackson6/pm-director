@@ -20,6 +20,17 @@ export interface ContractDetail {
   finance: any
 }
 
+export interface ContractQueryParams {
+  page?: number
+  size?: number
+  search?: string
+  sort?: string
+  project_type?: string
+  contract_status?: string
+  min_amount?: number
+  max_amount?: number
+}
+
 export interface PaginatedResult<T> {
   items: T[]
   total: number
@@ -28,7 +39,7 @@ export interface PaginatedResult<T> {
 }
 
 /** 合同列表（分页），requestClient 自动解包 data 字段 */
-export async function getContractsApi(params?: any) {
+export async function getContractsApi(params?: ContractQueryParams) {
   return requestClient.get<PaginatedResult<ContractItem>>('/api/contracts', { params })
 }
 

@@ -9,7 +9,7 @@ SQLite 只读 API + Vue3 仪表盘静态文件
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from backend.routers import auth, contracts, finance, invoices, suppliers, dashboard, database as db_router
+from backend.routers import auth, contracts, finance, invoices, suppliers, dashboard, database as db_router, projects
 
 app = FastAPI(title='Contract Management API', version='1.0.0')
 app.add_middleware(CORSMiddleware, allow_origins=['*'], allow_methods=['*'], allow_headers=['*'])
@@ -22,3 +22,4 @@ app.include_router(invoices.router)
 app.include_router(suppliers.router)
 app.include_router(dashboard.router)
 app.include_router(db_router.router)
+app.include_router(projects.router)
