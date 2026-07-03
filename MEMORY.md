@@ -4,7 +4,46 @@
 
 ---
 
-## 📦 编号修复与映射补充（2026-07-03）⭐ 最新
+## 🐳 Docker 部署迁移（2026-07-03）⭐ 最新
+
+### 部署架构变更
+
+| 服务 | 之前 | 现在 |
+|------|------|------|
+| 后端 | 本机 `uvicorn` → 8800 | **Docker** `pm-director-backend` |
+| 前端 | 本机 `python http.server` → 5777 | **Docker** `pm-director-frontend` (Nginx) |
+| 数据库 | 本机 SQLite 文件 | 宿主机挂载 (volume) |
+
+### 新增文件
+
+| 文件 | 用途 |
+|------|------|
+| `Dockerfile.frontend` | 多阶段构建：pnpm build → nginx serve |
+| `nginx.conf` | 前端 Nginx 配置（API 反向代理、Gzip） |
+| `docker-compose.yml` | 后端 + 前端服务编排 |
+| `scripts/deploy-docker.sh` | 一键部署（构建+启动+验证+审计） |
+| `ui-vben/` | Vben 框架源码入库（5239文件，排除 node_modules） |
+
+### 配置变更
+
+- `.github/workflows/ci.yml` → 部署使用 `docker compose` 替代 rsync
+- `Dockerfile` → 添加 `AS backend` 阶段标签
+- `WORKFLOW.md` → 更新为 Docker 部署说明
+
+### Git 提交历史
+
+| Commit | 说明 |
+|--------|------|
+| `c27572e` | feat(docker): add Vben frontend Docker build + CI/CD update |
+| `ab54a48` | chore(docker): finalize Docker deployment configs |
+| `de883ae` | fix(nginx): add root redirect + dynamic DNS resolver |
+
+### 验证状态
+
+- 后端 API `http://localhost:8800/api/stats` → HTTP 200 ✅
+- 前端页面 `http://localhost:5777/web/` → HTTP 200 ✅
+- 项目 API `http://localhost:8800/api/projects` → HTTP 200 ✅
+- Docker 容器状态：Both Up ✅
 
 ### 执行结果
 
