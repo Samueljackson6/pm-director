@@ -25,3 +25,9 @@ ui/dist/
 .playwright-mcp/
 *.png
 *.jpg
+
+# 本地运行时缓存 / 数据 / Agent 记忆（非源码，不入库）
+.workbuddy/
+.vite/
+.omo/
+database/
