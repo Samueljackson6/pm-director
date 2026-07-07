@@ -6,6 +6,9 @@ __pycache__/
 *.db
 *.db-journal
 cache/
+# 重新纳入源码中的 cache 目录（Vben 单体仓的 src/cache 是源码，
+# 不能因上面的 cache/ 被忽略，否则 CI 全新克隆缺失文件致 unbuild --stub 失败）
+!**/src/cache/
 temp/
 *.log
 *.tmp
