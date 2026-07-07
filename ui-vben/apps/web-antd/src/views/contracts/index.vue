@@ -38,11 +38,15 @@
 </template>
 
 <script lang="ts" setup>
+// ╔══════════════════════════════════════════════════════════╗
+// ║  合同列表 - Vben Admin 5 + VxeTable 网格组件          ║
+// ║  单元格点击通过CellRouterLink渲染器处理（adapter注册） ║
+// ╚══════════════════════════════════════════════════════════╝
 import type { VxeGridProps } from '#/adapter/vxe-table'
 import { useVbenVxeGrid } from '#/adapter/vxe-table'
 import { getContractsApi, type ContractItem } from '#/api/contracts'
 import { useRouter } from 'vue-router'
-import { onMounted, reactive } from 'vue'
+import { reactive } from 'vue'
 import { message } from 'ant-design-vue'
 
 const router = useRouter()
@@ -58,7 +62,21 @@ const filters = reactive({
 const gridOptions: VxeGridProps<ContractItem> = {
   columns: [
     { field: 'contract_id', title: '合同编号', width: 200, fixed: 'left' },
-    { field: 'project_name', title: '项目名称', minWidth: 250, showOverflow: true },
+    {
+      field: 'official_name',
+      title: '合同名称',
+      minWidth: 250,
+      showOverflow: true,
+      formatter: ({ cellValue, row }) => cellValue || row.project_name || '-',
+      cellRender: {
+        name: 'CellRouterLink',
+        props: {
+          name: 'ContractDetail',
+          idField: 'contract_id',
+          field: 'official_name',
+        },
+      },
+    },
     { field: 'project_type', title: '类型', width: 90 },
     {
       field: 'contract_amount',
@@ -123,10 +141,20 @@ const gridOptions: VxeGridProps<ContractItem> = {
     pageSizes: [10, 20, 50, 100],
   },
   sortConfig: { multiple: true },
-  rowConfig: { isHover: true, height: 44 },
+  rowConfig: { keyField: 'contract_id', isHover: true, height: 44 },
 }
 
-const [Grid, gridApi] = useVbenVxeGrid({ gridOptions })
+const [Grid, gridApi] = useVbenVxeGrid({
+  gridOptions,
+  gridEvents: {
+    cellClick({ row }: any) {
+      console.log('cellClick fired', row?.contract_id)
+      if (row?.contract_id) {
+        router.push({ name: 'ContractDetail', query: { id: row.contract_id } })
+      }
+    },
+  },
+})
 
 function handleSearch() {
   gridApi.commitQuery()
@@ -144,11 +172,4 @@ function handleReset() {
 function handleExport() {
   message.info('功能开发中')
 }
-
-onMounted(() => {
-  // 双击行跳转详情
-  gridApi.on('cell-dblclick', ({ row }: { row: ContractItem }) => {
-    router.push({ name: 'ContractDetail', params: { id: row.contract_id } })
-  })
-})
 </script>

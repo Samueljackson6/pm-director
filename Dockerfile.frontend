@@ -2,13 +2,16 @@
 # pm-director Frontend — Vben Admin 5 构建 + Nginx 服务
 # ============================================================
 # Stage 1: 构建
-FROM node:20-alpine AS builder
+FROM node:22-alpine AS builder
 
 WORKDIR /build
 
 # 拷贝 monorepo 配置
 COPY ui-vben/package.json ui-vben/pnpm-lock.yaml ui-vben/pnpm-workspace.yaml ./
 COPY ui-vben/.npmrc ./
+
+# 锁定依赖版本（sass 兼容性，用node替代jq避免apk源被GFW阻断）
+RUN node -e "const p=require('./package.json');p.pnpm??={};p.pnpm.overrides??={};p.pnpm.overrides.sass='1.80.6';require('fs').writeFileSync('package.json',JSON.stringify(p,null,2))"
 
 # 拷贝 workspace packages
 COPY ui-vben/packages/ ./packages/
@@ -29,12 +32,111 @@ COPY ui/.env* ./apps/web-antd/
 # 安装 pnpm
 RUN corepack enable && corepack prepare pnpm@10 --activate
 
-# 安装依赖（仅生产构建所需）
-RUN pnpm install --frozen-lockfile --offline 2>/dev/null \
- || pnpm install --frozen-lockfile 2>&1 | tail -3
+# 安装依赖（postinstall 自动运行 stub 生成）
+RUN pnpm install 2>&1
 
-# 构建
-RUN pnpm -F @vben/web-antd build
+# 安装 tsx（TypeScript 执行器），Vite 构建时支持 .ts 文件直接导入
+RUN pnpm add -w tsx 2>&1 | tail -3
+
+# 用 esbuild 编译 @vben/vite-config，替换 jiti stub
+RUN npx esbuild internal/vite-config/src/index.ts --bundle --outfile=internal/vite-config/dist/index.mjs --format=esm --platform=node --external:./node_modules/* 2>&1 | tail -3 && \
+    node -e "const p=require('./internal/vite-config/package.json');delete p.exports;require('fs').writeFileSync('./internal/vite-config/package.json',JSON.stringify(p,null,2));console.log('compiled vite-config');"
+
+# 创建 node:* 子路径 stub + 更新 vite.config.mts 别名指向目录
+RUN mkdir -p /build/apps/web-antd/src/shims/node-fs-stub && \
+    echo 'export default{};export const existsSync=()=>false;' > /build/apps/web-antd/src/shims/node-fs-stub/index.ts && \
+    echo 'export default{};export const readFile=async()=>"";' > /build/apps/web-antd/src/shims/node-fs-stub/promises.ts && \
+    node -e "const fs=require('fs');let c=fs.readFileSync('./apps/web-antd/vite.config.mts','utf8');c=c.replace('node-fs-stub.ts','node-fs-stub/index.ts');fs.writeFileSync('./apps/web-antd/vite.config.mts',c);console.log('updated alias');"
+
+# 修正 workspace 包 exports：指向不存在的 dist 条目→改为指向 src/ 或创建空文件
+RUN node <<'NODEEOF'
+const fs=require('fs'),path=require('path');
+function sd(d){const r=[];if(!fs.existsSync(d))return r;for(const e of fs.readdirSync(d)){const full=path.join(d,e);if(fs.statSync(full).isDirectory()){if(e!=='node_modules')r.push(...sd(full));const p=path.join(full,'package.json');if(fs.existsSync(p))r.push(p);}}return r;}
+const all=sd('.').filter(f=>f.includes('package.json')&&!f.includes('node_modules')&&!f.includes('internal/vite-config')&&!f.includes('shared/dist'));
+let fx=0;
+all.forEach(f=>{
+  const p=JSON.parse(fs.readFileSync(f,'utf8'));if(!p.exports)return;
+  const dir=path.dirname(f);let ch=false;
+  (function walk(o){
+    for(const k of Object.keys(o||{})){
+      const v=o[k];
+      if(typeof v==='string'&&v.includes('./dist/')&&!fs.existsSync(path.join(dir,v))){
+        const abs=path.join(dir,v);
+        fs.mkdirSync(path.dirname(abs),{recursive:true});
+        if(v.endsWith('.scss')||v.endsWith('.css')){
+          const dev=o?.['development'];
+          if(dev&&dev.endsWith('.scss')&&fs.existsSync(path.join(dir,dev))){fs.copyFileSync(path.join(dir,dev),abs);}
+          else if(dev&&dev.endsWith('.css')&&fs.existsSync(path.join(dir,dev))){fs.copyFileSync(path.join(dir,dev),abs);}
+          else{fs.writeFileSync(abs,'');}
+        }else if(v.match(/\.(mjs|js|ts)$/)){
+          // 指向 development（src/）让 Vite + tsx 处理
+          if(o?.['development']&&o['development'].startsWith('./src/')&&fs.existsSync(path.join(dir,o['development']))){
+            o[k]=o['development'];ch=true;return;
+          }
+        }
+        ch=true;
+      }else if(typeof v==='object')walk(v);
+    }
+  })(p.exports);
+  if(ch){fs.writeFileSync(f,JSON.stringify(p,null,2));fx++;if(fx<=10)console.log('  fixed: '+(p.name||path.basename(dir)));}
+});
+console.log('total: '+fx);
+NODEEOF
+
+# 构建（使用 tsx 作为 Node.js loader，支持 .ts 导入）
+ENV NODE_OPTIONS="--import tsx --max-old-space-size=8192"
+RUN cd apps/web-antd && pnpm vite build --mode production 2>&1
+
+# 构建（参照 Vben 官方文档: NODE_OPTIONS=--max-old-space-size=8192）
+ENV NODE_OPTIONS="--max-old-space-size=8192"
+RUN cd apps/web-antd && pnpm vite build --mode production 2>&1
+
+# 后处理：在构建产物中将 jiti 的 createJiti 调用替换为安全惰性函数
+# jiti 是 Node.js 构建工具，不应在浏览器中执行。Rollup 将其内联进了 bundle，
+# 运行时调用 createJiti(import.meta.url) 会因浏览器无 Node.js API 而崩溃。
+# 替换为一个安全的空函数，让初始化不报错。
+RUN python3 << 'PYEOF'
+import re, glob, os
+
+def replace_jiti_calls(code):
+    """Replace createJiti(...) calls with safe stubs using paren-counting."""
+    result = []
+    i = 0
+    while i < len(code):
+        # Look for 'var XXX = createJiti(' pattern
+        m = re.search(r'(var\s+\w+\s*=\s*)createJiti\s*\(', code[i:])
+        if not m:
+            result.append(code[i:])
+            break
+        result.append(code[i:i+m.start()])
+        prefix = m.group(1)
+        start = i + m.end()  # position after '('
+        # Find matching closing paren, counting nested parens
+        depth = 1
+        j = start
+        while j < len(code) and depth > 0:
+            if code[j] == '(':
+                depth += 1
+            elif code[j] == ')':
+                depth -= 1
+            j += 1
+        # Replace the full call with a safe stub
+        result.append(prefix)
+        result.append('(function(){return{import:async()=>({}),resolve:()=>"",paths:[],transform:()=>""}})()')
+        i = j  # skip past the closing ')'
+    return ''.join(result)
+
+for f in sorted(glob.glob('apps/web-antd/dist/jse/*.js') + glob.glob('apps/web-antd/dist/js/*.js')):
+    with open(f, 'r') as fh:
+        c = fh.read()
+    before = c.count('createJiti')
+    c = replace_jiti_calls(c)
+    c = c.replace('function createJiti(', 'function _jiti_stub(')
+    after = c.count('createJiti')
+    if before != after:
+        print(f'  patched: {os.path.basename(f)} ({before} -> {after} refs)')
+print('JITI_PATCH_DONE')
+PYEOF
 
 # ============================================================
 # Stage 2: 服务（Nginx）

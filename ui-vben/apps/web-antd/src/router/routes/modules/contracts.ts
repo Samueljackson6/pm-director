@@ -7,7 +7,7 @@ const routes: RouteRecordRaw[] = [{
     component: () => import('#/views/contracts/index.vue'),
     meta: { title: '所有合同', ignoreAccess: true }
   }, {
-    name: 'ContractDetail', path: 'detail/:id',
+    name: 'ContractDetail', path: 'detail',
     component: () => import('#/views/contracts/detail.vue'),
     meta: { hideInMenu: true, title: '合同详情', ignoreAccess: true }
   }]

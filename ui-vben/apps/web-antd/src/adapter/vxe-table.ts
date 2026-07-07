@@ -2,7 +2,6 @@ import type { VxeTableGridOptions } from '@vben/plugins/vxe-table';
 import type { Recordable } from '@vben/types';
 
 import { h } from 'vue';
-import { useRouter } from 'vue-router';
 
 import { IconifyIcon } from '@vben/icons';
 import { $te } from '@vben/locales';
@@ -36,6 +35,7 @@ import { DictTag } from '#/components/dict-tag';
 import { $t } from '#/locales';
 
 import { useVbenForm } from './form';
+import { router as vbenRouter } from '#/router';
 
 setupVbenVxeTable({
   configVxeTable: (vxeUI) => {
@@ -217,7 +217,6 @@ setupVbenVxeTable({
       renderTableDefault(renderOpts, params) {
         const { props } = renderOpts;
         const { column, row } = params;
-        const router = useRouter();
 
         const getValueByPath = (obj: any, path: string) => {
           if (!path) return undefined;
@@ -288,7 +287,7 @@ setupVbenVxeTable({
             Object.assign(routeConfig.query, props.query);
           }
 
-          router.push(routeConfig);
+          vbenRouter.push(routeConfig);
         };
 
         const displayField = props.field || column.field;

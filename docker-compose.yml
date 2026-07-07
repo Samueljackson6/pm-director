@@ -22,12 +22,15 @@ services:
     restart: unless-stopped
 
   frontend:
-    build:
-      context: .
-      dockerfile: Dockerfile.frontend
+    image: nginx:alpine
     container_name: pm-director-frontend
     ports:
-      - "5777:80"
+      # 注意：Windows 保留端口 5690-5789，不可用
+      - "8900:80"
+    volumes:
+      # 使用本机构建的 dist 产物（避免 Docker 内 Vite 7 + jiti 兼容问题）
+      - ./ui-vben/apps/web-antd/dist:/usr/share/nginx/html
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf
     depends_on:
       - backend
     networks:

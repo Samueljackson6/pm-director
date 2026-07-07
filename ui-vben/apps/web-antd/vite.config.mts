@@ -80,8 +80,8 @@ export default defineConfig(async () => {
           '/admin-api': {
             changeOrigin: true,
             rewrite: (path: string) => path.replace(/^\/admin-api/, ''),
-            // mock代理目标地址
-            target: 'http://localhost:48080/admin-api',
+            // 本地开发环境指向 pm-director 后端 (8800)
+            target: 'http://localhost:8800',
             ws: true,
           },
         },

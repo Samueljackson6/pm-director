@@ -10,6 +10,7 @@ export interface ContractItem {
   sign_date: string
   invoice_total: number
   payment_total: number
+  official_name?: string
 }
 
 export interface ContractDetail {

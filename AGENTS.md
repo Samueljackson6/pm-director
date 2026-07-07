@@ -471,15 +471,33 @@ sessions_spawn({
 
 ## ⚠️ Vben 框架开发铁律（所有 Agent 必须遵守）
 
-**任何对 Vben 框架的修改（路由、菜单、认证、权限、组件），必须先查阅官方文档 https://doc.vben.pro/，再动手编码。** 
-- ❌ 禁止凭猜测修改后端返回格式
-- ❌ 禁止不查文档直接改菜单/路由配置
-- ❌ 禁止不确定时自行推断实现
-- ✅ **先读 `docs/vben-official-index.md`** 找到对应章节，再读官方文档
-- ✅ **每个会话启动时重读铁律**（本条）
-- ✅ 修改后用 curl 验证 API 响应格式 + 浏览器清缓存验证
-- ✅ 本地文档不够时 → 去 GitHub Issues / Discussions / Playground 示例搜索
-- ✅ 涉及构建/部署 → 先读官方部署文档
+**任何对 Vben 框架的修改（路由、菜单、认证、权限、组件、表格、表单），必须先查阅官方文档再动手编码。** 
+
+### 强制执行顺序（违反即出错）
+
+```
+修改 Vben 配置前，按顺序完成 3 步：
+
+1. grep 现有正确写法
+   → 在项目代码中搜索相同模式，找到已被验证的官方写法
+   → 示例：grep -r "gridEvents" ui-vben/apps/web-antd/src/views/
+
+2. 查知识图谱
+   → 用 codebase-memory-mcp search_graph 查找框架中的官方模式
+
+3. 读官方文档
+   → docs/vben-official-index.md 找到对应章节
+   → ui-vben/docs/src/ 下阅读详细文档
+```
+
+### ❌ 禁止
+- 凭记忆/常识猜测 Vben API 或配置格式
+- 不确定时自行推断实现
+- 用其他框架的经验套用到 Vben
+
+### ✅ 必须
+- 每次会话启动时重读本条
+- 修改后验证：curl API → 浏览器确认
 
 ## 📄 Mini-Wiki 文档生成
 

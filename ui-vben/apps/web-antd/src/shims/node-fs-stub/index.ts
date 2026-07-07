@@ -1,0 +1,1 @@
+export default{};export const existsSync=()=>false;export const readFileSync=()=>'';export const writeFileSync=()=>{};export const readdirSync=()=>[];export const statSync=()=>({isDirectory:()=>false});export const mkdirSync=()=>{};

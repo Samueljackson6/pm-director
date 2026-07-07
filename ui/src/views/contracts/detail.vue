@@ -113,7 +113,7 @@ const deliverableCols = [
 
 onMounted(async () => {
   try {
-    detail.value = await getContractDetailApi(route.params.id as string)
+    detail.value = await getContractDetailApi(route.query.id as string)
   } finally {
     loading.value = false
   }

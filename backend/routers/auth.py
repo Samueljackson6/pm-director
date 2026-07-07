@@ -63,7 +63,7 @@ def vben_permission_info():
             'username': 'admin',
             'nickname': '管理员',
             'avatar': '',
-            'homePath': '/#/dashboard',
+        'homePath': '/dashboard',
             'roles': ['admin'],
         },
         'roles': ['admin'],
