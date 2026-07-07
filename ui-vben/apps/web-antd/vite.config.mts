@@ -1,3 +1,4 @@
+import { fileURLToPath } from 'node:url';
 import { defineConfig } from '@vben/vite-config';
 import type { Plugin } from 'vite';
 
@@ -57,11 +58,47 @@ function fixIdsDefaultExportPlugin(): Plugin {
   };
 }
 
+/**
+ * 将 `@vben-core/shared` 的子路径解析到其 TypeScript 源码，而不是预构建的
+ * `dist` 产物。
+ *
+ * 背景：pm-director 仓库中 `@vben-core/shared` 的 `dist/*.mjs` 是由
+ * `unbuild --stub` 生成的「加载器」——它们在模块顶层通过 jiti 动态加载
+ * `src/*.ts` 并重新导出。生产构建时（NODE_ENV=production）Vite 解析
+ * `exports.default` 条件命中这些 dist 加载器，从而把 Node 专属的 `jiti`
+ * 拉入浏览器构建图，导致 rollup 因 `createRequire is not exported by
+ * __vite-browser-external` 而崩溃。
+ *
+ * 这里把这些子路径直接别名到 `src` 下的真实源码（等价于 dev 模式下
+ * `exports.development` 条件的行为），彻底绕开 jiti 加载器，既消除了
+ * jiti 的浏览器依赖，也避免 dist 加载器里的顶层 await 在 es2015 目标下报错。
+ */
+function aliasSharedToSource(): { find: string; replacement: string }[] {
+  const sharedRoot = fileURLToPath(
+    new URL('../../packages/@core/base/shared/', import.meta.url),
+  );
+  const subpaths: Record<string, string> = {
+    cache: 'src/cache/index.ts',
+    color: 'src/color/index.ts',
+    constants: 'src/constants/index.ts',
+    'global-state': 'src/global-state.ts',
+    store: 'src/store.ts',
+    utils: 'src/utils/index.ts',
+  };
+  return Object.entries(subpaths).map(([sub, target]) => ({
+    find: `@vben-core/shared/${sub}`,
+    replacement: fileURLToPath(new URL(target, `file://${sharedRoot}`)),
+  }));
+}
+
 // @ts-ignore - defineConfig 类型推断问题，不影响运行
 export default defineConfig(async () => {
   return {
     application: {},
     vite: {
+      resolve: {
+        alias: aliasSharedToSource(),
+      },
       optimizeDeps: {
         exclude: ['ids'],
       },
@@ -88,14 +125,12 @@ export default defineConfig(async () => {
       },
       build: {
         rollupOptions: {
-          external: [/^node:/, 'jiti'],
           plugins: [
             // 排除 asset 和 wms 目录
             excludeDirectoriesPlugin(),
             // 修复 ids 默认导出问题
             fixIdsDefaultExportPlugin(),
           ],
-          external: ['jiti'],
         },
       },
     },
