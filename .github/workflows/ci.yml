@@ -17,7 +17,7 @@ on:
 
 jobs:
   # ============================================================
-  # Job 1: Python 代码质量检查 (GitHub-hosted)
+  # Job 1: Python 代码质量检查 (GitHub-hosted) — LINT
   # ============================================================
   python-lint:
     name: Python Lint
@@ -45,7 +45,7 @@ jobs:
           fi
 
   # ============================================================
-  # Job 2: UI 文件完整性 (GitHub-hosted)
+  # Job 2: UI 文件完整性 (GitHub-hosted) — LINT
   # ============================================================
   ui-validate:
     name: UI Validate
@@ -78,11 +78,71 @@ jobs:
           done
 
   # ============================================================
-  # Job 3: 部署到 236 (自托管 Runner)
+  # Job 3: 后端自动化测试 (GitHub-hosted) — TEST
+  # 对应 T4: backend/ pytest 5/5 通过
+  # ============================================================
+  backend-test:
+    name: Backend Test (pytest)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install -r backend/requirements.txt
+
+      - name: Run pytest
+        run: |
+          cd backend
+          python -m pytest -q
+
+  # ============================================================
+  # Job 4: 前端自动化测试 (GitHub-hosted) — TEST
+  # 对应 T5: ui-vben/apps/web-antd vitest 5/5 通过
+  # 注意：lockfile 已由 pnpm 10 重新生成，pnpm 必须用 10，
+  # 否则 --frozen-lockfile 会因 lockfile 版本不匹配而失败。
+  # ============================================================
+  frontend-test:
+    name: Frontend Test (vitest)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: '10'
+
+      - name: Install dependencies
+        run: |
+          cd ui-vben/apps/web-antd
+          pnpm install --frozen-lockfile || pnpm install
+
+      - name: Run vitest
+        run: |
+          cd ui-vben/apps/web-antd
+          pnpm test
+
+  # ============================================================
+  # Job 5: 部署到 236 (自托管 Runner)
+  # 测试门禁：backend-test / frontend-test 失败则阻断部署/合并
   # ============================================================
   deploy:
     name: 部署到236
-    needs: [python-lint, ui-validate]
+    needs: [python-lint, ui-validate, backend-test, frontend-test]
     runs-on: [self-hosted, 236, production]
     if: github.ref == 'refs/heads/master' && success()
     timeout-minutes: 30
