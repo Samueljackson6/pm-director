@@ -20,6 +20,14 @@ services:
     networks:
       - pm-director-net
     restart: unless-stopped
+    # 后端存活探针：命中新增的 GET /health（纯存活检测，不依赖 DB）
+    # 使用 python 而非 curl（python:3.11-slim 基础镜像默认未安装 curl）
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://localhost:8800/health').status == 200 else 1)"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
 
   frontend:
     image: nginx:alpine

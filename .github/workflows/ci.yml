@@ -90,6 +90,40 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - name: 前端构建与产物校验（部署前强制重新构建，避免 stale-dist）
+        shell: bash
+        run: |
+          set -e
+          FRONTEND_DIR="ui-vben/apps/web-antd"
+          DIST_INDEX="$FRONTEND_DIR/dist/index.html"
+          if [ ! -d "$FRONTEND_DIR" ]; then
+            echo "❌ 前端目录不存在: $FRONTEND_DIR"
+            exit 1
+          fi
+          BUILD_START_TS=$(date +%s)
+          ( cd "$FRONTEND_DIR" && pnpm install --frozen-lockfile || pnpm install )
+          ( cd "$FRONTEND_DIR" && pnpm build ) || { echo "❌ 前端 pnpm build 失败"; exit 1; }
+          if [ ! -f "$DIST_INDEX" ]; then
+            echo "❌ 构建产物缺失: $DIST_INDEX"
+            exit 1
+          fi
+          DIST_MTIME=$(date -r "$DIST_INDEX" +%s 2>/dev/null || stat -c %Y "$DIST_INDEX" 2>/dev/null || echo 0)
+          if [ "$DIST_MTIME" -lt "$BUILD_START_TS" ]; then
+            echo "❌ 构建产物不新鲜 (stale-dist)，中止"
+            exit 1
+          fi
+          echo "✅ 前端产物校验通过: $DIST_INDEX"
+
       - name: Deploy via Docker compose
         shell: bash
         run: |
@@ -105,7 +139,7 @@ jobs:
           set -e
           echo "=== 验证 ==="
           sleep 5
-          curl -s -o /dev/null -w 'Frontend (Docker): HTTP %{http_code}\n' http://localhost:5777/
+          curl -s -o /dev/null -w 'Frontend (Docker): HTTP %{http_code}\n' http://localhost:8900/web/
           curl -s -o /dev/null -w 'Backend (Docker): HTTP %{http_code}\n' http://localhost:8800/api/stats
           echo "--- API 测试 ---"
           curl -s http://localhost:8800/api/projects?page=1\&size=1 | head -c 100
@@ -116,7 +150,7 @@ jobs:
           echo "=== 审计 ==="
           echo "Commit: ${{ github.sha }}"
           echo "Time: $(date)"
-          FE=$(curl -s -o /dev/null -w '%{http_code}' http://localhost:5777/ || echo 000)
+          FE=$(curl -s -o /dev/null -w '%{http_code}' http://localhost:8900/web/ || echo 000)
           BE=$(curl -s -o /dev/null -w '%{http_code}' http://localhost:8800/api/stats || echo 000)
           echo "Frontend: HTTP $FE"
           echo "Backend:  HTTP $BE"
