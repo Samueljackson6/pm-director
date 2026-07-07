@@ -158,7 +158,7 @@ jobs:
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
         with:
-          version: 9
+          version: '10'
 
       - name: 前端构建与产物校验（部署前强制重新构建，避免 stale-dist）
         shell: bash
