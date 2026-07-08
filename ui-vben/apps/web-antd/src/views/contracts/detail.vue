@@ -6,7 +6,8 @@
       <a-button @click="goBack">返回列表</a-button>
     </div>
 
-    <a-spin :spinning="loading">
+    <!-- 统一三态：loading / error / 正常内容 -->
+    <state-block :loading="loading" :error="error" error-title="合同详情加载失败" @retry="load">
       <!-- 第1行：基本信息 + 财务汇总 -->
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
         <!-- 基本信息卡片 -->
@@ -24,39 +25,39 @@
           </a-descriptions>
         </a-card>
 
-      <!-- 财务汇总卡片 -->
-      <a-card v-if="finance" title="财务汇总" size="small">
-        <div class="space-y-3">
-          <div class="flex justify-between">
-            <span class="text-muted-foreground">合同金额</span>
-            <span class="font-bold text-lg">{{ fmt(finance.contract_total) }} 万元</span>
-          </div>
-          <a-divider class="my-2" />
-          <div class="flex justify-between">
-            <span class="text-muted-foreground">已开票</span>
-            <span class="font-semibold" style="color:#5ab1ef">{{ fmt(finance.invoice_total) }} 万元</span>
-          </div>
-          <div class="flex justify-between">
-            <span class="text-muted-foreground">已回款</span>
-            <span class="font-semibold" style="color:#019680">{{ fmt(finance.payment_total) }} 万元</span>
-          </div>
-          <div class="flex justify-between">
-            <span class="text-muted-foreground">未回款</span>
-            <span class="font-semibold" style="color:#faad14">{{ fmt(finance.payment_unreceived) }} 万元</span>
-          </div>
-          <!-- 简易进度条 -->
-          <div class="mt-2">
-            <div class="flex justify-between text-xs text-muted-foreground mb-1">
-              <span>回款率</span>
-              <span>{{ receiptRate }}%</span>
+        <!-- 财务汇总卡片 -->
+        <a-card v-if="finance" title="财务汇总" size="small">
+          <div class="space-y-3">
+            <div class="flex justify-between">
+              <span class="text-muted-foreground">合同金额</span>
+              <span class="font-bold text-lg">{{ fmt(finance.contract_total) }} 万元</span>
             </div>
-            <div class="h-2 rounded-full bg-gray-200 overflow-hidden">
-              <div class="h-full rounded-full bg-green-500 transition-all"
-                :style="{ width: Math.min(receiptRate, 100) + '%' }"></div>
+            <a-divider class="my-2" />
+            <div class="flex justify-between">
+              <span class="text-muted-foreground">已开票</span>
+              <span class="font-semibold" :style="{ color: 'var(--finance-invoiced)' }">{{ fmt(finance.invoice_total) }} 万元</span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-muted-foreground">已回款</span>
+              <span class="font-semibold" :style="{ color: 'var(--finance-received)' }">{{ fmt(finance.payment_total) }} 万元</span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-muted-foreground">未回款</span>
+              <span class="font-semibold" :style="{ color: 'var(--finance-unreceived)' }">{{ fmt(finance.payment_unreceived) }} 万元</span>
+            </div>
+            <!-- 简易进度条 -->
+            <div class="mt-2">
+              <div class="flex justify-between text-xs text-muted-foreground mb-1">
+                <span>回款率</span>
+                <span>{{ receiptRate }}%</span>
+              </div>
+              <div class="h-2 rounded-full bg-gray-200 overflow-hidden">
+                <div class="h-full rounded-full transition-all"
+                  :style="{ width: Math.min(receiptRate, 100) + '%', background: 'var(--finance-received)' }"></div>
+              </div>
             </div>
           </div>
-        </div>
-      </a-card>
+        </a-card>
       </div>
 
       <!-- 第2行：关联项目 + 合同文件 -->
@@ -69,6 +70,17 @@
         </a-card>
 
         <a-card title="合同文件" size="small">
+          <div class="mb-3 flex justify-end">
+            <a-upload
+              :before-upload="beforeUpload"
+              :show-upload-list="false"
+              :disabled="uploading"
+            >
+              <a-button size="small" type="primary" :loading="uploading">
+                上传文件
+              </a-button>
+            </a-upload>
+          </div>
           <template v-if="files.length">
             <div v-for="f in files" :key="f.file_id"
               class="flex items-center justify-between py-2 border-b border-dashed last:border-0">
@@ -76,28 +88,16 @@
                 <div class="font-medium">{{ f.file_name }}</div>
                 <div class="text-xs text-muted-foreground">{{ f.file_type }} · {{ formatSize(f.file_size) }}</div>
               </div>
-              <a-button size="small" type="link" :href="f.file_path" target="_blank" v-if="f.file_path">预览</a-button>
+              <a-button size="small" type="link" :href="downloadUrl(f.file_id)" target="_blank">预览</a-button>
             </div>
           </template>
           <div v-else class="py-4 text-center text-muted-foreground text-sm">暂无合同文件</div>
         </a-card>
       </div>
 
-      <!-- 阶段进度 - 简易条形图 -->
-      <a-card title="阶段进度" size="small" v-if="stages.length">
-        <div class="space-y-2">
-          <div v-for="s in stages" :key="s.stage_id" class="flex items-center gap-3">
-            <div class="w-24 text-sm font-medium truncate" :title="s.stage_name">{{ s.stage_name }}</div>
-            <div class="flex-1 h-6 rounded bg-gray-100 overflow-hidden relative">
-              <div class="h-full rounded transition-all"
-                :class="stageBarClass(s.status)"
-                :style="{ width: stageWidth(s) + '%' }">
-              </div>
-            </div>
-            <div class="w-16 text-xs text-right">{{ statusLabel(s.status) }}</div>
-            <div class="w-32 text-xs text-muted-foreground">{{ s.start_time || '' }} ~ {{ s.end_time || '' }}</div>
-          </div>
-        </div>
+      <!-- 阶段进度 - 甘特图（真实排期，替代假百分比条形） -->
+      <a-card title="阶段进度（甘特图）" size="small" v-if="stages.length">
+        <stage-gantt :stages="stages" />
       </a-card>
 
       <!-- 付款时间线 -->
@@ -116,19 +116,24 @@
       <a-card title="交付物" size="small" v-if="deliverables.length">
         <a-table :columns="deliverableCols" :data-source="deliverables" row-key="deliverable_id" size="small" :pagination="false" />
       </a-card>
-    </a-spin>
+    </state-block>
   </div>
 </template>
 
 <script lang="ts" setup>
 import { ref, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { getContractDetailApi } from '#/api/contracts'
+import { message } from 'ant-design-vue'
+import { getContractDetailApi, uploadContractFileApi, contractFileDownloadUrl } from '#/api/contracts'
+import StageGantt from '#/views/contracts/components/stage-gantt.vue'
+import StateBlock from '#/components/state-block/index.vue'
 
 const route = useRoute()
 const router = useRouter()
 const detail = ref<any>(null)
 const loading = ref(true)
+const error = ref('')
+const uploading = ref(false)
 
 const c = computed(() => detail.value?.contract ?? null)
 const stages = computed(() => detail.value?.stages ?? [])
@@ -143,6 +148,8 @@ const receiptRate = computed(() => {
   if (!f || !f.contract_total) return 0
   return ((f.payment_total || 0) / f.contract_total * 100).toFixed(1)
 })
+
+const contractId = computed(() => (route.query.id as string) || c.value?.contract_id || '')
 
 const projectCols = [
   { title: '项目编号', dataIndex: 'project_id', width: 160 },
@@ -159,13 +166,41 @@ const deliverableCols = [
   { title: '状态', dataIndex: 'status', width: 80 },
 ]
 
-onMounted(async () => {
+async function load() {
+  loading.value = true
+  error.value = ''
   try {
     detail.value = await getContractDetailApi(route.query.id as string)
+  } catch (e: any) {
+    error.value = e?.response?.data?.message || e?.message || '未知错误'
   } finally {
     loading.value = false
   }
-})
+}
+
+onMounted(load)
+
+async function beforeUpload(file: File) {
+  if (!contractId.value) {
+    message.error('缺少合同标识，无法上传')
+    return false
+  }
+  uploading.value = true
+  try {
+    await uploadContractFileApi(contractId.value, file)
+    message.success(`已上传：${file.name}`)
+    await load()
+  } catch (e: any) {
+    message.error(e?.response?.data?.message || e?.message || '上传失败')
+  } finally {
+    uploading.value = false
+  }
+  return false // 阻止 antd 自动上传，改由我们手动调用
+}
+
+function downloadUrl(fileId: string): string {
+  return contractFileDownloadUrl(contractId.value, fileId)
+}
 
 function clean(p: string): string {
   return (p || '').replace(/[（(].*[)）]/g, '') || '-'
@@ -175,25 +210,9 @@ function goBack() {
   router.push({ name: 'ContractList' })
 }
 
-function statusLabel(status: string): string {
-  const map: Record<string, string> = { completed: '已完成', in_progress: '进行中', pending: '待开始' }
-  return map[status] || status
-}
-
 function timelineColor(status: string): string {
   const map: Record<string, string> = { completed: 'green', in_progress: 'blue', pending: 'gray' }
   return map[status] || 'gray'
-}
-
-function stageBarClass(status: string): string {
-  const map: Record<string, string> = { completed: 'bg-green-400', in_progress: 'bg-blue-400', pending: 'bg-gray-300' }
-  return map[status] || 'bg-gray-300'
-}
-
-function stageWidth(s: any): number {
-  if (s.status === 'completed') return 100
-  if (s.status === 'in_progress') return 60
-  return 10
 }
 
 function fmtMoney(v: number | null | undefined): string {

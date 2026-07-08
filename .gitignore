@@ -34,3 +34,6 @@ ui/dist/
 .vite/
 .omo/
 database/
+
+# 运行时上传文件存储（合同文件上传，bind 挂载，非源码）
+uploads/

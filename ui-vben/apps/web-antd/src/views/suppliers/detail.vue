@@ -4,7 +4,7 @@
       <h2 class="text-lg font-semibold">供应商详情</h2>
       <a-button @click="goBack">返回列表</a-button>
     </div>
-    <a-spin :spinning="loading">
+    <state-block :loading="loading" :error="error" error-title="供应商详情加载失败" empty-text="未找到该供应商" @retry="load">
       <template v-if="supplier">
         <!-- 基本信息 -->
         <a-card title="基本信息" size="small">
@@ -48,7 +48,7 @@
           <a-table :columns="contractCols" :data-source="contracts" row-key="id" size="small" :pagination="false" />
         </a-card>
       </template>
-    </a-spin>
+    </state-block>
   </div>
 </template>
 
@@ -56,12 +56,14 @@
 import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { getSupplierDetailApi } from '#/api/suppliers'
+import StateBlock from '#/components/state-block/index.vue'
 
 const route = useRoute()
 const router = useRouter()
 const supplier = ref<any>(null)
 const contracts = ref<any[]>([])
 const loading = ref(true)
+const error = ref('')
 
 const contractCols = [
   { title: '项目编号', dataIndex: 'project_id', width: 160 },
@@ -73,15 +75,22 @@ const contractCols = [
   { title: '状态', dataIndex: 'status', width: 80 },
 ]
 
-onMounted(async () => {
+async function load() {
+  loading.value = true
+  error.value = ''
   try {
     const data: any = await getSupplierDetailApi(route.query.id as string)
-    supplier.value = data.supplier
+    supplier.value = data.supplier ?? null
     contracts.value = data.contracts || []
+    if (!supplier.value) error.value = '未找到该供应商'
+  } catch (e: any) {
+    error.value = e?.response?.data?.message || e?.message || '未知错误'
   } finally {
     loading.value = false
   }
-})
+}
+
+onMounted(load)
 
 function goBack() {
   router.push({ name: 'SupplierList' })

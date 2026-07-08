@@ -4,7 +4,7 @@
       <h2 class="text-lg font-semibold">发票详情</h2>
       <a-button @click="goBack">返回列表</a-button>
     </div>
-    <a-spin :spinning="loading">
+    <state-block :loading="loading" :error="error" error-title="发票详情加载失败" empty-text="未找到该发票" @retry="load">
       <a-card title="基本信息" size="small" v-if="inv">
         <a-descriptions :column="2" size="small" bordered>
           <a-descriptions-item label="发票编号" :span="2">{{ inv.invoice_no || '-' }}</a-descriptions-item>
@@ -21,7 +21,7 @@
           <a-descriptions-item label="备注" :span="2">{{ inv.notes || '-' }}</a-descriptions-item>
         </a-descriptions>
       </a-card>
-    </a-spin>
+    </state-block>
   </div>
 </template>
 
@@ -29,19 +29,29 @@
 import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { getInvoiceDetailApi } from '#/api/invoices'
+import StateBlock from '#/components/state-block/index.vue'
 
 const route = useRoute()
 const router = useRouter()
 const inv = ref<any>(null)
 const loading = ref(true)
+const error = ref('')
 
-onMounted(async () => {
+async function load() {
+  loading.value = true
+  error.value = ''
   try {
-    inv.value = (await getInvoiceDetailApi(Number(route.query.id))).invoice
+    const data: any = await getInvoiceDetailApi(Number(route.query.id))
+    inv.value = data.invoice ?? null
+    if (!inv.value) error.value = '未找到该发票'
+  } catch (e: any) {
+    error.value = e?.response?.data?.message || e?.message || '未知错误'
   } finally {
     loading.value = false
   }
-})
+}
+
+onMounted(load)
 
 function goBack() {
   router.push({ name: 'InvoiceList' })

@@ -1,11 +1,22 @@
 """Contract endpoints — list, detail, categories."""
 
-from fastapi import APIRouter, HTTPException
+import os
+import shutil
+import uuid
+from pathlib import Path
+
+from fastapi import APIRouter, HTTPException, UploadFile, File
+from fastapi.responses import FileResponse
 
 from backend.database import get_db
 from backend.models import vben_response, vben_list
 
 router = APIRouter(prefix="/api/contracts", tags=["contracts"])
+
+# 合同文件存储目录（容器内 /app/uploads/contract_files，已通过 docker volume 持久化）
+# contracts.py 位于 backend/routers/，parent.parent.parent = 仓库根(/app)，与 compose 挂载的 /app/uploads 对齐
+UPLOAD_DIR = Path(__file__).parent.parent.parent / "uploads" / "contract_files"
+UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
 
 # ── Sort mapping ──────────────────────────────────────────────
 _SORT_MAP = {
@@ -157,3 +168,50 @@ def get_contract(contract_id: str):
         'projects': projects,
         'files': files,
     })
+
+
+@router.post('/{contract_id}/files')
+async def upload_contract_file(contract_id: str, file: UploadFile = File(...)):
+    """上传合同文件并写入 contract_files 表。"""
+    db = get_db()
+    row = db.execute('SELECT 1 FROM contracts WHERE contract_id=?', (contract_id,)).fetchone()
+    if not row:
+        db.close()
+        raise HTTPException(404, 'Contract not found')
+
+    fid = f"F{uuid.uuid4().hex[:12].upper()}"
+    ext = os.path.splitext(file.filename or '')[1].lower()
+    save_name = f"{fid}{ext}"
+    save_path = UPLOAD_DIR / save_name
+    with open(save_path, 'wb') as f:
+        shutil.copyfileobj(file.file, f)
+    size = save_path.stat().st_size
+
+    db.execute(
+        '''
+        INSERT INTO contract_files
+            (file_id, contract_id, file_name, file_type, file_path, file_size, upload_time, is_latest, version)
+        VALUES (?,?,?,?,?,?, datetime('now'), 1, '1.0')
+        ''',
+        (fid, contract_id, file.filename or save_name, ext or '', save_name, size),
+    )
+    db.commit()
+    db.close()
+    return vben_response({'file_id': fid, 'file_name': file.filename or save_name})
+
+
+@router.get('/{contract_id}/files/{file_id}/download')
+def download_contract_file(contract_id: str, file_id: str):
+    """下载合同文件（按 contract_id + file_id 定位）。"""
+    db = get_db()
+    row = db.execute(
+        'SELECT * FROM contract_files WHERE contract_id=? AND file_id=?',
+        (contract_id, file_id),
+    ).fetchone()
+    db.close()
+    if not row:
+        raise HTTPException(404, 'File not found')
+    path = UPLOAD_DIR / row['file_path']
+    if not path.exists():
+        raise HTTPException(404, 'File missing on disk')
+    return FileResponse(str(path), filename=row['file_name'])

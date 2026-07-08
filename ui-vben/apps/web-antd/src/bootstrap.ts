@@ -20,6 +20,7 @@ import { router } from './router';
 
 import './styles/custom-menu.css';
 import './styles/antd-theme.css';
+import './styles/finance-tokens.css';
 
 async function bootstrap(namespace: string) {
   // 初始化组件适配器

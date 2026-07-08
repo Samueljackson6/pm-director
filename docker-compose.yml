@@ -17,6 +17,7 @@ services:
     volumes:
       - ./database:/app/database
       - ./cache:/app/cache
+      - ./uploads:/app/uploads
     networks:
       - pm-director-net
     restart: unless-stopped

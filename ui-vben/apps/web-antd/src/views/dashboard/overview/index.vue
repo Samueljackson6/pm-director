@@ -63,13 +63,23 @@
       <!-- 财务快照趋势（全宽） -->
       <div class="mb-4 rounded-lg border bg-card p-4 shadow-sm">
         <div class="mb-2 font-medium">财务批次趋势（万元）</div>
-        <finance-trend-chart :data="overview.finance_trend ?? []" />
+        <trend-chart
+          :data="overview.finance_trend ?? []"
+          x-field="batch_id"
+          :series="financeSeries"
+        />
       </div>
 
       <!-- 月度开票/回款趋势（全宽） -->
       <div class="mb-4 rounded-lg border bg-card p-4 shadow-sm">
         <div class="mb-2 font-medium">月度开票 / 回款趋势（万元）</div>
-        <monthly-trend-chart :data="overview.invoice_monthly ?? []" />
+        <trend-chart
+          :data="overview.invoice_monthly ?? []"
+          x-field="month"
+          :series="financeSeries"
+          :x-rotate="45"
+          :legend-bottom="10"
+        />
       </div>
 
       <!-- 最近合同表 -->
@@ -142,8 +152,7 @@ import type { DashboardOverview } from '#/api/dashboard';
 
 import ContractTypePie from '#/views/dashboard/components/contract-type-pie.vue';
 import InvoiceStatusPie from '#/views/dashboard/components/invoice-status-pie.vue';
-import FinanceTrendChart from '#/views/dashboard/components/finance-trend-chart.vue';
-import MonthlyTrendChart from '#/views/dashboard/components/monthly-trend-chart.vue';
+import TrendChart from '#/views/dashboard/components/trend-chart.vue';
 import TopCustomersBar from '#/views/dashboard/components/top-customers-bar.vue';
 import { VxeTable, VxeColumn } from '#/adapter/vxe-table';
 
@@ -165,6 +174,12 @@ async function load() {
 }
 
 onMounted(load);
+
+/** 趋势图系列定义（颜色与 finance-tokens.css 对齐：#1677ff 已开票 / #52c41a 已回款） */
+const financeSeries = [
+  { name: '已开票', valueField: 'invoiced_wan', color: '#1677ff' },
+  { name: '已回款', valueField: 'received_wan', color: '#52c41a' },
+];
 
 /** KPI 卡片列表 */
 const kpiCards = computed(() => {

@@ -1,0 +1,24 @@
+/**
+ * 财务语义配色 token —— 全站单一来源。
+ *
+ * 设计原则（ardot-design-core：配色单一来源）：
+ * 所有财务/状态语义色集中在此，禁止在业务组件里散落硬编码 hex。
+ * 取值与 Vben 设计系统预设语义色对齐，保证跨页一致：
+ *   --finance-invoiced   ↔ text-blue   (#1677ff)
+ *   --finance-received   ↔ text-green  (#52c41a)
+ *   --finance-unreceived ↔ text-orange (#fa8c16)
+ */
+:root {
+  /* 财务流向语义色 */
+  --finance-invoiced: #1677ff;   /* 已开票 / 应收 */
+  --finance-received: #52c41a;   /* 已回款 / 已收 */
+  --finance-unreceived: #fa8c16; /* 未回款 / 应收未收 */
+  --finance-paid: #52c41a;       /* 已付款 */
+  --finance-unpaid: #fa8c16;     /* 未付款 */
+  --finance-overdue: #f5222d;    /* 逾期 */
+
+  /* 阶段/通用状态色（与甘特图 JS 色板保持一致） */
+  --status-completed: #52c41a;
+  --status-in-progress: #1677ff;
+  --status-pending: #d9d9d9;
+}
