@@ -128,6 +128,25 @@ def get_contract(contract_id: str):
     finance = db.execute(
         'SELECT * FROM current_finance_view WHERE project_id=?', (contract_id,)
     ).fetchone()
+    # Associated projects
+    projects = [
+        dict(r)
+        for r in db.execute('''
+            SELECT p.*, cpl.link_type, cpl.link_note
+            FROM projects p
+            JOIN contract_project_link cpl ON p.project_id = cpl.project_id
+            WHERE cpl.contract_id=?
+            ORDER BY p.project_name
+        ''', (contract_id,)).fetchall()
+    ]
+    # Contract files
+    files = [
+        dict(r)
+        for r in db.execute(
+            'SELECT * FROM contract_files WHERE contract_id=? ORDER BY upload_time DESC',
+            (contract_id,)
+        ).fetchall()
+    ]
     db.close()
     return vben_response({
         'contract': dict(row),
@@ -135,4 +154,6 @@ def get_contract(contract_id: str):
         'payments': payments,
         'deliverables': deliverables,
         'finance': dict(finance) if finance else None,
+        'projects': projects,
+        'files': files,
     })

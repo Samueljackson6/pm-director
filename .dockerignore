@@ -1,0 +1,40 @@
+# Git
+.git
+.gitignore
+.gitattributes
+
+# Node.js
+node_modules/
+ui-vben/
+**/node_modules
+**/dist
+**/.turbo
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.venv
+venv/
+*.egg-info
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Test
+.devtest/
+.env*
+
+# Cache
+cache/
+*.db-shm
+*.db-wal
+*.bak

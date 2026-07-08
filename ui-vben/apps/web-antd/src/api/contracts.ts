@@ -19,6 +19,8 @@ export interface ContractDetail {
   payments: any[]
   deliverables: any[]
   finance: any
+  projects: any[]
+  files: any[]
 }
 
 export interface ContractQueryParams {

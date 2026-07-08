@@ -185,13 +185,14 @@ def get_dashboard_overview(
         "SELECT COUNT(*) FROM deliverables "
         "WHERE status NOT IN ('completed', '已交付', '已验收')"
     ).fetchone()[0]
-    # payments.payment_date is the planned date in the real schema
-    # (there is no `planned_date` column). A payment is overdue when its
-    # planned date has passed and it is not yet fully paid.
+    # payments.planned_date is the scheduled/planned payment date.
+    # A payment is overdue when its planned date has passed
+    # and it is not yet fully paid.
     overdue_payments = db.execute(
         "SELECT COUNT(*) FROM payments "
         "WHERE planned_amount > COALESCE(paid_amount, 0) "
-        "AND payment_date < date('now')"
+        "AND planned_date IS NOT NULL "
+        "AND planned_date < date('now')"
     ).fetchone()[0]
     uninvoiced_contracts = db.execute(
         "SELECT COUNT(*) FROM contracts "
