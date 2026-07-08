@@ -685,7 +685,7 @@ result = requests.post(ocr_url, params={'access_token': access_token}, data={'im
 ---
 
 ## 改进日志
-| 2026-07-02 | 数据源变革 | OCR数据源切换为手动.docx，PDF仅作存档。WORKFLOW.md重写。Vben前端确认已部署236。Docker环境验证通过。Git提交7d33635+1。 |
+| 2026-07-02 | 数据源变革 | 合同数据层级澄清：PDF(扫描件)=源头真值；DOCX(手动OCR文本层)=派生；cache JSON=从DOCX抽取的结构化中间产物(非全文)。WORKFLOW.md重写。Vben前端确认已部署236。Docker环境验证通过。Git提交7d33635+1。 |
 | 2026-06-30 | 日常归档 | 完成 25 个任务。新增 1 条知识。 |
 | 2026-06-29 | 工作流创建 | 创建合同详细信息补充工作流。制定执行计划（35个合同，分3批）。知识库更新（+3条）。 |
 | 2026-06-29 | 改进执行 | 批量更新签订日期（7条记录）。数据质量从75分→80分。商机项目处理（13个保持不变）。 |
@@ -891,4 +891,4 @@ result = requests.post(ocr_url, params={'access_token': access_token}, data={'im
 
 - [ ] 补充合同JSON中缺失的合同编号和标准格式化数据
 - [ ] 将剩余未入库的JSON数据导入数据库
-- [ ] 整理236服务器上合同PDF原件存放目录
+- [ ] 整理236服务器上合同PDF原件（扫描件/源）与OCR后DOCX存放目录映射
