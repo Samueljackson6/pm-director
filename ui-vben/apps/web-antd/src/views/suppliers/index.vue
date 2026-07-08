@@ -13,6 +13,7 @@
 <script lang="ts" setup>
 import type { VxeGridProps } from '#/adapter/vxe-table'
 import { useVbenVxeGrid } from '#/adapter/vxe-table'
+import { useRouter } from 'vue-router'
 import { getSuppliersApi, type SupplierItem } from '#/api/suppliers'
 
 const gridOptions: VxeGridProps<SupplierItem> = {
@@ -73,5 +74,16 @@ const gridOptions: VxeGridProps<SupplierItem> = {
   rowConfig: { isHover: true, height: 44 },
 }
 
-const [Grid] = useVbenVxeGrid({ gridOptions })
+const router = useRouter()
+
+const [Grid] = useVbenVxeGrid({
+  gridOptions,
+  gridEvents: {
+    cellClick({ row }: any) {
+      if (row?.supplier_id) {
+        router.push({ name: 'SupplierDetail', query: { id: row.supplier_id } })
+      }
+    },
+  },
+})
 </script>

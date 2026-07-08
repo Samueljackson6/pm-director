@@ -63,6 +63,7 @@
 import { ref, reactive, onMounted } from 'vue'
 import type { VxeGridProps } from '#/adapter/vxe-table'
 import { useVbenVxeGrid } from '#/adapter/vxe-table'
+import { useRouter } from 'vue-router'
 import {
   getInvoicesApi,
   getInvoiceSummaryApi,
@@ -240,8 +241,30 @@ const inboundGridOptions: VxeGridProps<InvoiceItem> = {
   rowConfig: { isHover: true, height: 44 },
 }
 
-const [OutboundGrid] = useVbenVxeGrid({ gridOptions: outboundGridOptions })
-const [InboundGrid] = useVbenVxeGrid({ gridOptions: inboundGridOptions })
+const router = useRouter()
+
+function navigateInvoice(row: any) {
+  if (row?.invoice_id != null) {
+    router.push({ name: 'InvoiceDetail', query: { id: row.invoice_id } })
+  }
+}
+
+const [OutboundGrid] = useVbenVxeGrid({
+  gridOptions: outboundGridOptions,
+  gridEvents: {
+    cellClick({ row }: any) {
+      navigateInvoice(row)
+    },
+  },
+})
+const [InboundGrid] = useVbenVxeGrid({
+  gridOptions: inboundGridOptions,
+  gridEvents: {
+    cellClick({ row }: any) {
+      navigateInvoice(row)
+    },
+  },
+})
 </script>
 
 <style scoped>

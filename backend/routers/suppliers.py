@@ -37,4 +37,4 @@ def get_supplier(supplier_id: str):
         ).fetchall()
     ]
     db.close()
-    return {'supplier': dict(sup), 'contracts': contracts}
+    return vben_response({'supplier': dict(sup), 'contracts': contracts})

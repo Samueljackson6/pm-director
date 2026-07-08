@@ -4,7 +4,7 @@
       <h2 class="text-lg font-semibold">发票详情</h2>
       <a-button @click="goBack">返回列表</a-button>
     </div>
-    <state-block :loading="loading" :error="error" error-title="发票详情加载失败" empty-text="未找到该发票" @retry="load">
+    <state-block :loading="loading" :error="error" :empty="empty" error-title="发票详情加载失败" empty-text="未找到该发票" @retry="load">
       <a-card title="基本信息" size="small" v-if="inv">
         <a-descriptions :column="2" size="small" bordered>
           <a-descriptions-item label="发票编号" :span="2">{{ inv.invoice_no || '-' }}</a-descriptions-item>
@@ -36,12 +36,21 @@ const router = useRouter()
 const inv = ref<any>(null)
 const loading = ref(true)
 const error = ref('')
+const empty = ref(false)
 
 async function load() {
   loading.value = true
   error.value = ''
+  empty.value = false
+  const rawId = route.query.id
+  if (rawId == null || rawId === '' || Number.isNaN(Number(rawId))) {
+    loading.value = false
+    empty.value = true
+    inv.value = null
+    return
+  }
   try {
-    const data: any = await getInvoiceDetailApi(Number(route.query.id))
+    const data: any = await getInvoiceDetailApi(Number(rawId))
     inv.value = data.invoice ?? null
     if (!inv.value) error.value = '未找到该发票'
   } catch (e: any) {
