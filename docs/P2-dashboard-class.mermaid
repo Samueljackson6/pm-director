@@ -1,0 +1,75 @@
+classDiagram
+    %% T8 后端结构（Dashboard 聚合端点）
+    class DashboardRouter {
+        +router: APIRouter  %% prefix=/api/dashboard
+        +get_dashboard_overview(period, from, to, project_type) DashboardOverview
+        -_aggregate_contracts() dict
+        -_aggregate_finance() dict
+        -_aggregate_invoices() dict
+        -_aggregate_pending() dict
+    }
+
+    class DashboardOverview {
+        +generated_at: str
+        +filters: dict
+        +summary: DashboardSummary
+        +contracts_by_type: list~ContractGroup~
+        +contracts_by_status: list~ContractGroup~
+        +invoice_status_distribution: list~InvoiceStatus~
+        +invoice_monthly: list~MonthlyPoint~
+        +finance_trend: list~FinancePoint~
+        +top_customers: list~Customer~
+        +pending_tasks: PendingTasks
+        +recent_contracts: list~RecentContract~
+    }
+
+    class DashboardSummary {
+        +contract_count: int
+        +contract_total_amount: float
+        +invoiced_amount: float
+        +received_amount: float
+        +unreceived_amount: float
+        +receipt_rate: float
+        +uninvoiced_amount: float
+        +sub_invoiced_amount: float
+        +sub_paid_amount: float
+        +currency_unit: str
+    }
+
+    class DbConnection {
+        +get_db() Connection
+    }
+
+    %% 数据源（生产表/视图）
+    class Contracts {
+        +contract_id, project_name, project_type
+        +contract_amount(万元), party_a, sign_date
+        +contract_status
+    }
+    class CurrentFinanceView {
+        +project_id, project_name, customer
+        +contract_total, invoice_total, invoice_unbilled
+        +payment_total, payment_unreceived
+        +subcontractor, subcontract_amount, batch_id, import_time
+        %% 注：不含 sub_invoice_total / sub_payment_total
+    }
+    class Invoices {
+        +invoice_id, project_id, invoice_type
+        +amount(元), invoice_date, status
+        +payment_status, direction
+    }
+    class FinanceRecords {
+        +record_id, project_id, batch_id, import_time
+        +invoice_total, payment_total, payment_unreceived
+        +sub_invoice_total, sub_payment_total
+    }
+
+    DashboardRouter ..> DashboardOverview : returns (vben_response)
+    DashboardRouter --> DbConnection : uses
+    DashboardRouter --> Contracts : SELECT
+    DashboardRouter --> CurrentFinanceView : SELECT (latest snapshot)
+    DashboardRouter --> Invoices : SELECT (元→万元)
+    DashboardRouter --> FinanceRecords : SELECT (sub_* latest)
+
+    note for CurrentFinanceView "生产视图；conftest 中的简化版缺 project_name/payment_unreceived 等列，T8-B 须扩展"
+    note for DashboardRouter "复用 current_finance_view 口径，与 /api/stats 一致；/api/stats 保留不删"

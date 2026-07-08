@@ -12,6 +12,7 @@
 2. **Read `MEMORY.md`** — 加载长期记忆：项目档案、工作模式、改进日志
 3. **Read `RULES.md`** — ⚠️ **强制：加载跨项目基础设施铁律** ⭐ 最高优先级
 4. **Read `knowledge-base/index.md`** — ⚠️ **强制：加载知识库索引** ⭐ 核心步骤
+5. **Read `docs/vben-framework-rules.md`** — ⚠️ **强制：加载 Vben 框架开发规则** ⭐ **所有涉及前端开发的任务必须遵循**
 
 ### 启动后检查（< 3 秒）
 
@@ -41,6 +42,13 @@ read knowledge-base/方法论/合同识别规则库.md
 | 飞书表格维护 | `docs/飞书表格增量维护铁律.md` |
 | 周报生成 | `skills/weekly-report/SKILL.md` |
 | 项目管理 | `knowledge-base/方法论/项目管理方法论.md`（待创建）|
+| **首次加入项目** | **`CLAUDE.md`（项目入口文档）** |
+| **Vben 框架开发（路由/菜单/组件/配置/修改）** | **`docs/vben-framework-rules.md` ⭐** |
+| **新增页面/菜单** | **`docs/vben-framework-rules.md` → §1.2 + backend/routers/auth.py** |
+| **VxeTable 开发** | **`docs/vben-framework-rules.md` → §2.1** |
+| **ECharts 图表开发** | **`docs/vben-framework-rules.md` → §2.2** |
+| **功能验证 / Playwright 测试** | **`docs/本地Docker环境维护规范.md` → §1.3/1.4 ⭐** |
+| **Docker 磁盘清理 / 环境维护** | **`docs/本地Docker环境维护规范.md` → §2 ⭐** |
 
 ### 任务中强制应用（执行时记录）
 

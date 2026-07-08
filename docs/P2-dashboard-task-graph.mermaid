@@ -1,0 +1,17 @@
+graph TD
+    T8A["T8-A 实现 GET /api/dashboard/overview<br/>backend/routers/dashboard.py<br/>工作量 M"]
+    T8B["T8-B 扩展 conftest 视图 + 测试<br/>tests/conftest.py, tests/test_dashboard.py<br/>工作量 S"]
+    T9A["T9-A 前端 API + 重写仪表盘骨架<br/>src/api/dashboard.ts, views/dashboard/index.vue<br/>工作量 M"]
+    T9B["T9-B 财务图表组件接入<br/>views/dashboard/components/*.vue<br/>工作量 M"]
+    T9C["T9-C 容错/加载态 + 联调验证<br/>index.vue, api/__tests__/dashboard.test.ts<br/>工作量 S"]
+
+    T8A --> T8B
+    T8A --> T9A
+    T9A --> T9B
+    T8B --> T9C
+    T9B --> T9C
+
+    classDef backend fill:#dbeafe,stroke:#2563eb;
+    classDef frontend fill:#dcfce7,stroke:#16a34a;
+    class T8A,T8B backend;
+    class T9A,T9B,T9C frontend;

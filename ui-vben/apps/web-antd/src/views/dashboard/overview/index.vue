@@ -140,11 +140,11 @@ import { computed, onMounted, ref } from 'vue';
 import { getDashboardOverviewApi } from '#/api/dashboard';
 import type { DashboardOverview } from '#/api/dashboard';
 
-import ContractTypePie from './components/contract-type-pie.vue';
-import InvoiceStatusPie from './components/invoice-status-pie.vue';
-import FinanceTrendChart from './components/finance-trend-chart.vue';
-import MonthlyTrendChart from './components/monthly-trend-chart.vue';
-import TopCustomersBar from './components/top-customers-bar.vue';
+import ContractTypePie from '#/views/dashboard/components/contract-type-pie.vue';
+import InvoiceStatusPie from '#/views/dashboard/components/invoice-status-pie.vue';
+import FinanceTrendChart from '#/views/dashboard/components/finance-trend-chart.vue';
+import MonthlyTrendChart from '#/views/dashboard/components/monthly-trend-chart.vue';
+import TopCustomersBar from '#/views/dashboard/components/top-customers-bar.vue';
 import { VxeTable, VxeColumn } from '#/adapter/vxe-table';
 
 /** 生命周期 */

@@ -1,0 +1,23 @@
+sequenceDiagram
+    autonumber
+    actor User
+    participant Page as DashboardPage<br/>(dashboard/index.vue)
+    participant Api as getDashboardOverviewApi<br/>(src/api/dashboard.ts)
+    participant Client as requestClient<br/>(@vben/request)
+    participant Router as get_dashboard_overview<br/>(routers/dashboard.py)
+    participant DB as SQLite<br/>(get_db)
+
+    User->>Page: 进入 /dashboard
+    Page->>Api: onMounted → getDashboardOverviewApi({period?})
+    Api->>Client: GET /api/dashboard/overview?period=...
+    Client->>Router: HTTP GET (Authorization: Bearer ...)
+    Router->>DB: get_db() + 多段聚合 SQL
+    DB-->>Router: contracts / current_finance_view /<br/>invoices / finance_records 结果集
+    Router->>Router: 内存计算 receipt_rate /<br/>uninvoiced / 分组聚合
+    Router-->>Client: vben_response({code:0, data:Overview, message})
+    Client-->>Api: 解包 data（codeField=code, dataField=data）
+    Api-->>Page: DashboardOverview 对象
+    Page->>Page: 渲染 KPI 卡片 + ECharts 图表<br/>（finance-trend / contract-type-pie /<br/>invoice-status-pie / top-customers-bar）+ VxeTable
+    Page-->>User: 财务仪表盘呈现
+
+    Note over Router,DB: 聚合来源<br/>summary ← current_finance_view (万元)<br/>invoice_* ← invoices (元/10000)<br/>sub_* ← finance_records 最新快照<br/>trend ← finance_records GROUP BY batch_id

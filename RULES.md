@@ -35,6 +35,70 @@
 
 ---
 
+## 🚨 Vben Admin 5 框架开发规则 ⭐（2026-07-08 新增）
+
+**违反后果**：路由 404、页面白屏、菜单不显示、构建失败、框架拦截
+
+**参考文档**：`docs/vben-framework-rules.md`（完整版，含代码示例）
+
+### 核心原则
+
+1. **本项目使用 `accessMode: 'backend'`** — 路由由后端 API 控制，不是前端 module 文件
+2. **新增页面 = 后端 + 前端两步**：① 在 `views/` 下创建 `.vue` 文件；② 在 `backend/routers/auth.py` 的 `menus` 中添加菜单项
+3. **VxeTable 禁用 slot 解构** — 必须从 `#/adapter/vxe-table` 导入，用 `:formatter` 代替 `#default="{ row }"`
+4. **后端修改后必须 `docker compose build backend`** — 源码不在卷上，在镜像里
+5. **前端修改后只需 `pnpm build`** — 容器挂载宿主 dist 目录，无需 restart
+
+### 启动必读
+
+```bash
+read docs/vben-framework-rules.md
+```
+
+所有涉及前端路由、菜单、组件、页面新增的任务，**必须先阅读 Vben 框架规则文档**。
+
+---
+
+## 🚨 开发交付流程铁律 ⭐（2026-07-08 新增）
+
+**违反后果**：未验证的代码合并到生产导致事故
+
+**参考文档**：`docs/本地Docker环境维护规范.md`（完整流程 + 命令）
+
+### 每个开发任务的强制流程
+
+```
+开发 → 代码审查 → 本地Docker环境验证 → Playwright测试 → 汇报 → 确认后提交PR
+```
+
+**任何一步不可跳过。**
+
+### ❌ 绝对禁止
+
+- ❌ 跳过 Playwright 测试直接汇报"完成"
+- ❌ 未在本地 Docker 环境验证直接提 PR
+- ❌ Docker 磁盘 < 20GB 还无视继续构建
+- ❌ 不询问用户直接 push 到 main 分支
+
+### ✅ 必须遵守
+
+- 每个改动必须在本地 Docker 环境（`http://localhost:8900/web/`）验证
+- 必须用 Playwright 模拟用户操作测试（`cd .devtest && node playwright-t9.mjs`）
+- 测试必须 0 FAIL / 0 控制台错误才算通过
+- 每周执行一次 `docker builder prune --all --force`
+- D 盘可用空间 < 20GB 时执行磁盘清理
+
+### 汇报模板
+
+```
+做了什么：
+验证结果：X PASS / X FAIL / X 控制台错误
+Playwright摘要：...
+是否提交 PR？
+```
+
+---
+
 ## ⚠️ 飞书表格增量维护铁律
 
 **违反后果**：数据永久丢失，无法恢复

@@ -58,12 +58,13 @@ CREATE TABLE IF NOT EXISTS stages (
 );
 
 CREATE TABLE IF NOT EXISTS payments (
-    project_id   TEXT,
-    contract_id  TEXT,
-    payment_id   TEXT,
+    project_id     TEXT,
+    contract_id    TEXT,
+    payment_id     TEXT,
     planned_amount REAL,
-    paid_amount  REAL,
-    status       TEXT
+    paid_amount    REAL,
+    payment_date   TEXT,
+    status         TEXT
 );
 
 CREATE TABLE IF NOT EXISTS deliverables (
@@ -73,24 +74,60 @@ CREATE TABLE IF NOT EXISTS deliverables (
     status         TEXT
 );
 
+-- invoices table (referenced by the dashboard overview endpoint for the
+-- status distribution / monthly trend / unmatched-payment counts).
+-- `amount` is stored in 元; the endpoint divides by 10000 for 万元.
+CREATE TABLE IF NOT EXISTS invoices (
+    invoice_id     TEXT PRIMARY KEY,
+    project_id     TEXT,
+    invoice_type   TEXT,
+    direction      TEXT,
+    amount         REAL,
+    invoice_date   TEXT,
+    status         TEXT,
+    payment_status TEXT
+);
+
+-- finance_records: aligned with the production columns so that the
+-- dashboard endpoint's direct latest-snapshot and batch-trend queries
+-- (invoice_total / payment_total / sub_*) resolve without error.
 CREATE TABLE IF NOT EXISTS finance_records (
     record_id          INTEGER PRIMARY KEY,
     project_id         TEXT,
+    project_name       TEXT,
+    contract_total     REAL,
+    invoice_total      REAL,
+    invoice_unbilled   REAL,
+    payment_total      REAL,
+    payment_unreceived REAL,
+    subcontractor      TEXT,
+    subcontract_amount REAL,
     sub_invoice_total  REAL,
     sub_payment_total  REAL,
     batch_id           TEXT,
     import_time        TEXT
 );
 
--- View consumed by /api/stats and the /api/contracts list JOIN.
--- Returns one zeroed row per project so aggregates resolve to 0
--- and LEFT JOINs never error when there is no data.
+-- View consumed by /api/stats, /api/contracts and the dashboard overview
+-- endpoint. Column set is aligned with the production view
+-- (project_name / contract_total / payment_unreceived / invoice_total /
+-- payment_total / subcontractor / ...) so that every aggregate and LEFT
+-- JOIN referenced by the endpoints resolves without 500. Returns one
+-- zeroed row per project so aggregates collapse to 0 and LEFT JOINs never
+-- error when there is no data.
 CREATE VIEW IF NOT EXISTS current_finance_view AS
 SELECT
-    p.project_id AS project_id,
-    0            AS invoice_total,
-    0            AS payment_total,
-    ''           AS subcontractor
+    p.project_id       AS project_id,
+    ''                 AS project_name,
+    0                  AS contract_total,
+    0                  AS invoice_total,
+    0                  AS invoice_unbilled,
+    0                  AS payment_total,
+    0                  AS payment_unreceived,
+    ''                 AS subcontractor,
+    0                  AS subcontract_amount,
+    NULL               AS batch_id,
+    NULL               AS import_time
 FROM projects p;
 """
 
