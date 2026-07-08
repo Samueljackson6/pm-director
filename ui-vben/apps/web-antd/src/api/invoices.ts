@@ -24,6 +24,16 @@ export interface InvoiceSummaryItem {
   pay_count: number
 }
 
+/** 发票详情 */
+export interface InvoiceDetail {
+  invoice: InvoiceItem
+}
+
+/** 发票详情 */
+export async function getInvoiceDetailApi(id: number) {
+  return requestClient.get<InvoiceDetail>('/api/invoices/' + id)
+}
+
 /** 发票列表 */
 export async function getInvoicesApi(params?: {
   page?: number

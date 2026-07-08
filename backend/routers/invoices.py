@@ -1,6 +1,6 @@
 """Invoice endpoints — list and summary."""
 
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException
 
 from backend.database import get_db
 from backend.models import vben_response, vben_list
@@ -41,3 +41,13 @@ def get_invoice_summary():
     ''').fetchall()
     db.close()
     return vben_response({'items': [dict(r) for r in rows]})
+
+
+@router.get('/{invoice_id}')
+def get_invoice(invoice_id: int):
+    db = get_db()
+    row = db.execute('SELECT * FROM invoices WHERE invoice_id=?', (invoice_id,)).fetchone()
+    if not row:
+        raise HTTPException(404, 'Invoice not found')
+    db.close()
+    return vben_response({'invoice': dict(row)})

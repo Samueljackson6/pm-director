@@ -6,6 +6,10 @@ const routes: RouteRecordRaw[] = [{
     name: 'SupplierList', path: '',
     component: () => import('#/views/suppliers/index.vue'),
     meta: { title: '所有供应商', ignoreAccess: true }
+  }, {
+    name: 'SupplierDetail', path: 'detail',
+    component: () => import('#/views/suppliers/detail.vue'),
+    meta: { hideInMenu: true, title: '供应商详情', ignoreAccess: true }
   }]
 }];
 export default routes;

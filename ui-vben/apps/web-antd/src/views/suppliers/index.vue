@@ -17,7 +17,8 @@ import { getSuppliersApi, type SupplierItem } from '#/api/suppliers'
 
 const gridOptions: VxeGridProps<SupplierItem> = {
   columns: [
-    { field: 'supplier_name', title: '供应商名称', minWidth: 250, showOverflow: true, fixed: 'left' },
+    { field: 'supplier_name', title: '供应商名称', minWidth: 250, showOverflow: true, fixed: 'left',
+      cellRender: { name: 'CellRouterLink', props: { name: 'SupplierDetail', idField: 'supplier_id', field: 'supplier_name' } } },
     { field: 'short_name', title: '简称', width: 120 },
     { field: 'category', title: '类别', width: 100 },
     {

@@ -153,7 +153,8 @@ const outboundGridOptions: VxeGridProps<InvoiceItem> = {
       width: 80,
       slots: { default: 'status' },
     },
-    { field: 'invoice_no', title: '发票号', width: 160, showOverflow: true },
+    { field: 'invoice_no', title: '发票号', width: 160, showOverflow: true,
+      cellRender: { name: 'CellRouterLink', props: { name: 'InvoiceDetail', idField: 'invoice_id', field: 'invoice_no' } } },
   ],
   proxyConfig: {
     response: { result: 'items', total: 'total' },
@@ -217,7 +218,8 @@ const inboundGridOptions: VxeGridProps<InvoiceItem> = {
       width: 80,
       slots: { default: 'status' },
     },
-    { field: 'invoice_no', title: '发票号', width: 160, showOverflow: true },
+    { field: 'invoice_no', title: '发票号', width: 160, showOverflow: true,
+      cellRender: { name: 'CellRouterLink', props: { name: 'InvoiceDetail', idField: 'invoice_id', field: 'invoice_no' } } },
   ],
   proxyConfig: {
     response: { result: 'items', total: 'total' },
