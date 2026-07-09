@@ -197,31 +197,112 @@
         </div>
       </a-card>
 
-      <!-- 付款时间线（结构化展示） -->
-      <a-card title="付款时间线" size="small" v-if="payments.length">
-        <a-timeline>
-          <a-timeline-item v-for="p in payments" :key="p.payment_id" :color="timelineColor(p.status)">
-            <a-card size="small" class="mb-2">
-              <div class="flex items-center justify-between">
-                <div class="font-medium">{{ p.payment_stage }}</div>
-                <a-tag :color="p.status === 'paid' ? 'green' : p.status === 'pending' ? 'orange' : 'blue'">
-                  {{ p.status === 'paid' ? '已支付' : p.status === 'pending' ? '待支付' : p.status }}
-                </a-tag>
-              </div>
-              <div class="grid grid-cols-2 gap-2 mt-2 text-sm">
-                <div>
-                  <span class="text-muted-foreground">计划金额：</span>
-                  <span class="font-semibold">{{ fmtMoney(p.planned_amount) }} 万元</span>
+      <!-- 付款进度（结构化展示） -->
+      <a-card title="付款进度" size="small" v-if="payments.length">
+        <!-- 付款汇总统计 -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
+          <a-card size="small" class="text-center">
+            <a-statistic title="付款阶段" :value="payments.length" suffix="个" />
+          </a-card>
+          <a-card size="small" class="text-center">
+            <a-statistic
+              title="计划总额"
+              :value="paymentsTotal.planned"
+              :precision="2"
+              suffix="万元"
+              :value-style="{ color: '#1677ff' }"
+            />
+          </a-card>
+          <a-card size="small" class="text-center">
+            <a-statistic
+              title="已付金额"
+              :value="paymentsTotal.paid"
+              :precision="2"
+              suffix="万元"
+              :value-style="{ color: '#52c41a' }"
+            />
+          </a-card>
+          <a-card size="small" class="text-center">
+            <a-statistic
+              title="付款进度"
+              :value="parseFloat(paymentProgress)"
+              :precision="1"
+              suffix="%"
+              :value-style="{ color: paymentProgress >= 100 ? '#52c41a' : paymentProgress >= 50 ? '#1677ff' : '#ff4d4f' }"
+            />
+          </a-card>
+        </div>
+
+        <!-- 付款进度条 -->
+        <div class="mb-4">
+          <div class="flex justify-between text-sm mb-1">
+            <span class="text-muted-foreground">累计付款进度</span>
+            <span class="font-semibold">{{ paymentProgress }}%</span>
+          </div>
+          <a-progress
+            :percent="parseFloat(paymentProgress)"
+            :stroke-color="paymentProgress >= 100 ? '#52c41a' : paymentProgress >= 50 ? '#1677ff' : '#ff4d4f'"
+            :format="(percent: number) => `${percent.toFixed(1)}%`"
+            size="default"
+          />
+        </div>
+
+        <!-- 付款阶段卡片（网格布局） -->
+        <div class="space-y-3">
+          <div v-for="(p, idx) in paymentsWithStatus" :key="p.payment_id" class="relative">
+            <!-- 阶段序号 -->
+            <div class="absolute -left-2 -top-2 w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold text-white"
+              :style="{ backgroundColor: p.isPaid ? '#52c41a' : '#1677ff' }">
+              {{ idx + 1 }}
+            </div>
+            <a-card size="small" class="ml-4" :class="p.isPaid ? 'border-green-200 bg-green-50' : 'border-blue-200 bg-blue-50'">
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                <!-- 左侧：阶段信息 -->
+                <div class="md:col-span-2">
+                  <div class="flex items-center gap-2 mb-2">
+                    <span class="font-semibold text-base">{{ p.payment_stage }}</span>
+                    <a-tag :color="p.isPaid ? 'green' : 'orange'">
+                      {{ p.statusLabel }}
+                    </a-tag>
+                  </div>
+                  <div class="text-sm text-muted-foreground">
+                    {{ p.payment_condition }}
+                  </div>
                 </div>
-                <div v-if="p.actual_amount != null">
-                  <span class="text-muted-foreground">实际金额：</span>
-                  <span class="font-semibold text-green-600">{{ fmtMoney(p.actual_amount) }} 万元</span>
+
+                <!-- 右侧：金额信息 -->
+                <div class="flex flex-col justify-center space-y-2">
+                  <div class="flex justify-between text-sm">
+                    <span class="text-muted-foreground">计划金额</span>
+                    <span class="font-semibold">{{ fmtMoney(p.planned_amount) }} 万元</span>
+                  </div>
+                  <div v-if="p.actual_amount != null" class="flex justify-between text-sm">
+                    <span class="text-muted-foreground">实际金额</span>
+                    <span class="font-semibold text-green-600">{{ fmtMoney(p.actual_amount) }} 万元</span>
+                  </div>
+                  <!-- 单阶段进度条 -->
+                  <a-progress
+                    v-if="p.planned_amount > 0"
+                    :percent="p.progressPercent"
+                    size="small"
+                    :stroke-color="p.isPaid ? '#52c41a' : '#1677ff'"
+                    :format="() => `${p.progressPercent.toFixed(0)}%`"
+                  />
                 </div>
               </div>
-              <div class="text-muted-foreground text-xs mt-1">{{ p.payment_condition }}</div>
+
+              <!-- 付款日期 -->
+              <div class="flex items-center gap-4 mt-2 text-xs text-muted-foreground">
+                <span v-if="p.planned_date">
+                  📅 计划日期：{{ p.planned_date }}
+                </span>
+                <span v-if="p.actual_date">
+                  ✅ 实际日期：{{ p.actual_date }}
+                </span>
+              </div>
             </a-card>
-          </a-timeline-item>
-        </a-timeline>
+          </div>
+        </div>
       </a-card>
 
       <!-- 交付物 -->
@@ -408,6 +489,38 @@ function fmtMoney(n: number | null | undefined): string {
   if (n == null) return '0.00'
   return n.toFixed(2)
 }
+
+// 付款数据结构化
+const paymentsWithStatus = computed(() => {
+  return payments.value.map((p: any) => {
+    const isPaid = p.status === 'paid'
+    const progressPercent = (p.planned_amount > 0 && p.actual_amount != null)
+      ? (p.actual_amount / p.planned_amount * 100)
+      : (isPaid ? 100 : 0)
+    const statusLabel = isPaid ? '已支付' : p.status === 'pending' ? '待支付' : p.status || '未知'
+    return {
+      ...p,
+      isPaid,
+      progressPercent,
+      statusLabel,
+    }
+  })
+})
+
+// 付款汇总
+const paymentsTotal = computed(() => {
+  const planned = payments.value.reduce((sum: number, p: any) => sum + (p.planned_amount || 0), 0)
+  const paid = payments.value
+    .filter((p: any) => p.status === 'paid')
+    .reduce((sum: number, p: any) => sum + (p.actual_amount || p.planned_amount || 0), 0)
+  return { planned, paid }
+})
+
+// 付款进度百分比
+const paymentProgress = computed(() => {
+  if (paymentsTotal.value.planned === 0) return '0.0'
+  return ((paymentsTotal.value.paid / paymentsTotal.value.planned) * 100).toFixed(1)
+})
 
 // 时间线颜色
 function timelineColor(status: string): string {
