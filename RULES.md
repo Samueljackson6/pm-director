@@ -145,6 +145,50 @@ Playwright摘要：...
 
 ---
 
+## 🎨 UI 设计规范（2026-07-09 新增）
+
+**违反后果**：UI 效果差，用户体验差，组件使用不一致
+
+**参考文档**：`docs/UI设计规范.md`（完整版，含组件示例）
+
+### 核心原则
+
+1. **必须使用 Vben Admin 5 组件库** — 优先使用 Vben 封装的组件，禁止自定义未定义样式的类
+2. **充分利用动画/图形效果** — 页面切换动画、数据加载骨架屏、图表组件、进度条动画
+3. **结构化数据展示** — 使用 `a-descriptions` / `a-table` / `a-timeline` / `a-statistic` 等组件
+4. **视觉层次清晰** — 重要数据大字号+颜色强调，次要数据小字号+灰色，状态标签用 `a-tag` 颜色区分
+
+### 组件使用规范
+
+- ✅ 使用：`a-card` / `a-descriptions` / `a-table` / `a-timeline` / `a-tag` / `a-progress` / `a-statistic`
+- ✅ 使用：Vben 自带的 `VbenCard` / `VbenDescriptions` 等封装组件
+- ❌ 禁止：自定义 `.panel` 类（已废弃，改用 `a-card`）
+- ❌ 禁止：未定义 CSS token（如 `var(--border)` 等，除非已在全局定义）
+- ❌ 禁止：硬编码颜色值（应使用 Vben 的主题色变量）
+
+### 动画/图形效果规范
+
+- **页面切换**：使用 `transition` 或 `animate.css`
+- **数据加载**：使用 `a-skeleton` 骨架屏
+- **图表展示**：使用 `echarts` 或 `v-charts`
+- **进度展示**：使用 `a-progress` 或自定义 CSS 动画
+- **甘特图/时间线**：使用专业组件（如 `v-gantt-chart` 或自定义 SVG）
+
+### 数据展示规范
+
+- **基本信息**：使用 `a-descriptions`（bordered 模式）
+- **列表数据**：使用 `a-table`（带分页、排序、筛选）
+- **时间线**：使用 `a-timeline`（带状态颜色）
+- **统计卡片**：使用 `a-statistic` + 图标
+- **状态标签**：使用 `a-tag` 颜色区分（green=已完成, blue=进行中, gray=待处理, red=异常）
+
+### 响应式设计
+
+- 使用 `grid grid-cols-1 lg:grid-cols-N` 响应式布局
+- 移动端适配（Vben Admin 5 已内置）
+
+---
+
 ## 📋 技能列表
 
 完整技能列表见：`SKILLS.md`
