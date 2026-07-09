@@ -129,12 +129,20 @@
           </div>
           <template v-if="files.length">
             <div v-for="f in files" :key="f.file_id"
-              class="flex items-center justify-between py-2 border-b border-dashed last:border-0">
-              <div>
-                <div class="font-medium">{{ f.file_name }}</div>
-                <div class="text-xs text-muted-foreground">{{ f.file_type }} · {{ formatSize(f.file_size) }}</div>
+              class="flex items-center justify-between py-3 border-b border-dashed last:border-0 hover:bg-gray-50 rounded px-2">
+              <div class="flex items-center gap-3">
+                <a-icon :type="fileIcon(f.file_type)" :style="{ fontSize: '24px', color: fileColor(f.file_type) }" />
+                <div>
+                  <div class="font-medium text-sm">{{ f.file_name }}</div>
+                  <div class="text-xs text-muted-foreground">
+                    {{ f.file_type?.toUpperCase() }} · {{ formatSize(f.file_size) }}
+                    <span v-if="f.upload_time">· {{ f.upload_time?.slice(0, 10) }}</span>
+                  </div>
+                </div>
               </div>
-              <a-button size="small" type="link" :href="downloadUrl(f.file_id)" target="_blank">预览</a-button>
+              <a-button size="small" type="link" :href="downloadUrl(f.file_id)" target="_blank">
+                预览
+              </a-button>
             </div>
           </template>
           <div v-else class="py-4 text-center text-muted-foreground text-sm">暂无合同文件</div>
@@ -227,15 +235,6 @@ const projects = computed(() => detail.value?.projects ?? [])
 const files = computed(() => detail.value?.files ?? [])
 const clauses = computed(() => detail.value?.clauses ?? [])
 
-// #3 数据补全：违约/罚款条款分组展示
-const CAT_LABELS: Record<string, string> = {
-  breach_liability: '违约责任', liquidated_damages: '违约金', penalty: '罚款',
-  overdue: '逾期', compensation: '赔偿', ip: '知识产权',
-  force_majeure: '不可抗力', termination: '解除/终止',
-}
-const CAT_ORDER = ['breach_liability', 'liquidated_damages', 'penalty', 'overdue',
-  'compensation', 'ip', 'force_majeure', 'termination']
-
 // 保密条款单独展示
 const confidentialClauses = computed(() =>
   clauses.value.filter((cl: any) => cl.clause_category === 'confidentiality')
@@ -244,7 +243,15 @@ const nonConfidentialClauses = computed(() =>
   clauses.value.filter((cl: any) => cl.clause_category !== 'confidentiality')
 )
 
+// 非保密条款分组（按 clause_category）
 const nonConfidentialGroups = computed(() => {
+  const CAT_LABELS: Record<string, string> = {
+    breach_liability: '违约责任', liquidated_damages: '违约金', penalty: '罚款',
+    overdue: '逾期', compensation: '赔偿', ip: '知识产权',
+    force_majeure: '不可抗力', termination: '解除/终止',
+  }
+  const CAT_ORDER = ['breach_liability', 'liquidated_damages', 'penalty', 'overdue',
+    'compensation', 'ip', 'force_majeure', 'termination']
   const map: Record<string, any[]> = {}
   for (const cl of nonConfidentialClauses.value) (map[cl.clause_category] ||= []).push(cl)
   return CAT_ORDER.filter((c) => map[c]).map((c) => ({ key: c, label: CAT_LABELS[c], items: map[c] }))
@@ -264,6 +271,37 @@ function statusLabel(status: string): string {
     expired: '已到期', terminated: '已终止', pending: '待签订',
   }
   return map[status] || status
+}
+
+// 文件图标和颜色
+function fileIcon(fileType: string): string {
+  if (!fileType) return 'file'
+  const t = fileType.toLowerCase()
+  if (t.includes('pdf')) return 'file-pdf'
+  if (t.includes('doc') || t.includes('word')) return 'file-word'
+  if (t.includes('xls') || t.includes('excel')) return 'file-excel'
+  if (t.includes('ppt') || t.includes('powerpoint')) return 'file-ppt'
+  if (t.includes('image') || t.includes('jpg') || t.includes('png')) return 'file-image'
+  return 'file'
+}
+function fileColor(fileType: string): string {
+  if (!fileType) return '#666'
+  const t = fileType.toLowerCase()
+  if (t.includes('pdf')) return '#ff4d4f'
+  if (t.includes('doc') || t.includes('word')) return '#1890ff'
+  if (t.includes('xls') || t.includes('excel')) return '#52c41a'
+  if (t.includes('ppt') || t.includes('powerpoint')) return '#fa8c16'
+  return '#666'
+}
+function formatSize(bytes: number): string {
+  if (!bytes || bytes === 0) return '0 B'
+  const units = ['B', 'KB', 'MB', 'GB']
+  const i = Math.floor(Math.log(bytes) / Math.log(1024))
+  return (bytes / Math.pow(1024, i)).toFixed(1) + ' ' + units[i]
+}
+
+function downloadUrl(fileId: string): string {
+  return contractFileDownloadUrl(fileId)
 }
 
 const receiptRate = computed(() => {
