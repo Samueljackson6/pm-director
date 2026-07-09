@@ -26,68 +26,107 @@
               </div>
             </div>
 
-            <!-- 分组1：基础信息 -->
-            <a-divider orientation="left" class="text-xs font-semibold">基础信息</a-divider>
-            <a-descriptions :column="2" size="small">
-              <a-descriptions-item label="项目名称" :span="2">
-                <a class="text-primary font-medium">{{ c.project_name }}</a>
-              </a-descriptions-item>
-              <a-descriptions-item label="合同金额">
-                <span class="font-semibold text-lg text-primary">{{ c.contract_amount?.toFixed(2) }}</span>
-                <span class="text-sm text-muted-foreground"> 万元</span>
-              </a-descriptions-item>
-              <a-descriptions-item label="甲方" :span="2">{{ clean(c.party_a) }}</a-descriptions-item>
-              <a-descriptions-item label="乙方" :span="2">{{ clean(c.party_b) }}</a-descriptions-item>
-            </a-descriptions>
+            <!-- 统计卡片网格（替代 a-descriptions） -->
+            <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
+              <a-card size="small" class="text-center">
+                <a-statistic
+                  title="合同金额"
+                  :value="c.contract_amount || 0"
+                  :precision="2"
+                  suffix="万元"
+                  :value-style="{ color: '#3f8600', fontSize: '20px' }"
+                />
+              </a-card>
+              <a-card size="small" class="text-center">
+                <a-statistic
+                  title="税率"
+                  :value="c.tax_rate || 0"
+                  suffix="%"
+                  :value-style="{ color: '#1677ff', fontSize: '20px' }"
+                />
+              </a-card>
+              <a-card size="small" class="text-center">
+                <a-statistic
+                  title="SGSC编号"
+                  :value="c.sgsc_id || '未设置'"
+                  :value-style="{ color: '#666', fontSize: '16px' }"
+                />
+              </a-card>
+            </div>
 
-            <!-- 分组2：签约信息 -->
+            <!-- 签约信息 -->
             <a-divider orientation="left" class="text-xs font-semibold">签约信息</a-divider>
-            <a-descriptions :column="2" size="small">
-              <a-descriptions-item label="签订日期">{{ c.sign_date || '-' }}</a-descriptions-item>
-              <a-descriptions-item label="到期日期">{{ c.expiry_date || '未设置' }}</a-descriptions-item>
-              <a-descriptions-item label="税率">{{ c.tax_rate ? c.tax_rate + '%' : '-' }}</a-descriptions-item>
-              <a-descriptions-item label="SGSC编号">{{ c.sgsc_id || '-' }}</a-descriptions-item>
-            </a-descriptions>
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <span class="text-xs text-muted-foreground">签订日期</span>
+                <div class="font-medium">{{ c.sign_date || '-' }}</div>
+              </div>
+              <div>
+                <span class="text-xs text-muted-foreground">到期日期</span>
+                <div class="font-medium">{{ c.expiry_date || '未设置' }}</div>
+              </div>
+            </div>
 
-            <!-- 分组3：服务信息 -->
+            <!-- 服务信息 -->
             <a-divider orientation="left" class="text-xs font-semibold">服务信息</a-divider>
-            <a-descriptions :column="1" size="small">
-              <a-descriptions-item label="服务期限">{{ c.service_period || '-' }}</a-descriptions-item>
-              <a-descriptions-item label="服务内容">{{ c.service_content || '-' }}</a-descriptions-item>
-            </a-descriptions>
+            <div class="space-y-2">
+              <div>
+                <span class="text-xs text-muted-foreground">服务期限</span>
+                <div class="font-medium">{{ c.service_period || '-' }}</div>
+              </div>
+              <div>
+                <span class="text-xs text-muted-foreground">服务内容</span>
+                <div class="font-medium">{{ c.service_content || '-' }}</div>
+              </div>
+            </div>
+
+            <!-- 合同双方 -->
+            <a-divider orientation="left" class="text-xs font-semibold">合同双方</a-divider>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <a-card size="small" class="bg-blue-50">
+                <div class="text-xs text-muted-foreground">甲方</div>
+                <div class="font-medium">{{ clean(c.party_a) }}</div>
+              </a-card>
+              <a-card size="small" class="bg-green-50">
+                <div class="text-xs text-muted-foreground">乙方</div>
+                <div class="font-medium">{{ clean(c.party_b) }}</div>
+              </a-card>
+            </div>
           </div>
         </a-card>
 
         <!-- 财务汇总卡片 -->
         <a-card v-if="finance" title="财务汇总" size="small">
           <div class="space-y-3">
-            <div class="flex justify-between">
-              <span class="text-muted-foreground">合同金额</span>
-              <span class="font-bold text-lg">{{ fmt(finance.contract_total) }} 万元</span>
-            </div>
+            <a-statistic
+              title="合同总金额"
+              :value="finance.contract_total || 0"
+              :precision="2"
+              suffix="万元"
+              :value-style="{ fontSize: '24px' }"
+            />
             <a-divider class="my-2" />
             <div class="flex justify-between">
               <span class="text-muted-foreground">已开票</span>
-              <span class="font-semibold" :style="{ color: 'var(--finance-invoiced)' }">{{ fmt(finance.invoice_total) }} 万元</span>
+              <span class="font-semibold text-blue-600">{{ fmt(finance.invoice_total) }} 万元</span>
             </div>
             <div class="flex justify-between">
               <span class="text-muted-foreground">已回款</span>
-              <span class="font-semibold" :style="{ color: 'var(--finance-received)' }">{{ fmt(finance.payment_total) }} 万元</span>
+              <span class="font-semibold text-green-600">{{ fmt(finance.payment_total) }} 万元</span>
             </div>
             <div class="flex justify-between">
               <span class="text-muted-foreground">未回款</span>
-              <span class="font-semibold" :style="{ color: 'var(--finance-unreceived)' }">{{ fmt(finance.payment_unreceived) }} 万元</span>
+              <span class="font-semibold text-red-600">{{ fmt(finance.payment_unreceived) }} 万元</span>
             </div>
-            <!-- 简易进度条 -->
-            <div class="mt-2">
-              <div class="flex justify-between text-xs text-muted-foreground mb-1">
-                <span>回款率</span>
-                <span>{{ receiptRate }}%</span>
-              </div>
-              <div class="h-2 rounded-full bg-gray-200 overflow-hidden">
-                <div class="h-full rounded-full transition-all"
-                  :style="{ width: Math.min(receiptRate, 100) + '%', background: 'var(--finance-received)' }"></div>
-              </div>
+            <!-- 环形进度条 -->
+            <div class="mt-4 flex flex-col items-center">
+              <a-progress
+                type="circle"
+                :percent="parseFloat(receiptRate)"
+                :size="80"
+                :stroke-color="receiptRate >= 100 ? '#52c41a' : receiptRate >= 50 ? '#1677ff' : '#ff4d4f'"
+              />
+              <div class="mt-2 text-sm text-muted-foreground">回款率 {{ receiptRate }}%</div>
             </div>
           </div>
         </a-card>
@@ -149,25 +188,38 @@
         </a-card>
       </div>
 
-      <!-- 阶段进度 - 甘特图（真实排期，替代假百分比条形） -->
-      <a-card title="阶段进度（甘特图）" size="small" v-if="stages.length && hasValidStages">
+      <!-- 阶段进度 - 甘特图 -->
+      <a-card title="阶段进度（甘特图）" size="small" v-if="stages.length">
         <stage-gantt :stages="validStages" />
-      </a-card>
-      <a-card title="阶段进度（甘特图）" size="small" v-else-if="stages.length && !hasValidStages">
-        <div class="py-4 text-center text-muted-foreground text-sm">
+        <div v-if="!hasValidStages" class="py-4 text-center text-muted-foreground text-sm">
           <a-icon type="warning" style="color: #faad14; margin-right: 8px;" />
           阶段数据待完善（当前数据来自 OCR 识别，需人工校验）
         </div>
       </a-card>
 
-      <!-- 付款时间线 -->
+      <!-- 付款时间线（结构化展示） -->
       <a-card title="付款时间线" size="small" v-if="payments.length">
         <a-timeline>
           <a-timeline-item v-for="p in payments" :key="p.payment_id" :color="timelineColor(p.status)">
-            <div class="font-medium">{{ p.payment_stage }}</div>
-            <div>计划金额：{{ fmtMoney(p.planned_amount) }} 万元</div>
-            <div v-if="p.actual_amount != null">实际金额：{{ fmtMoney(p.actual_amount) }} 万元</div>
-            <div class="text-muted-foreground text-xs">{{ p.payment_condition }}</div>
+            <a-card size="small" class="mb-2">
+              <div class="flex items-center justify-between">
+                <div class="font-medium">{{ p.payment_stage }}</div>
+                <a-tag :color="p.status === 'paid' ? 'green' : p.status === 'pending' ? 'orange' : 'blue'">
+                  {{ p.status === 'paid' ? '已支付' : p.status === 'pending' ? '待支付' : p.status }}
+                </a-tag>
+              </div>
+              <div class="grid grid-cols-2 gap-2 mt-2 text-sm">
+                <div>
+                  <span class="text-muted-foreground">计划金额：</span>
+                  <span class="font-semibold">{{ fmtMoney(p.planned_amount) }} 万元</span>
+                </div>
+                <div v-if="p.actual_amount != null">
+                  <span class="text-muted-foreground">实际金额：</span>
+                  <span class="font-semibold text-green-600">{{ fmtMoney(p.actual_amount) }} 万元</span>
+                </div>
+              </div>
+              <div class="text-muted-foreground text-xs mt-1">{{ p.payment_condition }}</div>
+            </a-card>
           </a-timeline-item>
         </a-timeline>
       </a-card>
@@ -183,11 +235,10 @@
         </div>
       </a-card>
 
-      <!-- 违约/罚款条款（#3 数据补全新增） -->
+      <!-- 违约/罚款条款（折叠面板） -->
       <a-card title="违约 / 罚款条款" size="small">
-        <div v-if="nonConfidentialClauses.length" class="space-y-4">
-          <div v-for="g in nonConfidentialGroups" :key="g.key">
-            <div class="clause-group-title">{{ g.label }}</div>
+        <a-collapse v-if="nonConfidentialClauses.length" :default-active-key="nonConfidentialGroups.map(g => g.key)">
+          <a-collapse-panel v-for="g in nonConfidentialGroups" :key="g.key" :header="g.label">
             <div class="space-y-2">
               <div v-for="cl in g.items" :key="cl.clause_id" class="clause-item">
                 <div class="flex flex-wrap items-center gap-2">
@@ -196,17 +247,17 @@
                     违约金 {{ cl.rate_pct }}%{{ cl.clause_category === 'overdue' ? '/天' : '' }}
                   </a-tag>
                   <a-tag v-if="cl.threshold_days" color="red">逾期超 {{ cl.threshold_days }} 日解除</a-tag>
-                  <a-tag v-if="cl.refund_full" class="refund-tag">退还全部款项</a-tag>
+                  <a-tag v-if="cl.refund_full" color="red">退还全部款项</a-tag>
                 </div>
                 <div v-if="cl.clause_text" class="clause-text">{{ cl.clause_text }}</div>
               </div>
             </div>
-          </div>
-        </div>
+          </a-collapse-panel>
+        </a-collapse>
         <div v-else class="py-4 text-center text-muted-foreground text-sm">暂无违约/罚款条款</div>
       </a-card>
 
-      <!-- 保密条款（单独展示） -->
+      <!-- 保密条款（单独卡片） -->
       <a-card title="保密条款" size="small" v-if="confidentialClauses.length">
         <div class="space-y-2">
           <div v-for="cl in confidentialClauses" :key="cl.clause_id" class="clause-item">
@@ -255,7 +306,7 @@ const nonConfidentialClauses = computed(() =>
   clauses.value.filter((cl: any) => cl.clause_category !== 'confidentiality')
 )
 
-// 非保密条款分组（按 clause_category）
+// 非保密条款分组
 const nonConfidentialGroups = computed(() => {
   const CAT_LABELS: Record<string, string> = {
     breach_liability: '违约责任', liquidated_damages: '违约金', penalty: '罚款',
@@ -316,6 +367,22 @@ function downloadUrl(fileId: string): string {
   return contractFileDownloadUrl(fileId)
 }
 
+// 阶段数据质量检查
+const hasValidStages = computed(() => {
+  if (!stages.value.length) return false
+  return stages.value.some((s: any) => s.start_time || s.end_time)
+})
+const validStages = computed(() => {
+  return stages.value.filter((s: any) => s.start_time || s.end_time)
+})
+
+// 交付物数据质量检查
+const hasValidDeliverables = computed(() => {
+  if (!deliverables.value.length) return false
+  return deliverables.value.some((d: any) => d.planned_date || d.status !== 'pending')
+})
+
+// 财务汇总
 const receiptRate = computed(() => {
   const f = finance.value
   if (!f || !f.contract_total) return 0
@@ -324,24 +391,6 @@ const receiptRate = computed(() => {
 
 const contractId = computed(() => (route.query.id as string) || c.value?.contract_id || '')
 
-// 阶段数据质量检查（过滤 OCR 错误数据）
-const hasValidStages = computed(() => {
-  if (!stages.value.length) return false
-  // 检查是否有有效的 start_time 或 end_time
-  return stages.value.some((s: any) => s.start_time || s.end_time)
-})
-const validStages = computed(() => {
-  // 只显示有有效日期的阶段
-  return stages.value.filter((s: any) => s.start_time || s.end_time)
-})
-
-// 交付物数据质量检查
-const hasValidDeliverables = computed(() => {
-  if (!deliverables.value.length) return false
-  // 检查是否有非空的 planned_date 或 status 不是全 pending
-  return deliverables.value.some((d: any) => d.planned_date || d.status !== 'pending')
-})
-
 const deliverableCols = [
   { title: '交付物名称', dataIndex: 'deliverable_name', minWidth: 200 },
   { title: '类型', dataIndex: 'deliverable_type', width: 100 },
@@ -349,6 +398,37 @@ const deliverableCols = [
   { title: '计划日期', dataIndex: 'planned_date', width: 110 },
   { title: '状态', dataIndex: 'status', width: 80 },
 ]
+
+// 格式化金额
+function fmt(n: number | null | undefined): string {
+  if (n == null) return '0.00'
+  return n.toFixed(2)
+}
+function fmtMoney(n: number | null | undefined): string {
+  if (n == null) return '0.00'
+  return n.toFixed(2)
+}
+
+// 时间线颜色
+function timelineColor(status: string): string {
+  const map: Record<string, string> = {
+    paid: 'green',
+    pending: 'orange',
+    planned: 'blue',
+  }
+  return map[status] || 'gray'
+}
+
+// 清理文本
+function clean(s: string | null | undefined): string {
+  if (!s) return '-'
+  return s.replace(/[\n\r]+/g, ' ').trim()
+}
+
+// 导航
+function goBack() {
+  router.push({ name: 'ContractList' })
+}
 
 async function load() {
   loading.value = true
@@ -363,65 +443,9 @@ async function load() {
 }
 
 onMounted(load)
-
-async function beforeUpload(file: File) {
-  if (!contractId.value) {
-    message.error('缺少合同标识，无法上传')
-    return false
-  }
-  uploading.value = true
-  try {
-    await uploadContractFileApi(contractId.value, file)
-    message.success(`已上传：${file.name}`)
-    await load()
-  } catch (e: any) {
-    message.error(e?.response?.data?.message || e?.message || '上传失败')
-  } finally {
-    uploading.value = false
-  }
-  return false // 阻止 antd 自动上传，改由我们手动调用
-}
-
-function downloadUrl(fileId: string): string {
-  return contractFileDownloadUrl(contractId.value, fileId)
-}
-
-function clean(p: string): string {
-  return (p || '').replace(/[（(].*[)）]/g, '') || '-'
-}
-
-function goBack() {
-  router.push({ name: 'ContractList' })
-}
-
-function timelineColor(status: string): string {
-  const map: Record<string, string> = { completed: 'green', in_progress: 'blue', pending: 'gray' }
-  return map[status] || 'gray'
-}
-
-function fmtMoney(v: number | null | undefined): string {
-  return (v ?? 0).toFixed(2)
-}
-
-function fmt(v: number | null | undefined): string {
-  return (v ?? 0).toFixed(2)
-}
-
-function formatSize(bytes: number | null | undefined): string {
-  if (!bytes) return '-'
-  if (bytes < 1024) return bytes + 'B'
-  if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + 'KB'
-  return (bytes / 1024 / 1024).toFixed(1) + 'MB'
-}
 </script>
 
 <style scoped>
-.clause-group-title {
-  font-size: 13px;
-  font-weight: 600;
-  color: #111827;
-  margin-bottom: 8px;
-}
 .clause-item {
   padding: 8px 12px;
   border: 1px solid #e5e7eb;
@@ -434,9 +458,5 @@ function formatSize(bytes: number | null | undefined): string {
   color: #6b7280;
   white-space: pre-wrap;
   line-height: 1.6;
-}
-.refund-tag {
-  color: #dc2626;
-  border-color: #dc2626;
 }
 </style>
