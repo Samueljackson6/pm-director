@@ -117,31 +117,28 @@
         <a-table :columns="deliverableCols" :data-source="deliverables" row-key="deliverable_id" size="small" :pagination="false" />
       </a-card>
 
-      <!-- 违约/罚款条款（#3 数据补全新增，.panel 统一方向） -->
-      <div class="panel">
-        <div class="panel-header">违约 / 罚款条款</div>
-        <div class="panel-body">
-          <div v-if="clauseGroups.length" class="space-y-4">
-            <div v-for="g in clauseGroups" :key="g.key">
-              <div class="clause-group-title">{{ g.label }}</div>
-              <div class="space-y-2">
-                <div v-for="cl in g.items" :key="cl.clause_id" class="clause-item">
-                  <div class="flex flex-wrap items-center gap-2">
-                    <span class="font-medium">{{ cl.trigger_type || '—' }}</span>
-                    <a-tag v-if="cl.rate_pct != null" color="orange">
-                      违约金 {{ cl.rate_pct }}%{{ cl.clause_category === 'overdue' ? '/天' : '' }}
-                    </a-tag>
-                    <a-tag v-if="cl.threshold_days" color="red">逾期超 {{ cl.threshold_days }} 日解除</a-tag>
-                    <a-tag v-if="cl.refund_full" class="refund-tag">退还全部款项</a-tag>
-                  </div>
-                  <div v-if="cl.clause_text" class="clause-text">{{ cl.clause_text }}</div>
+      <!-- 违约/罚款条款（#3 数据补全新增） -->
+      <a-card title="违约 / 罚款条款" size="small">
+        <div v-if="clauseGroups.length" class="space-y-4">
+          <div v-for="g in clauseGroups" :key="g.key">
+            <div class="clause-group-title">{{ g.label }}</div>
+            <div class="space-y-2">
+              <div v-for="cl in g.items" :key="cl.clause_id" class="clause-item">
+                <div class="flex flex-wrap items-center gap-2">
+                  <span class="font-medium">{{ cl.trigger_type || '—' }}</span>
+                  <a-tag v-if="cl.rate_pct != null" color="orange">
+                    违约金 {{ cl.rate_pct }}%{{ cl.clause_category === 'overdue' ? '/天' : '' }}
+                  </a-tag>
+                  <a-tag v-if="cl.threshold_days" color="red">逾期超 {{ cl.threshold_days }} 日解除</a-tag>
+                  <a-tag v-if="cl.refund_full" class="refund-tag">退还全部款项</a-tag>
                 </div>
+                <div v-if="cl.clause_text" class="clause-text">{{ cl.clause_text }}</div>
               </div>
             </div>
           </div>
-          <div v-else class="py-4 text-center text-muted-foreground text-sm">暂无条款数据</div>
         </div>
-      </div>
+        <div v-else class="py-4 text-center text-muted-foreground text-sm">暂无条款数据</div>
+      </a-card>
     </state-block>
   </div>
 </template>
@@ -273,41 +270,27 @@ function formatSize(bytes: number | null | undefined): string {
 </script>
 
 <style scoped>
-/* #3 数据补全：条款区采用 .panel 统一卡片方向（局部定义，待 #1 提升为全局 token） */
-.panel {
-  border: 1px solid var(--border, #e5e7eb);
-  border-radius: 8px;
-  background: var(--card, #fff);
-  overflow: hidden;
-}
-.panel-header {
-  padding: 10px 16px;
-  font-weight: 600;
-  border-bottom: 1px solid var(--border, #e5e7eb);
-  background: var(--panel-header-bg, #fafafa);
-}
-.panel-body { padding: 16px; }
 .clause-group-title {
   font-size: 13px;
   font-weight: 600;
-  color: var(--foreground, #111827);
+  color: #111827;
   margin-bottom: 8px;
 }
 .clause-item {
   padding: 8px 12px;
-  border: 1px solid var(--border, #e5e7eb);
+  border: 1px solid #e5e7eb;
   border-radius: 6px;
-  background: var(--clause-bg, #fcfcfc);
+  background: #fcfcfc;
 }
 .clause-text {
   margin-top: 6px;
   font-size: 12px;
-  color: var(--muted-foreground, #6b7280);
+  color: #6b7280;
   white-space: pre-wrap;
   line-height: 1.6;
 }
 .refund-tag {
-  color: var(--status-danger, #dc2626);
-  border-color: var(--status-danger, #dc2626);
+  color: #dc2626;
+  border-color: #dc2626;
 }
 </style>
