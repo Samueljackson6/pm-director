@@ -150,8 +150,14 @@
       </div>
 
       <!-- 阶段进度 - 甘特图（真实排期，替代假百分比条形） -->
-      <a-card title="阶段进度（甘特图）" size="small" v-if="stages.length">
-        <stage-gantt :stages="stages" />
+      <a-card title="阶段进度（甘特图）" size="small" v-if="stages.length && hasValidStages">
+        <stage-gantt :stages="validStages" />
+      </a-card>
+      <a-card title="阶段进度（甘特图）" size="small" v-else-if="stages.length && !hasValidStages">
+        <div class="py-4 text-center text-muted-foreground text-sm">
+          <a-icon type="warning" style="color: #faad14; margin-right: 8px;" />
+          阶段数据待完善（当前数据来自 OCR 识别，需人工校验）
+        </div>
       </a-card>
 
       <!-- 付款时间线 -->
@@ -167,8 +173,14 @@
       </a-card>
 
       <!-- 交付物 -->
-      <a-card title="交付物" size="small" v-if="deliverables.length">
+      <a-card title="交付物" size="small" v-if="deliverables.length && hasValidDeliverables">
         <a-table :columns="deliverableCols" :data-source="deliverables" row-key="deliverable_id" size="small" :pagination="false" />
+      </a-card>
+      <a-card title="交付物" size="small" v-else-if="deliverables.length && !hasValidDeliverables">
+        <div class="py-4 text-center text-muted-foreground text-sm">
+          <a-icon type="warning" style="color: #faad14; margin-right: 8px;" />
+          交付物数据待完善（将从合同原始文档中重新提取）
+        </div>
       </a-card>
 
       <!-- 违约/罚款条款（#3 数据补全新增） -->
@@ -311,6 +323,24 @@ const receiptRate = computed(() => {
 })
 
 const contractId = computed(() => (route.query.id as string) || c.value?.contract_id || '')
+
+// 阶段数据质量检查（过滤 OCR 错误数据）
+const hasValidStages = computed(() => {
+  if (!stages.value.length) return false
+  // 检查是否有有效的 start_time 或 end_time
+  return stages.value.some((s: any) => s.start_time || s.end_time)
+})
+const validStages = computed(() => {
+  // 只显示有有效日期的阶段
+  return stages.value.filter((s: any) => s.start_time || s.end_time)
+})
+
+// 交付物数据质量检查
+const hasValidDeliverables = computed(() => {
+  if (!deliverables.value.length) return false
+  // 检查是否有非空的 planned_date 或 status 不是全 pending
+  return deliverables.value.some((d: any) => d.planned_date || d.status !== 'pending')
+})
 
 const deliverableCols = [
   { title: '交付物名称', dataIndex: 'deliverable_name', minWidth: 200 },
