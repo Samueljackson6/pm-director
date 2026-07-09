@@ -136,6 +136,14 @@ def get_contract(contract_id: str):
         dict(r)
         for r in db.execute('SELECT * FROM deliverables WHERE contract_id=?', (contract_id,)).fetchall()
     ]
+    # 违约/罚款条款（#3 数据补全新增）
+    clauses = [
+        dict(r)
+        for r in db.execute(
+            'SELECT * FROM contract_clauses WHERE contract_id=? ORDER BY clause_category',
+            (contract_id,),
+        ).fetchall()
+    ]
     finance = db.execute(
         'SELECT * FROM current_finance_view WHERE project_id=?', (contract_id,)
     ).fetchone()
@@ -164,6 +172,7 @@ def get_contract(contract_id: str):
         'stages': stages,
         'payments': payments,
         'deliverables': deliverables,
+        'clauses': clauses,
         'finance': dict(finance) if finance else None,
         'projects': projects,
         'files': files,
