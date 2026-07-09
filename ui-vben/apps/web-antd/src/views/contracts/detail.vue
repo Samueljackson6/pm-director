@@ -12,17 +12,50 @@
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
         <!-- 基本信息卡片 -->
         <a-card title="基本信息" class="lg:col-span-2" size="small">
-          <a-descriptions v-if="c" :column="2" size="small" bordered>
-            <a-descriptions-item label="合同编号" :span="2">{{ c.contract_id }}</a-descriptions-item>
-            <a-descriptions-item label="项目名称" :span="2">{{ c.project_name }}</a-descriptions-item>
-            <a-descriptions-item label="合同金额">{{ c.contract_amount?.toFixed(2) }} 万元</a-descriptions-item>
-            <a-descriptions-item label="项目类型">{{ c.project_type }}</a-descriptions-item>
-            <a-descriptions-item label="合同状态">{{ c.contract_status || '-' }}</a-descriptions-item>
-            <a-descriptions-item label="签订日期">{{ c.sign_date || '-' }}</a-descriptions-item>
-            <a-descriptions-item label="服务期限" :span="2">{{ c.service_period || '-' }}</a-descriptions-item>
-            <a-descriptions-item label="甲方" :span="2">{{ clean(c.party_a) }}</a-descriptions-item>
-            <a-descriptions-item label="乙方" :span="2">{{ clean(c.party_b) }}</a-descriptions-item>
-          </a-descriptions>
+          <div v-if="c" class="space-y-4">
+            <!-- 合同标题与状态 -->
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <a-tag v-if="c.contract_status" :color="statusColor(c.contract_status)">
+                  {{ statusLabel(c.contract_status) }}
+                </a-tag>
+                <a-tag v-if="c.project_type" color="blue">{{ c.project_type }}</a-tag>
+              </div>
+              <div class="text-sm text-muted-foreground">
+                合同编号：{{ c.contract_id }}
+              </div>
+            </div>
+
+            <!-- 分组1：基础信息 -->
+            <a-divider orientation="left" class="text-xs font-semibold">基础信息</a-divider>
+            <a-descriptions :column="2" size="small">
+              <a-descriptions-item label="项目名称" :span="2">
+                <a class="text-primary font-medium">{{ c.project_name }}</a>
+              </a-descriptions-item>
+              <a-descriptions-item label="合同金额">
+                <span class="font-semibold text-lg text-primary">{{ c.contract_amount?.toFixed(2) }}</span>
+                <span class="text-sm text-muted-foreground"> 万元</span>
+              </a-descriptions-item>
+              <a-descriptions-item label="甲方" :span="2">{{ clean(c.party_a) }}</a-descriptions-item>
+              <a-descriptions-item label="乙方" :span="2">{{ clean(c.party_b) }}</a-descriptions-item>
+            </a-descriptions>
+
+            <!-- 分组2：签约信息 -->
+            <a-divider orientation="left" class="text-xs font-semibold">签约信息</a-divider>
+            <a-descriptions :column="2" size="small">
+              <a-descriptions-item label="签订日期">{{ c.sign_date || '-' }}</a-descriptions-item>
+              <a-descriptions-item label="到期日期">{{ c.expiry_date || '未设置' }}</a-descriptions-item>
+              <a-descriptions-item label="税率">{{ c.tax_rate ? c.tax_rate + '%' : '-' }}</a-descriptions-item>
+              <a-descriptions-item label="SGSC编号">{{ c.sgsc_id || '-' }}</a-descriptions-item>
+            </a-descriptions>
+
+            <!-- 分组3：服务信息 -->
+            <a-divider orientation="left" class="text-xs font-semibold">服务信息</a-divider>
+            <a-descriptions :column="1" size="small">
+              <a-descriptions-item label="服务期限">{{ c.service_period || '-' }}</a-descriptions-item>
+              <a-descriptions-item label="服务内容">{{ c.service_content || '-' }}</a-descriptions-item>
+            </a-descriptions>
+          </div>
         </a-card>
 
         <!-- 财务汇总卡片 -->
@@ -64,7 +97,20 @@
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <a-card title="关联项目" size="small">
           <template v-if="projects.length">
-            <a-table :columns="projectCols" :data-source="projects" row-key="project_id" size="small" :pagination="false" />
+            <div v-for="p in projects" :key="p.project_id" class="flex items-center justify-between py-3 border-b border-dashed last:border-0">
+              <div class="flex-1">
+                <a class="text-primary font-medium cursor-pointer hover:underline" @click="router.push({ name: 'ProjectDetail', params: { id: p.project_id } })">
+                  {{ p.project_name }}
+                </a>
+                <div class="text-xs text-muted-foreground mt-1">
+                  <a-tag size="small">{{ p.project_type }}</a-tag>
+                  <a-tag size="small" :color="p.project_status === 'active' ? 'green' : 'default'">{{ p.project_status }}</a-tag>
+                </div>
+              </div>
+              <a-button size="small" type="link" @click="router.push({ name: 'ProjectDetail', params: { id: p.project_id } })">
+                查看详情 →
+              </a-button>
+            </div>
           </template>
           <div v-else class="py-4 text-center text-muted-foreground text-sm">暂无关联项目</div>
         </a-card>
@@ -119,8 +165,8 @@
 
       <!-- 违约/罚款条款（#3 数据补全新增） -->
       <a-card title="违约 / 罚款条款" size="small">
-        <div v-if="clauseGroups.length" class="space-y-4">
-          <div v-for="g in clauseGroups" :key="g.key">
+        <div v-if="nonConfidentialClauses.length" class="space-y-4">
+          <div v-for="g in nonConfidentialGroups" :key="g.key">
             <div class="clause-group-title">{{ g.label }}</div>
             <div class="space-y-2">
               <div v-for="cl in g.items" :key="cl.clause_id" class="clause-item">
@@ -137,7 +183,21 @@
             </div>
           </div>
         </div>
-        <div v-else class="py-4 text-center text-muted-foreground text-sm">暂无条款数据</div>
+        <div v-else class="py-4 text-center text-muted-foreground text-sm">暂无违约/罚款条款</div>
+      </a-card>
+
+      <!-- 保密条款（单独展示） -->
+      <a-card title="保密条款" size="small" v-if="confidentialClauses.length">
+        <div class="space-y-2">
+          <div v-for="cl in confidentialClauses" :key="cl.clause_id" class="clause-item">
+            <div class="flex flex-wrap items-center gap-2">
+              <a-tag color="purple">保密</a-tag>
+              <span class="font-medium">{{ cl.trigger_type || '—' }}</span>
+              <a-tag v-if="cl.rate_pct != null" color="orange">违约金 {{ cl.rate_pct }}%</a-tag>
+            </div>
+            <div v-if="cl.clause_text" class="clause-text">{{ cl.clause_text }}</div>
+          </div>
+        </div>
       </a-card>
     </state-block>
   </div>
@@ -170,16 +230,41 @@ const clauses = computed(() => detail.value?.clauses ?? [])
 // #3 数据补全：违约/罚款条款分组展示
 const CAT_LABELS: Record<string, string> = {
   breach_liability: '违约责任', liquidated_damages: '违约金', penalty: '罚款',
-  overdue: '逾期', compensation: '赔偿', confidentiality: '保密',
-  ip: '知识产权', force_majeure: '不可抗力', termination: '解除/终止',
+  overdue: '逾期', compensation: '赔偿', ip: '知识产权',
+  force_majeure: '不可抗力', termination: '解除/终止',
 }
 const CAT_ORDER = ['breach_liability', 'liquidated_damages', 'penalty', 'overdue',
-  'compensation', 'confidentiality', 'ip', 'force_majeure', 'termination']
-const clauseGroups = computed(() => {
+  'compensation', 'ip', 'force_majeure', 'termination']
+
+// 保密条款单独展示
+const confidentialClauses = computed(() =>
+  clauses.value.filter((cl: any) => cl.clause_category === 'confidentiality')
+)
+const nonConfidentialClauses = computed(() =>
+  clauses.value.filter((cl: any) => cl.clause_category !== 'confidentiality')
+)
+
+const nonConfidentialGroups = computed(() => {
   const map: Record<string, any[]> = {}
-  for (const cl of clauses.value) (map[cl.clause_category] ||= []).push(cl)
+  for (const cl of nonConfidentialClauses.value) (map[cl.clause_category] ||= []).push(cl)
   return CAT_ORDER.filter((c) => map[c]).map((c) => ({ key: c, label: CAT_LABELS[c], items: map[c] }))
 })
+
+// 合同状态标签
+function statusColor(status: string): string {
+  const map: Record<string, string> = {
+    signed: 'green', active: 'blue', completed: 'default',
+    expired: 'red', terminated: 'orange', pending: 'gray',
+  }
+  return map[status] || 'default'
+}
+function statusLabel(status: string): string {
+  const map: Record<string, string> = {
+    signed: '已签订', active: '执行中', completed: '已完成',
+    expired: '已到期', terminated: '已终止', pending: '待签订',
+  }
+  return map[status] || status
+}
 
 const receiptRate = computed(() => {
   const f = finance.value
@@ -188,13 +273,6 @@ const receiptRate = computed(() => {
 })
 
 const contractId = computed(() => (route.query.id as string) || c.value?.contract_id || '')
-
-const projectCols = [
-  { title: '项目编号', dataIndex: 'project_id', width: 160 },
-  { title: '项目名称', dataIndex: 'project_name', minWidth: 200 },
-  { title: '项目类型', dataIndex: 'project_type', width: 90 },
-  { title: '项目状态', dataIndex: 'project_status', width: 90 },
-]
 
 const deliverableCols = [
   { title: '交付物名称', dataIndex: 'deliverable_name', minWidth: 200 },
