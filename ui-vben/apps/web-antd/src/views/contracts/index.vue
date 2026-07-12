@@ -32,8 +32,58 @@
       <a-form-item>
         <a-button @click="handleExport">导出</a-button>
       </a-form-item>
+      <a-form-item>
+        <a-button type="primary" @click="openCreateModal">+ 新增合同</a-button>
+      </a-form-item>
     </a-form>
     <Grid />
+
+    <!-- 新增合同弹窗 -->
+    <a-modal
+      v-model:open="createModalVisible"
+      title="新增合同"
+      width="700px"
+      :confirm-loading="createSaving"
+      @ok="saveCreate"
+    >
+      <a-form :model="createForm" layout="vertical">
+        <div class="grid grid-cols-2 gap-4">
+          <a-form-item label="合同编号" required>
+            <a-input v-model:value="createForm.contract_id" placeholder="如 ZH02-202601001" />
+          </a-form-item>
+          <a-form-item label="项目名称" required>
+            <a-input v-model:value="createForm.project_name" />
+          </a-form-item>
+          <a-form-item label="项目类型">
+            <a-select v-model:value="createForm.project_type">
+              <a-select-option value="科研类">科研类</a-select-option>
+              <a-select-option value="服务类">服务类</a-select-option>
+              <a-select-option value="物资类">物资类</a-select-option>
+              <a-select-option value="施工类">施工类</a-select-option>
+            </a-select>
+          </a-form-item>
+          <a-form-item label="合同金额（万元）">
+            <a-input-number v-model:value="createForm.contract_amount" :precision="2" class="w-full" />
+          </a-form-item>
+          <a-form-item label="甲方">
+            <a-input v-model:value="createForm.party_a" />
+          </a-form-item>
+          <a-form-item label="乙方">
+            <a-input v-model:value="createForm.party_b" />
+          </a-form-item>
+          <a-form-item label="签订日期">
+            <a-date-picker v-model:value="createForm.sign_date" value-format="YYYY-MM-DD" class="w-full" />
+          </a-form-item>
+          <a-form-item label="合同状态">
+            <a-select v-model:value="createForm.contract_status">
+              <a-select-option value="signed">已签订</a-select-option>
+              <a-select-option value="active">执行中</a-select-option>
+              <a-select-option value="pending">待签订</a-select-option>
+            </a-select>
+          </a-form-item>
+        </div>
+      </a-form>
+    </a-modal>
   </div>
 </template>
 
@@ -44,9 +94,9 @@
 // ╚══════════════════════════════════════════════════════════╝
 import type { VxeGridProps } from '#/adapter/vxe-table'
 import { useVbenVxeGrid } from '#/adapter/vxe-table'
-import { getContractsApi, type ContractItem } from '#/api/contracts'
+import { getContractsApi, type ContractItem, createContractApi } from '#/api/contracts'
 import { useRouter } from 'vue-router'
-import { reactive } from 'vue'
+import { reactive, ref } from 'vue'
 import { message } from 'ant-design-vue'
 
 const router = useRouter()
@@ -171,5 +221,51 @@ function handleReset() {
 
 function handleExport() {
   message.info('功能开发中')
+}
+
+// 新增合同弹窗
+const createModalVisible = ref(false)
+const createSaving = ref(false)
+const createForm = ref<Record<string, any>>({
+  contract_id: '',
+  project_name: '',
+  project_type: '服务类',
+  contract_amount: 0,
+  party_a: '',
+  party_b: '',
+  sign_date: '',
+  contract_status: 'signed',
+})
+
+function openCreateModal() {
+  createForm.value = {
+    contract_id: '',
+    project_name: '',
+    project_type: '服务类',
+    contract_amount: 0,
+    party_a: '',
+    party_b: '',
+    sign_date: '',
+    contract_status: 'signed',
+  }
+  createModalVisible.value = true
+}
+
+async function saveCreate() {
+  if (!createForm.value.contract_id || !createForm.value.project_name) {
+    message.warning('合同编号和项目名称为必填项')
+    return
+  }
+  createSaving.value = true
+  try {
+    await createContractApi(createForm.value)
+    message.success('合同新增成功')
+    createModalVisible.value = false
+    gridApi.commitQuery()
+  } catch (e: any) {
+    message.error('新增失败: ' + (e?.message || '未知错误'))
+  } finally {
+    createSaving.value = false
+  }
 }
 </script>

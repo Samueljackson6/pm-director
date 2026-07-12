@@ -7,7 +7,7 @@ const routes: RouteRecordRaw[] = [{
     component: () => import('#/views/suppliers/index.vue'),
     meta: { title: '所有供应商', ignoreAccess: true }
   }, {
-    name: 'SupplierDetail', path: 'detail',
+    name: 'SupplierDetail', path: 'detail/:id',
     component: () => import('#/views/suppliers/detail.vue'),
     meta: { hideInMenu: true, title: '供应商详情', ignoreAccess: true }
   }]

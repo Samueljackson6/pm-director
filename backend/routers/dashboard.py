@@ -223,6 +223,66 @@ def get_dashboard_overview(
     ).fetchall()
     recent_contracts = [dict(r) for r in rows]
 
+    # project_execution：项目执行驾驶舱聚合数据。
+    project_metrics = db.execute(
+        "SELECT COUNT(*) AS total_projects, "
+        "SUM(CASE WHEN COALESCE(project_status, '') NOT IN ('completed', '已完成') "
+        "THEN 1 ELSE 0 END) AS active_projects, "
+        "SUM(CASE WHEN project_status IN ('completed', '已完成') "
+        "THEN 1 ELSE 0 END) AS completed_projects, "
+        "SUM(CASE WHEN risk_level IN ('high', '高') THEN 1 ELSE 0 END) AS high_risk_projects, "
+        "SUM(CASE WHEN project_manager IS NULL OR TRIM(project_manager) = '' "
+        "THEN 1 ELSE 0 END) AS missing_manager_projects "
+        "FROM projects"
+    ).fetchone()
+    overdue_stages = db.execute(
+        "SELECT COUNT(*) FROM stages "
+        "WHERE status NOT IN ('completed', '已完成') "
+        "AND end_time IS NOT NULL AND date(end_time) IS NOT NULL "
+        "AND date(end_time) < date('now')"
+    ).fetchone()[0]
+    pending_project_deliverables = db.execute(
+        "SELECT COUNT(*) FROM deliverables "
+        "WHERE status NOT IN ('completed', '已交付', '已验收')"
+    ).fetchone()[0]
+    status_distribution = [
+        dict(row)
+        for row in db.execute(
+            "SELECT COALESCE(project_status, '') AS status, COUNT(*) AS count "
+            "FROM projects GROUP BY project_status ORDER BY count DESC"
+        ).fetchall()
+    ]
+    risk_distribution = [
+        dict(row)
+        for row in db.execute(
+            "SELECT COALESCE(risk_level, '') AS risk_level, COUNT(*) AS count "
+            "FROM projects GROUP BY risk_level ORDER BY count DESC"
+        ).fetchall()
+    ]
+    recent_projects = [
+        dict(row)
+        for row in db.execute(
+            "SELECT project_id, project_name, customer_name, project_status, "
+            "COALESCE(risk_level, '') AS risk_level, "
+            "COALESCE(overall_progress, 0) AS overall_progress, "
+            "COALESCE(project_manager, '') AS project_manager, "
+            "COALESCE(planned_end, '') AS planned_end, "
+            "COALESCE(total_contract_amount, 0) AS total_contract_amount "
+            "FROM projects ORDER BY COALESCE(updated_at, created_at) DESC LIMIT 10"
+        ).fetchall()
+    ]
+    project_execution = {
+        "total_projects": int(project_metrics["total_projects"] or 0),
+        "active_projects": int(project_metrics["active_projects"] or 0),
+        "completed_projects": int(project_metrics["completed_projects"] or 0),
+        "high_risk_projects": int(project_metrics["high_risk_projects"] or 0),
+        "missing_manager_projects": int(project_metrics["missing_manager_projects"] or 0),
+        "overdue_stages": int(overdue_stages),
+        "pending_deliverables": int(pending_project_deliverables),
+        "status_distribution": status_distribution,
+        "risk_distribution": risk_distribution,
+        "recent_projects": recent_projects,
+    }
     db.close()
 
     data = {
@@ -237,5 +297,6 @@ def get_dashboard_overview(
         "top_customers": top_customers,
         "pending_tasks": pending_tasks,
         "recent_contracts": recent_contracts,
+        "project_execution": project_execution,
     }
     return vben_response(data)

@@ -21,3 +21,13 @@ export async function getSuppliersApi() {
 export async function getSupplierDetailApi(id: string) {
   return requestClient.get('/api/suppliers/' + id)
 }
+
+/** 更新供应商 */
+export async function updateSupplierApi(id: string, data: Record<string, any>) {
+  return requestClient.put('/api/suppliers/' + id, data)
+}
+
+/** 新增供应商 */
+export async function createSupplierApi(data: Record<string, any>) {
+  return requestClient.post('/api/suppliers', data)
+}

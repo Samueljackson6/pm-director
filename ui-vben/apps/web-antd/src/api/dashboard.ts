@@ -95,6 +95,7 @@ export interface DashboardOverview {
   top_customers: TopCustomer[]
   pending_tasks: PendingTasks
   recent_contracts: RecentContract[]
+  project_execution: ProjectExecutionOverview
 }
 
 export interface DashboardQueryParams {
@@ -102,6 +103,31 @@ export interface DashboardQueryParams {
   from?: string
   to?: string
   project_type?: string
+}
+
+export interface ProjectExecutionProject {
+  project_id: string
+  project_name: string
+  customer_name: string
+  project_status: string
+  risk_level: string
+  overall_progress: number
+  project_manager: string
+  planned_end: string
+  total_contract_amount: number
+}
+
+export interface ProjectExecutionOverview {
+  total_projects: number
+  active_projects: number
+  completed_projects: number
+  high_risk_projects: number
+  missing_manager_projects: number
+  overdue_stages: number
+  pending_deliverables: number
+  status_distribution: Array<{ status: string; count: number }>
+  risk_distribution: Array<{ risk_level: string; count: number }>
+  recent_projects: ProjectExecutionProject[]
 }
 
 /** 财务仪表盘聚合数据（requestClient 自动解包 data 字段） */

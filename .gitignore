@@ -37,3 +37,35 @@ database/
 
 # 运行时上传文件存储（合同文件上传，bind 挂载，非源码）
 uploads/
+
+# 临时调试脚本和报告
+.devtest/*.py
+.devtest/*.json
+.devtest/*.md
+.devtest/*.cjs
+.devtest/*.mjs
+.devtest/.devtest/
+debug_*.html
+echarts.local.js
+nul
+overview.md
+
+# 临时计划和规划
+.planning/
+.github/plans/
+
+# 一次性数据迁移脚本
+scripts/analyze_*.py
+scripts/fix_*.py
+scripts/batch_*.py
+scripts/clean_*.py
+scripts/*_audit.py
+scripts/import_finance*.py
+scripts/repair_*.py
+scripts/fuzzy_*.py
+scripts/deep_*.py
+scripts/quick_*.py
+scripts/list_*.py
+scripts/contract_cross_verify.py
+scripts/contract_data_fix.py
+scripts/extract_sgsc_contract.py

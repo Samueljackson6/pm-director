@@ -76,3 +76,38 @@ export async function getStatsApi() {
 export async function getTypesApi() {
   return requestClient.get('/api/stats/types')
 }
+
+/** 更新合同 */
+export async function updateContractApi(id: string, data: Record<string, any>) {
+  return requestClient.put(`/api/contracts/${id}`, data)
+}
+
+/** 新增合同 */
+export async function createContractApi(data: Record<string, any>) {
+  return requestClient.post('/api/contracts', data)
+}
+
+/** 合同团队信息 */
+export async function getContractTeamApi(id: string) {
+  return requestClient.get(`/api/contracts/${id}/team`)
+}
+
+/** 合同付款列表 */
+export async function getContractPaymentsApi(id: string) {
+  return requestClient.get(`/api/contracts/${id}/payments`)
+}
+
+/** 新增付款记录 */
+export async function createPaymentApi(contractId: string, data: Record<string, any>) {
+  return requestClient.post(`/api/contracts/${contractId}/payments`, data)
+}
+
+/** 更新付款记录 */
+export async function updatePaymentApi(contractId: string, paymentId: string, data: Record<string, any>) {
+  return requestClient.put(`/api/contracts/${contractId}/payments/${paymentId}`, data)
+}
+
+/** 删除付款记录 */
+export async function deletePaymentApi(contractId: string, paymentId: string) {
+  return requestClient.delete(`/api/contracts/${contractId}/payments/${paymentId}`)
+}
