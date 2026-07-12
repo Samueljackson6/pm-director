@@ -80,6 +80,12 @@ CREATE TABLE IF NOT EXISTS deliverables (
     status         TEXT
 );
 
+-- contract_id_mapping: maps SGSC project IDs to ZH project IDs for finance data linking
+CREATE TABLE IF NOT EXISTS contract_id_mapping (
+    project_id_sgsc TEXT,
+    project_id_zh   TEXT
+);
+
 -- invoices table (referenced by the dashboard overview endpoint for the
 -- status distribution / monthly trend / unmatched-payment counts).
 -- `amount` is stored in 元; the endpoint divides by 10000 for 万元.
