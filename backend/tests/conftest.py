@@ -47,6 +47,10 @@ CREATE TABLE IF NOT EXISTS projects (
     sales_lead            TEXT,
     total_contract_amount REAL,
     planned_start         TEXT,
+    planned_end           TEXT,
+    risk_level            TEXT,
+    updated_at            TEXT,
+    created_at            TEXT,
     overall_progress      REAL
 );
 
@@ -54,7 +58,8 @@ CREATE TABLE IF NOT EXISTS stages (
     project_id   TEXT,
     contract_id  TEXT,
     stage_number INTEGER,
-    status       TEXT
+    status       TEXT,
+    end_time     TEXT
 );
 
 CREATE TABLE IF NOT EXISTS payments (
@@ -64,6 +69,7 @@ CREATE TABLE IF NOT EXISTS payments (
     planned_amount REAL,
     paid_amount    REAL,
     payment_date   TEXT,
+    planned_date   TEXT,
     status         TEXT
 );
 

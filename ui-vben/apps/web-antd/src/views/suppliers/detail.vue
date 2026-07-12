@@ -53,7 +53,7 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { getSupplierDetailApi } from '#/api/suppliers'
 import StateBlock from '#/components/state-block/index.vue'
@@ -79,7 +79,8 @@ async function load() {
   loading.value = true
   error.value = ''
   try {
-    const data: any = await getSupplierDetailApi(route.query.id as string)
+    const id = route.params.id || route.query.id
+    const data: any = await getSupplierDetailApi(id as string)
     supplier.value = data.supplier ?? null
     contracts.value = data.contracts || []
     if (!supplier.value) error.value = '未找到该供应商'
@@ -91,6 +92,17 @@ async function load() {
 }
 
 onMounted(load)
+
+// 监听路由参数变化
+watch(
+  () => route.params.id || route.query.id,
+  (newId, oldId) => {
+    if (newId && newId !== oldId) {
+      load()
+    }
+  },
+  { immediate: false },
+)
 
 function goBack() {
   router.push({ name: 'SupplierList' })
