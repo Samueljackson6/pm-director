@@ -32,32 +32,47 @@
 
     <!-- 三态：loading / error / 正常内容 -->
     <state-block :loading="loading" :error="error" error-title="合同详情加载失败" @retry="load">
-      <!-- ============ KPI 指标行（5卡片） ============ -->
-      <div v-if="c" class="grid grid-cols-2 md:grid-cols-5 gap-3 mb-4">
-        <div class="bg-white rounded-xl border border-gray-100 p-4 text-center shadow-sm hover:shadow-md transition-shadow">
-          <div class="text-xs text-gray-500 mb-1">合同含税总金额</div>
-          <div class="text-2xl font-bold text-gray-900 mt-1">{{ fmtMoney(c.contract_amount) }}</div>
-          <div class="text-xs text-gray-400">万元</div>
+      <!-- ============ KPI 指标行（紧凑现代） ============ -->
+      <div v-if="c" class="grid grid-cols-2 md:grid-cols-5 gap-3">
+        <div class="bg-white rounded-lg border border-gray-200 p-4 text-center">
+          <div class="text-xs text-gray-400 mb-1">合同含税总额</div>
+          <div class="text-2xl font-bold text-gray-900">{{ fmtMoney(c.contract_amount) }}</div>
+          <div class="text-xs text-gray-400 mt-0.5">万元</div>
         </div>
-        <div class="bg-white rounded-xl border border-gray-100 p-4 text-center shadow-sm hover:shadow-md transition-shadow">
-          <div class="text-xs text-gray-500 mb-1">已开票</div>
-          <div class="text-2xl font-bold text-blue-600 mt-1">{{ finance ? fmtMoney(invoiceTotal) : '—' }}</div>
-          <div class="text-xs text-gray-400">{{ finance ? invoiceRate + '% 开票率' : '—' }}</div>
+        <div class="bg-white rounded-lg border border-gray-200 p-4 text-center">
+          <div class="text-xs text-gray-400 mb-1">已开票</div>
+          <div class="text-2xl font-bold text-blue-600">{{ finance ? fmtMoney(invoiceTotal) : '—' }}</div>
+          <div class="text-xs text-gray-400 mt-0.5">{{ finance ? invoiceRate + '% 开票率' : '—' }}</div>
         </div>
-        <div class="bg-white rounded-xl border border-gray-100 p-4 text-center shadow-sm hover:shadow-md transition-shadow">
-          <div class="text-xs text-gray-500 mb-1">已回款</div>
-          <div class="text-2xl font-bold text-green-600 mt-1">{{ finance ? fmtMoney(paymentTotal) : '—' }}</div>
-          <div class="text-xs text-gray-400">{{ finance ? receiptRate + '% 回款率' : '—' }}</div>
+        <div class="bg-white rounded-lg border border-gray-200 p-4 text-center">
+          <div class="text-xs text-gray-400 mb-1">已回款</div>
+          <div class="text-2xl font-bold text-green-600">{{ finance ? fmtMoney(paymentTotal) : '—' }}</div>
+          <div class="text-xs text-gray-400 mt-0.5">{{ finance ? receiptRate + '% 回款率' : '—' }}</div>
         </div>
-        <div class="bg-white rounded-xl border border-gray-100 p-4 text-center shadow-sm hover:shadow-md transition-shadow">
-          <div class="text-xs text-gray-500 mb-1">已开票未回款</div>
-          <div class="text-2xl font-bold text-red-500 mt-1">{{ finance ? fmtMoney(unreceivedAmount) : '—' }}</div>
-          <div class="text-xs text-gray-400">{{ finance ? unreceivedRate + '% 未回款率' : '—' }}</div>
+        <div class="bg-white rounded-lg border border-gray-200 p-4 text-center">
+          <div class="text-xs text-gray-400 mb-1">已开票未回款</div>
+          <div class="text-2xl font-bold text-red-500">{{ finance ? fmtMoney(unreceivedAmount) : '—' }}</div>
+          <div class="text-xs text-gray-400 mt-0.5">{{ finance ? unreceivedRate + '% 未回款率' : '—' }}</div>
         </div>
-        <div class="bg-white rounded-xl border border-gray-100 p-4 text-center shadow-sm hover:shadow-md transition-shadow">
-          <div class="text-xs text-gray-500 mb-1">按合同总额未回款</div>
-          <div class="text-2xl font-bold text-orange-500 mt-1">{{ finance ? fmtMoney(contractUnreceived) : '—' }}</div>
-          <div class="text-xs text-gray-400">{{ finance ? contractUnreceivedRate + '% 未回款率' : '—' }}</div>
+        <div class="bg-white rounded-lg border border-gray-200 p-4 text-center">
+          <div class="text-xs text-gray-400 mb-1">合同总额未回款</div>
+          <div class="text-2xl font-bold text-orange-500">{{ finance ? fmtMoney(contractUnreceived) : '—' }}</div>
+          <div class="text-xs text-gray-400 mt-0.5">{{ finance ? contractUnreceivedRate + '% 未回款率' : '—' }}</div>
+        </div>
+      </div>
+
+      <!-- ============ 吸顶锚点条 ============ -->
+      <div v-if="c" class="sticky top-0 z-20 bg-white/85 backdrop-blur-sm border-y border-gray-200 -mx-6 px-6">
+        <div class="flex gap-1 py-2 overflow-x-auto">
+          <button
+            v-for="a in anchors"
+            :key="a.id"
+            @click="scrollToAnchor(a.id)"
+            :class="['px-3 py-1.5 text-sm rounded-md whitespace-nowrap transition-colors',
+                     activeAnchor === a.id ? 'bg-blue-50 text-blue-600 font-medium' : 'text-gray-500 hover:bg-gray-100']"
+          >
+            {{ a.label }}
+          </button>
         </div>
       </div>
 
@@ -66,7 +81,8 @@
         <!-- 基本信息卡片（占 8/12） -->
         <a-card
           title="基本信息"
-          class="lg:col-span-8 rounded-xl shadow-sm"
+          id="overview"
+          class="lg:col-span-8 rounded-lg"
           size="small"
           :body-style="{ padding: '16px' }"
         >
@@ -96,42 +112,6 @@
 
             <a-divider class="my-0" />
 
-            <!-- 服务信息 -->
-            <div>
-              <div class="text-xs font-semibold text-gray-500 mb-3 uppercase tracking-wider">服务信息</div>
-              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <div class="text-xs text-gray-400 mb-1">服务期限</div>
-                  <div class="font-medium text-gray-900">{{ c.service_period || '-' }}</div>
-                </div>
-              </div>
-            </div>
-
-            <!-- 服务内容（长文本可折叠） -->
-            <div v-if="c.service_content && c.service_content.length > 150" class="mt-2">
-              <div class="text-xs text-gray-400 mb-1">服务内容</div>
-              <div v-if="!serviceExpanded" class="relative">
-                <div class="text-sm text-gray-700 leading-relaxed line-clamp-3 bg-gray-50 rounded-lg p-3 border border-gray-100">
-                  {{ c.service_content }}
-                </div>
-                <a-button type="link" size="small" class="absolute bottom-0 right-0 bg-white" @click="serviceExpanded = true">
-                  展开全部 ↓
-                </a-button>
-              </div>
-              <div v-else class="text-sm text-gray-700 leading-relaxed bg-gray-50 rounded-lg p-3 border border-gray-100 relative">
-                {{ c.service_content }}
-                <a-button type="link" size="small" class="absolute bottom-0 right-0 bg-white" @click="serviceExpanded = false">
-                  收起 ↑
-                </a-button>
-              </div>
-            </div>
-            <div v-else-if="c.service_content">
-              <div class="text-xs text-gray-400 mb-1 mt-2">服务内容</div>
-              <div class="text-sm text-gray-700 leading-relaxed">{{ c.service_content }}</div>
-            </div>
-
-            <a-divider class="my-0" />
-
             <!-- 合同双方 -->
             <div>
               <div class="text-xs font-semibold text-gray-500 mb-3 uppercase tracking-wider">合同双方</div>
@@ -154,28 +134,6 @@
                 </a-card>
               </div>
             </div>
-
-            <!-- 服务详情（服务类合同） -->
-            <template v-if="c.service_method || c.service_location || c.service_period">
-              <a-divider class="my-0" />
-              <div>
-                <div class="text-xs font-semibold text-gray-500 mb-3 uppercase tracking-wider">服务详情</div>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
-                  <div v-if="c.service_period">
-                    <div class="text-xs text-gray-400 mb-1">服务期限</div>
-                    <div class="font-medium text-gray-900 text-sm">{{ c.service_period }}</div>
-                  </div>
-                  <div v-if="c.service_method">
-                    <div class="text-xs text-gray-400 mb-1">服务方式</div>
-                    <div class="font-medium text-gray-900 text-sm">{{ c.service_method }}</div>
-                  </div>
-                  <div v-if="c.service_location">
-                    <div class="text-xs text-gray-400 mb-1">服务地点</div>
-                    <div class="font-medium text-gray-900 text-sm">{{ c.service_location }}</div>
-                  </div>
-                </div>
-              </div>
-            </template>
 
             <!-- 验收标准（如有） -->
             <template v-if="c.acceptance_criteria || c.acceptance_method">
@@ -371,11 +329,31 @@
         </a-card>
       </div>
 
+      <!-- ============ 按合同类型切换内容区 ============ -->
+      <ResearchContent
+        v-if="isResearch"
+        :contract="c"
+        :stages="stages"
+        :budgets="budgets"
+        :deliverables="deliverables"
+        :payments="payments"
+        :contract-id="contractId"
+        @reload="load"
+      />
+      <ServiceContent
+        v-else-if="isService"
+        :contract="c"
+        :payments="payments"
+        :contract-id="contractId"
+        @reload="load"
+      />
+
       <!-- ============ 项目团队 ============ -->
       <a-card
         title="项目团队"
+        id="team"
         size="small"
-        class="rounded-xl shadow-sm"
+        class="rounded-lg"
         :body-style="{ padding: '12px' }"
       >
         <div v-if="teamMembers.length" class="grid grid-cols-1 md:grid-cols-3 gap-3">
@@ -402,244 +380,12 @@
         </div>
       </a-card>
 
-      <!-- ============ 阶段进度 - 甘特图 ============ -->
-      <a-card
-        title="阶段进度（甘特图）"
-        size="small"
-        class="rounded-xl shadow-sm"
-        :body-style="{ padding: '16px' }"
-      >
-        <template v-if="hasValidStages">
-          <stage-gantt :stages="validStages" :deliverables="deliverables" />
-        </template>
-        <!-- 阶段详情表：所有阶段都展示，不限是否有日期 -->
-        <div v-if="stages.length" class="mt-4 border-t pt-4">
-          <div class="text-sm font-medium text-gray-700 mb-3">阶段详情</div>
-          <a-table
-            :columns="stageColumns"
-            :data-source="stages"
-            :pagination="false"
-            size="small"
-            row-key="stage_id"
-          >
-            <template #bodyCell="{ column, record }">
-              <template v-if="column.key === 'stage_number'">
-                <div>
-                  <div class="font-mono text-xs font-medium" :style="{ color: record.stage_name?.includes('研究阶段') ? '#8c8c8c' : '#333' }">
-                    {{ record.stage_name || ('阶段 ' + record.stage_number) }}
-                  </div>
-                  <div class="text-xs text-gray-400 mt-0.5">阶段 {{ record.stage_number }}</div>
-                </div>
-              </template>
-              <template v-if="column.key === 'remarks'">
-                <div class="text-sm whitespace-pre-wrap text-gray-700">{{ record.remarks || '—' }}</div>
-              </template>
-              <template v-if="column.key === 'acceptance_criteria'">
-                <div v-if="record.acceptance_criteria" class="text-sm whitespace-pre-wrap text-gray-700">
-                  {{ parseCriteriaText(record.acceptance_criteria) }}
-                </div>
-                <div v-else class="text-xs text-gray-400">暂无考核目标</div>
-              </template>
-              <template v-if="column.key === 'status'">
-                <a-tag
-                  :color="record.status === 'completed' ? 'green' : record.status === 'in_progress' ? 'blue' : 'default'"
-                  size="small"
-                >
-                  {{ record.status === 'completed' ? '已完成' : record.status === 'in_progress' ? '进行中' : '待开始' }}
-                </a-tag>
-              </template>
-              <template v-if="column.key === 'time'">
-                <span v-if="!record.start_time && !record.end_time" class="text-xs text-gray-400">数据待补</span>
-                <span v-else class="text-xs">{{ extractStageTime(record) }}</span>
-              </template>
-            </template>
-          </a-table>
-        </div>
-        <template v-if="!stages.length">
-          <div class="py-8 flex flex-col items-center text-center">
-            <a-empty description="暂无阶段数据">
-              <template #description>
-                <div class="text-gray-500 mb-2">暂无阶段数据</div>
-                <div class="text-sm text-gray-400">阶段数据来自 OCR 识别，需人工校验后显示</div>
-              </template>
-            </a-empty>
-          </div>
-        </template>
-      </a-card>
-
-      <!-- ============ 付款进度 ============ -->
-      <a-card
-        class="rounded-xl shadow-sm"
-        size="small"
-        :body-style="{ padding: '16px' }"
-      >
-        <template #title>
-          <span>付款进度</span>
-        </template>
-        <template #extra>
-          <a-button type="link" size="small" @click="openAddPaymentModal">+ 添加付款</a-button>
-        </template>
-        <template v-if="payments.length">
-        <!-- 付款汇总统计 -->
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
-          <div class="bg-gray-50 rounded-lg p-3 text-center">
-            <div class="text-xs text-gray-400 mb-1">付款阶段</div>
-            <div class="text-2xl font-bold text-gray-900">{{ payments.length }}</div>
-            <div class="text-xs text-gray-400">个</div>
-          </div>
-          <div class="bg-gray-50 rounded-lg p-3 text-center">
-            <div class="text-xs text-gray-400 mb-1">计划总额</div>
-            <div class="text-2xl font-bold text-blue-600">{{ fmtMoney(paymentsTotal.planned) }}</div>
-            <div class="text-xs text-gray-400">万元</div>
-          </div>
-        </div>
-
-        <!-- 付款阶段列表（flex 布局，序号不 absolute） -->
-        <div class="space-y-4">
-          <div
-            v-for="(p, idx) in paymentsView"
-            :key="p.payment_id"
-            class="flex gap-3"
-          >
-            <!-- 序号圆圈（flex 行内） -->
-            <div
-              class="flex-shrink-0 w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold text-white"
-              :style="{ backgroundColor: p.isPaid ? '#52c41a' : '#1677ff' }"
-            >
-               {{ Number(idx) + 1 }}
-            </div>
-            <!-- 阶段卡片 -->
-            <a-card
-              size="small"
-              class="flex-1"
-              :class="p.isPaid ? 'border-green-200' : 'border-blue-200'"
-              :body-style="{ padding: '12px', backgroundColor: p.isPaid ? '#f0fdf4' : '#eff6ff' }"
-            >
-              <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
-                <!-- 左侧：阶段信息 -->
-                <div class="md:col-span-2">
-                  <div class="flex items-center gap-2 mb-2">
-                    <span class="font-semibold text-base">{{ p.payment_stage }}</span>
-                    <a-tag :color="p.isPaid ? 'green' : 'orange'">
-                      {{ p.statusLabel }}
-                    </a-tag>
-                  </div>
-                  <div class="text-sm text-gray-500">
-                    {{ p.payment_condition || '—' }}
-                  </div>
-                </div>
-
-                <!-- 右侧：金额信息 -->
-                <div class="flex flex-col justify-center space-y-2">
-                  <div class="flex justify-between text-sm">
-                    <span class="text-gray-500">计划金额</span>
-                    <span class="font-semibold">{{ fmtMoney(p.planned_amount) }} 万元</span>
-                  </div>
-                </div>
-              </div>
-
-              <!-- 付款日期 -->
-              <div class="flex items-center gap-4 mt-3 text-xs text-gray-400 border-t border-dashed border-gray-200 pt-2">
-                <span v-if="p.planned_date">
-                  <span class="mr-1">&#128197;</span> 计划日期：{{ p.planned_date }}
-                </span>
-                <a-button type="link" danger size="small" class="ml-auto" @click="deletePayment(p)">删除</a-button>
-              </div>
-            </a-card>
-          </div>
-        </div>
-        </template>
-        <template v-else>
-        <div class="py-8 text-center">
-          <a-empty description="暂无付款计划">
-            <template #description>
-              <div class="text-gray-500 mb-2">暂无付款计划</div>
-              <div class="text-sm text-gray-400">可点击"添加付款"新增付款记录</div>
-            </template>
-          </a-empty>
-        </div>
-        </template>
-      </a-card>
-
-      <!-- ============ 交付物 ============ -->
-      <a-card
-        title="交付物成果"
-        size="small"
-        class="rounded-xl shadow-sm"
-        v-if="deliverables.length > 0"
-      >
-        <div class="space-y-3">
-          <div
-            v-for="d in deliverables"
-            :key="d.deliverable_id"
-            class="flex items-start gap-3 p-3 bg-gray-50 rounded-lg hover:bg-blue-50/50 transition-colors"
-          >
-            <div class="w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-sm font-semibold shrink-0 mt-0.5">
-              {{ deliverables.indexOf(d) + 1 }}
-            </div>
-            <div class="flex-1 min-w-0">
-              <div class="flex items-center gap-2 flex-wrap">
-                <span class="font-medium text-gray-800">{{ d.deliverable_name || '未命名交付物' }}</span>
-                <a-tag v-if="d.deliverable_type" :color="d.deliverable_type === '专利' ? 'purple' : d.deliverable_type === '论文' ? 'green' : d.deliverable_type === '报告' ? 'blue' : 'default'" size="small">
-                  {{ d.deliverable_type }}
-                </a-tag>
-                <a-tag v-if="d.status" :color="d.status === 'completed' ? 'green' : d.status === 'pending' ? 'orange' : 'default'" size="small">
-                  {{ d.status === 'completed' ? '已完成' : d.status === 'pending' ? '进行中' : d.status }}
-                </a-tag>
-              </div>
-              <div v-if="d.description" class="text-sm text-gray-500 mt-1">{{ d.description }}</div>
-              <div class="flex gap-4 text-xs text-gray-400 mt-1">
-                <span v-if="d.planned_date">计划: {{ d.planned_date }}</span>
-                <span v-if="d.quantity">数量: {{ d.quantity }}</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </a-card>
-      <a-card
-        v-else
-        title="交付物成果"
-        size="small"
-        class="rounded-xl shadow-sm"
-      >
-        <a-empty description="暂无交付物数据" />
-      </a-card>
-
-      <!-- ============ 经费预算（科研类） ============ -->
-      <a-card
-        v-if="budgets.length > 0"
-        title="经费预算"
-        size="small"
-        class="rounded-xl shadow-sm"
-        :body-style="{ padding: '16px' }"
-      >
-        <a-table
-          :data-source="budgets"
-          :columns="[
-            { title: '科目', dataIndex: 'category', key: 'category' },
-            { title: '预算金额(万元)', dataIndex: 'amount_total', key: 'amount_total' },
-            { title: '甲方拨款', dataIndex: 'amount_party_a', key: 'amount_party_a' },
-            { title: '乙方自筹', dataIndex: 'amount_self', key: 'amount_self' },
-          ]"
-          :pagination="false"
-          size="small"
-          bordered
-          row-key="budget_id"
-          :scroll="{ x: 600 }"
-        >
-          <template #bodyCell="{ column, record }">
-            <template v-if="column.dataIndex === 'amount_total' || column.dataIndex === 'amount_party_a' || column.dataIndex === 'amount_self'">
-              {{ record[column.dataIndex] != null ? Number(record[column.dataIndex]).toFixed(2) : '-' }}
-            </template>
-          </template>
-        </a-table>
-      </a-card>
-
       <!-- ============ 合同条款 ============ -->
       <a-card
         title="合同条款"
+        id="clauses"
         size="small"
-        class="rounded-xl shadow-sm"
+        class="rounded-lg"
         :body-style="{ padding: '16px' }"
       >
         <a-collapse
@@ -781,11 +527,8 @@
             </a-form-item>
           </div>
 
-          <!-- 服务与执行 -->
-          <div class="text-sm font-semibold text-gray-500 mb-3 border-b pb-2 mt-4">服务与执行</div>
-          <a-form-item label="服务内容">
-            <a-textarea v-model:value="editForm.service_content" :rows="4" placeholder="合同约定的技术服务内容..." />
-          </a-form-item>
+          <!-- 合同期限（两类合同通用） -->
+          <div class="text-sm font-semibold text-gray-500 mb-3 border-b pb-2 mt-4">合同期限</div>
           <div class="grid grid-cols-2 gap-4">
             <a-form-item label="服务期限">
               <a-input v-model:value="editForm.service_period" placeholder="如：合同签订之日起至2026年12月31日" />
@@ -793,13 +536,29 @@
             <a-form-item label="到期日期">
               <a-date-picker v-model:value="editForm.expiry_date" value-format="YYYY-MM-DD" class="w-full" />
             </a-form-item>
-            <a-form-item label="服务方式">
-              <a-input v-model:value="editForm.service_method" placeholder="如：现场技术服务" />
-            </a-form-item>
-            <a-form-item label="服务地点">
-              <a-input v-model:value="editForm.service_location" placeholder="如：四川省乐山市" />
-            </a-form-item>
           </div>
+
+          <!-- 服务内容与方式（仅服务类） -->
+          <template v-if="editForm.project_type === '服务类'">
+            <div class="text-sm font-semibold text-gray-500 mb-3 border-b pb-2 mt-4">服务内容与方式</div>
+            <a-form-item label="服务内容">
+              <a-textarea v-model:value="editForm.service_content" :rows="4" placeholder="合同约定的技术服务内容..." />
+            </a-form-item>
+            <div class="grid grid-cols-2 gap-4">
+              <a-form-item label="服务方式">
+                <a-input v-model:value="editForm.service_method" placeholder="如：现场技术服务" />
+              </a-form-item>
+              <a-form-item label="服务地点">
+                <a-input v-model:value="editForm.service_location" placeholder="如：四川省乐山市" />
+              </a-form-item>
+              <a-form-item label="服务进度">
+                <a-input v-model:value="editForm.service_schedule" placeholder="如：分3次交付" />
+              </a-form-item>
+              <a-form-item label="服务质量要求">
+                <a-input v-model:value="editForm.service_quality" placeholder="如：符合XX技术规范" />
+              </a-form-item>
+            </div>
+          </template>
 
           <!-- 验收标准 -->
           <div class="text-sm font-semibold text-gray-500 mb-3 border-b pb-2 mt-4">验收信息</div>
@@ -851,7 +610,8 @@
                   </a-select>
                   <a-input v-model:value="s.start_time" placeholder="开始时间" size="small" />
                   <a-input v-model:value="s.end_time" placeholder="结束时间" size="small" />
-                  <a-textarea v-model:value="s.acceptance_criteria" placeholder="验收标准" :rows="2" size="small" class="col-span-2" />
+                  <a-textarea v-model:value="s.remarks" placeholder="阶段主要内容" :rows="2" size="small" class="col-span-2" />
+                  <a-textarea v-model:value="s.acceptance_criteria" placeholder="考核目标" :rows="2" size="small" class="col-span-2" />
                 </div>
                 <a-button type="text" danger size="small" @click="removeEditStage(Number(idx))">
                   <template #icon><span class="text-lg leading-none">✕</span></template>
@@ -948,50 +708,19 @@
           </a-form-item>
         </a-form>
       </a-modal>
-
-      <!-- ============ 添加付款弹窗 ============ -->
-      <a-modal
-        v-model:open="addPaymentVisible"
-        title="添加付款记录"
-        :confirm-loading="paymentSaving"
-        @ok="savePayment"
-        :ok-text="'保存'"
-        :cancel-text="'取消'"
-      >
-        <a-form :model="paymentForm" layout="vertical">
-          <div class="grid grid-cols-2 gap-4">
-            <a-form-item label="付款阶段">
-              <a-input v-model:value="paymentForm.payment_stage" placeholder="如：第1阶段" />
-            </a-form-item>
-            <a-form-item label="计划金额（万元）">
-              <a-input-number v-model:value="paymentForm.planned_amount" :precision="2" :min="0" class="w-full" />
-            </a-form-item>
-            <a-form-item label="计划日期">
-              <a-date-picker v-model:value="paymentForm.planned_date" value-format="YYYY-MM-DD" class="w-full" />
-            </a-form-item>
-            <a-form-item label="状态">
-              <a-select v-model:value="paymentForm.status">
-                <a-select-option value="pending">待支付</a-select-option>
-                <a-select-option value="paid">已支付</a-select-option>
-              </a-select>
-            </a-form-item>
-          </div>
-          <a-form-item label="付款条件">
-            <a-textarea v-model:value="paymentForm.payment_condition" :rows="2" placeholder="付款条件和说明..." />
-          </a-form-item>
-        </a-form>
-      </a-modal>
     </state-block>
   </div>
 </template>
 
 <script lang="ts" setup>
-import { ref, onMounted, computed, watch } from 'vue'
+import { ref, onMounted, onUnmounted, computed, nextTick, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { message } from 'ant-design-vue'
 import { getContractDetailApi, getContractTeamApi, createPaymentApi, deletePaymentApi, uploadContractFileApi, contractFileDownloadUrl, updateContractApi } from '#/api/contracts'
 import { createInvoiceApi } from '#/api/invoices'
 import StageGantt from '#/views/contracts/components/stage-gantt.vue'
+import ResearchContent from '#/views/contracts/components/ResearchContent.vue'
+import ServiceContent from '#/views/contracts/components/ServiceContent.vue'
 import StateBlock from '#/components/state-block/index.vue'
 
 const route = useRoute()
@@ -1033,6 +762,8 @@ function openEditModal() {
     party_b_phone: c.value.party_b_phone || '',
     service_method: c.value.service_method || '',
     service_location: c.value.service_location || '',
+    service_schedule: c.value.service_schedule || '',
+    service_quality: c.value.service_quality || '',
     acceptance_criteria: c.value.acceptance_criteria || '',
     acceptance_method: c.value.acceptance_method || '',
     acceptance_location: c.value.acceptance_location || '',
@@ -1043,6 +774,7 @@ function openEditModal() {
       stage_number: s.stage_number,
       start_time: s.start_time || '',
       end_time: s.end_time || '',
+      remarks: s.remarks || '',
       acceptance_criteria: s.acceptance_criteria || '',
       status: s.status || 'pending',
       stage_id: s.stage_id || '',
@@ -1067,6 +799,7 @@ function addEditStage() {
     stage_number: stages.length + 1,
     start_time: '',
     end_time: '',
+    remarks: '',
     acceptance_criteria: '',
     status: 'pending',
     stage_id: '',
@@ -1119,6 +852,47 @@ async function saveEdit() {
 }
 
 const c = computed(() => detail.value?.contract ?? null)
+const isResearch = computed(() => c.value?.project_type === '科研类')
+const isService = computed(() => c.value?.project_type === '服务类')
+
+// 吸顶锚点条：数据 + 滚动联动
+const anchors = computed(() => [
+  { id: 'overview', label: '概览' },
+  { id: 'content', label: isResearch.value ? '阶段' : '服务内容' },
+  { id: 'payment', label: '付款' },
+  { id: 'team', label: '团队' },
+  { id: 'clauses', label: '条款' },
+])
+const activeAnchor = ref('overview')
+function scrollToAnchor(id: string) {
+  const el = document.getElementById(id)
+  if (!el) return
+  const y = el.getBoundingClientRect().top + window.pageYOffset - 56
+  window.scrollTo({ top: y, behavior: 'smooth' })
+}
+let anchorObserver: IntersectionObserver | null = null
+watch(
+  () => c.value,
+  () => {
+    nextTick(() => {
+      anchorObserver?.disconnect()
+      anchorObserver = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((e) => {
+            if (e.isIntersecting) activeAnchor.value = (e.target as HTMLElement).id
+          })
+        },
+        { rootMargin: '-56px 0px -70% 0px' },
+      )
+      anchors.value.forEach((a) => {
+        const el = document.getElementById(a.id)
+        if (el) anchorObserver?.observe(el)
+      })
+    })
+  },
+  { flush: 'post' },
+)
+onUnmounted(() => anchorObserver?.disconnect())
 const stages = computed(() => detail.value?.stages ?? [])
 const payments = computed(() => detail.value?.payments ?? [])
 const deliverables = computed(() => detail.value?.deliverables ?? [])

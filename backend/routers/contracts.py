@@ -528,7 +528,7 @@ def update_contract(contract_id: str, payload: dict):
         'sign_date', 'expiry_date', 'service_content', 'service_period',
         'project_leader', 'financial_id', 'tax_rate', 'contract_status', 'sgsc_id',
         'party_a_contact', 'party_a_phone', 'party_b_contact', 'party_b_phone',
-        'service_method', 'service_location', 'acceptance_criteria',
+        'service_method', 'service_location', 'service_schedule', 'service_quality', 'acceptance_criteria',
         'acceptance_method', 'acceptance_location', 'quality_bond_pct',
         'warranty_months', 'sign_location',
     }
@@ -555,8 +555,8 @@ def update_contract(contract_id: str, payload: dict):
         for s in payload['stages']:
             stage_id = s.get('stage_id') or f'{contract_id}-阶段{s.get("stage_number","")}'
             db.execute(
-                'INSERT OR REPLACE INTO stages (stage_id, contract_id, stage_name, stage_number, start_time, end_time, acceptance_criteria, status) VALUES (?,?,?,?,?,?,?,?)',
-                (stage_id, contract_id, s.get('stage_name',''), s.get('stage_number'), s.get('start_time'), s.get('end_time'), s.get('acceptance_criteria',''), s.get('status','pending'))
+                'INSERT OR REPLACE INTO stages (stage_id, contract_id, stage_name, stage_number, start_time, end_time, remarks, acceptance_criteria, status) VALUES (?,?,?,?,?,?,?,?,?)',
+                (stage_id, contract_id, s.get('stage_name',''), s.get('stage_number'), s.get('start_time'), s.get('end_time'), s.get('remarks',''), s.get('acceptance_criteria',''), s.get('status','pending'))
             )
 
     # 处理科研类合同的交付物更新
