@@ -103,17 +103,27 @@ def upsert_stages(pid, data):
     return count
 
 def upsert_payments(pid, data):
-    """导入付款计划"""
+    """导入付款计划
+
+    单位规则：标准数据(JSON)中付款金额字段为「元」，统一换算为「万元」，
+    与合同额口径一致。旧逻辑 `if amt > 1000: amt/10000` 会漏掉小额(≤1000元)
+    付款导致单位错乱，已改为无条件换算 + 合理性校验。
+    """
     payments = data.get('付款计划', [])
     if not payments:
         return 0
     db = get_db()
+    ca_row = db.execute('SELECT contract_amount FROM contracts WHERE contract_id=?', (pid,)).fetchone()
+    ca_wan = (ca_row[0] or 0) if ca_row else 0
     count = 0
     for p in payments:
         pay_id = f'{pid}-P{p.get("付款节点", count + 1)}'
         amt = p.get('金额', 0) or p.get('付款金额', 0) or 0
-        if amt > 1000:
-            amt = amt / 10000  # 元 → 万元
+        if amt:
+            amt = amt / 10000  # 元 → 万元（标准数据付款金额单位为元）
+            # 单位合理性校验：单笔付款不应超过合同额的 2 倍（疑似元/万混淆）
+            if ca_wan and amt > ca_wan * 2:
+                print(f"  [WARN] 付款 {pay_id} = {amt:.4f}万 超过合同额({ca_wan:.4f}万)的2倍，疑似单位错误，请核对")
         db.execute('''
             INSERT OR IGNORE INTO payments
             (payment_id, contract_id, payment_stage, planned_amount,

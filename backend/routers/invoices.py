@@ -51,3 +51,53 @@ def get_invoice(invoice_id: int):
         raise HTTPException(404, 'Invoice not found')
     db.close()
     return vben_response({'invoice': dict(row)})
+
+
+@router.put('/{invoice_id}')
+def update_invoice(invoice_id: int, payload: dict):
+    """更新发票信息。"""
+    db = get_db()
+    row = db.execute('SELECT 1 FROM invoices WHERE invoice_id=?', (invoice_id,)).fetchone()
+    if not row:
+        db.close()
+        raise HTTPException(404, 'Invoice not found')
+
+    updatable = {'project_id', 'invoice_type', 'invoice_no', 'invoice_date', 'amount',
+                 'tax_rate', 'tax_amount', 'total_with_tax', 'status', 'received_date',
+                 'payment_status', 'notes', 'direction'}
+    fields = []
+    values = []
+    for k, v in payload.items():
+        if k in updatable and v is not None:
+            fields.append(f'{k}=?')
+            values.append(v)
+
+    if not fields:
+        db.close()
+        return vben_response({'invoice_id': invoice_id, 'updated': False})
+
+    values.append(invoice_id)
+    db.execute(f'UPDATE invoices SET {", ".join(fields)} WHERE invoice_id=?', values)
+    db.commit()
+    db.close()
+    return vben_response({'invoice_id': invoice_id, 'updated': True})
+
+
+@router.post('')
+def create_invoice(payload: dict):
+    """新增发票。"""
+    db = get_db()
+    fields = ['project_id', 'invoice_type', 'invoice_no', 'invoice_date', 'amount',
+              'tax_rate', 'tax_amount', 'total_with_tax', 'status', 'received_date',
+              'payment_status', 'notes', 'direction']
+    values = [payload.get(f) for f in fields]
+
+    placeholders = ', '.join(['?' for _ in fields])
+    db.execute(
+        f'INSERT INTO invoices ({", ".join(fields)}) VALUES ({placeholders})',
+        values,
+    )
+    db.commit()
+    invoice_id = db.execute('SELECT last_insert_rowid()').fetchone()[0]
+    db.close()
+    return vben_response({'invoice_id': invoice_id, 'created': True})

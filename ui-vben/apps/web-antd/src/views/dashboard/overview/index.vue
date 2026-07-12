@@ -1,209 +1,146 @@
 <template>
-  <div class="p-4">
-    <!-- Loading 态 -->
-    <div
-      v-if="loading"
-      class="flex items-center justify-center py-20 text-muted-foreground"
-    >
-      <span>加载中…</span>
+  <StateBlock
+    :loading="loading"
+    :error="error"
+    error-title="综合看板加载失败"
+    empty-text="暂无数据"
+    @retry="load"
+  >
+    <div class="space-y-4 p-4">
+      <dashboard-header
+        :generated-at="overview?.generated_at"
+        :unit="overview?.summary?.currency_unit"
+        :loading="loading"
+        @refresh="load"
+      />
+      <dashboard-tabs v-model="activeView" @change="onTabChange" />
+      <all-view v-if="activeView === 'all'" :overview="currentOverview" @navigate="onAlertNavigate" />
+      <management-view
+        v-else-if="activeView === 'management'"
+        :overview="currentOverview"
+      />
+      <project-view v-else-if="activeView === 'projects'" :overview="currentOverview" />
+      <finance-view v-else :overview="currentOverview" />
     </div>
-
-    <!-- Error 态 -->
-    <div
-      v-else-if="error"
-      class="rounded-lg border border-destructive/50 bg-destructive/10 p-6 text-center"
-    >
-      <p class="font-medium text-destructive">仪表盘数据加载失败</p>
-      <p class="mt-1 text-sm text-muted-foreground">{{ error }}</p>
-      <button
-        class="mt-3 rounded border px-3 py-1 text-sm hover:bg-accent"
-        @click="load"
-      >
-        重试
-      </button>
-    </div>
-
-    <!-- 仪表盘主体 -->
-    <template v-else-if="overview">
-      <!-- KPI 卡片行 -->
-      <div class="mb-4 grid grid-cols-2 gap-4 md:grid-cols-4">
-        <div
-          v-for="kpi in kpiCards"
-          :key="kpi.label"
-          class="rounded-lg border bg-card p-4 shadow-sm"
-        >
-          <div class="text-muted-foreground text-sm">{{ kpi.label }}</div>
-          <div class="mt-1 text-2xl font-bold">
-            {{ formatNumber(kpi.value, kpi.digits) }}
-            <span class="ml-1 text-sm font-normal text-muted-foreground">{{
-              kpi.unit
-            }}</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- 三个图表并排：类型饼 / 发票饼 / Top 客户 -->
-      <div class="mb-4 grid grid-cols-1 gap-4 lg:grid-cols-3">
-        <div class="rounded-lg border bg-card p-4 shadow-sm">
-          <div class="mb-2 font-medium">合同类型分布（万元）</div>
-          <contract-type-pie :data="overview.contracts_by_type ?? []" />
-        </div>
-        <div class="rounded-lg border bg-card p-4 shadow-sm">
-          <div class="mb-2 font-medium">发票状态分布（万元）</div>
-          <invoice-status-pie
-            :data="overview.invoice_status_distribution ?? []"
-          />
-        </div>
-        <div class="rounded-lg border bg-card p-4 shadow-sm">
-          <div class="mb-2 font-medium">Top 客户（合同额·万元）</div>
-          <top-customers-bar :data="overview.top_customers ?? []" />
-        </div>
-      </div>
-
-      <!-- 财务快照趋势（全宽） -->
-      <div class="mb-4 rounded-lg border bg-card p-4 shadow-sm">
-        <div class="mb-2 font-medium">财务批次趋势（万元）</div>
-        <trend-chart
-          :data="overview.finance_trend ?? []"
-          x-field="batch_id"
-          :series="financeSeries"
-        />
-      </div>
-
-      <!-- 月度开票/回款趋势（全宽） -->
-      <div class="mb-4 rounded-lg border bg-card p-4 shadow-sm">
-        <div class="mb-2 font-medium">月度开票 / 回款趋势（万元）</div>
-        <trend-chart
-          :data="overview.invoice_monthly ?? []"
-          x-field="month"
-          :series="financeSeries"
-          :x-rotate="45"
-          :legend-bottom="10"
-        />
-      </div>
-
-      <!-- 最近合同表 -->
-      <div class="rounded-lg border bg-card shadow-sm">
-        <div class="border-b px-4 py-3 font-medium">最近合同</div>
-        <VxeTable
-          v-if="overview.recent_contracts"
-          :data="overview.recent_contracts"
-          :column-config="{ minWidth: 120 }"
-          :row-config="{ height: 44, isHover: true }"
-          size="small"
-          height="400"
-        >
-          <VxeColumn
-            field="contract_id"
-            title="合同编号"
-            width="150"
-            showOverflow
-          />
-          <VxeColumn
-            field="project_name"
-            title="项目名称"
-            minWidth="250"
-            showOverflow
-          />
-          <VxeColumn
-            field="party_a"
-            title="甲方"
-            minWidth="180"
-            showOverflow
-          />
-          <VxeColumn field="project_type" title="类型" width="100" />
-          <VxeColumn field="contract_status" title="状态" width="100" />
-          <VxeColumn field="sign_date" title="签订日期" width="110" />
-          <VxeColumn
-            field="contract_amount"
-            title="合同额(万元)"
-            width="130"
-            align="right"
-            :formatter="({ cellValue }) => cellValue != null ? Number(cellValue).toFixed(2) : '-'"
-          />
-          <VxeColumn
-            field="invoice_total"
-            title="已开票(万元)"
-            width="120"
-            align="right"
-            :formatter="({ cellValue }) => cellValue != null ? Number(cellValue).toFixed(2) : '-'"
-          />
-          <VxeColumn
-            field="payment_total"
-            title="已回款(万元)"
-            width="120"
-            align="right"
-            :formatter="({ cellValue }) => cellValue != null ? Number(cellValue).toFixed(2) : '-'"
-          />
-        </VxeTable>
-        <div v-else class="py-4 text-center text-sm text-muted-foreground">
-          暂无最近合同数据
-        </div>
-      </div>
-    </template>
-  </div>
+  </StateBlock>
 </template>
 
 <script lang="ts" setup>
-import { computed, onMounted, ref } from 'vue';
+import { computed, onMounted, ref, watch } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
 
 import { getDashboardOverviewApi } from '#/api/dashboard';
 import type { DashboardOverview } from '#/api/dashboard';
+import StateBlock from '#/components/state-block/index.vue';
 
-import ContractTypePie from '#/views/dashboard/components/contract-type-pie.vue';
-import InvoiceStatusPie from '#/views/dashboard/components/invoice-status-pie.vue';
-import TrendChart from '#/views/dashboard/components/trend-chart.vue';
-import TopCustomersBar from '#/views/dashboard/components/top-customers-bar.vue';
-import { VxeTable, VxeColumn } from '#/adapter/vxe-table';
+import DashboardHeader from './components/dashboard-header.vue';
+import DashboardTabs from './components/dashboard-tabs.vue';
+import AllView from './components/all-view.vue';
+import ManagementView from './components/management-view.vue';
+import ProjectView from './components/project-view.vue';
+import FinanceView from './components/finance-view.vue';
+import { isValidViewKey, type ViewKey } from './dashboard-types';
 
-/** 生命周期 */
+const route = useRoute();
+const router = useRouter();
+
+const overview = ref<DashboardOverview | null>(null);
 const loading = ref(true);
 const error = ref('');
-const overview = ref<DashboardOverview | null>(null);
 
-async function load() {
+const activeView = ref<ViewKey>(
+  isValidViewKey(route.query.view) ? (route.query.view as ViewKey) : 'all',
+);
+
+const currentOverview = computed(() => overview.value as DashboardOverview);
+
+function load() {
   loading.value = true;
   error.value = '';
-  try {
-    overview.value = await getDashboardOverviewApi();
-  } catch (e: any) {
-    error.value = e?.response?.data?.message || e?.message || '未知错误';
-  } finally {
-    loading.value = false;
-  }
+  getDashboardOverviewApi()
+    .then((res) => {
+      overview.value = res;
+    })
+    .catch((e: any) => {
+      error.value = e?.response?.data?.message || e?.message || '未知错误';
+    })
+    .finally(() => {
+      loading.value = false;
+    });
 }
 
 onMounted(load);
 
-/** 趋势图系列定义（颜色与 finance-tokens.css 对齐：#1677ff 已开票 / #52c41a 已回款） */
-const financeSeries = [
-  { name: '已开票', valueField: 'invoiced_wan', color: '#1677ff' },
-  { name: '已回款', valueField: 'received_wan', color: '#52c41a' },
-];
+const NAV_MAP: Record<string, string> = {
+  unmatched_payments: '/invoices',
+  pending_deliverables: '/projects',
+  overdue_payments: '/projects',
+  uninvoiced_contracts: '/contracts',
+};
 
-/** KPI 卡片列表 */
-const kpiCards = computed(() => {
-  const s = overview.value?.summary;
-  if (!s) return [];
-  const unit = s.currency_unit || '万元';
-  return [
-    { label: '合同总数', value: s.contract_count, digits: 0, unit: '个' },
-    { label: '合同总额', value: s.contract_total_amount, digits: 2, unit },
-    { label: '已开票', value: s.invoiced_amount, digits: 2, unit },
-    { label: '已回款', value: s.received_amount, digits: 2, unit },
-    { label: '未回款', value: s.unreceived_amount, digits: 2, unit },
-    { label: '回款率', value: s.receipt_rate, digits: 1, unit: '%' },
-    { label: '分包已开票', value: s.sub_invoiced_amount, digits: 2, unit },
-    { label: '分包已付款', value: s.sub_paid_amount, digits: 2, unit },
-  ];
-});
-
-/** 格式化数字显示 */
-function formatNumber(
-  value: number | null | undefined,
-  digits = 2,
-): string {
-  if (value == null || Number.isNaN(value)) return '-';
-  return Number(value).toFixed(digits);
+function onAlertNavigate(key: string) {
+  const path = NAV_MAP[key];
+  if (path) router.push(path);
 }
+
+function onTabChange(v: ViewKey) {
+  activeView.value = v;
+  router.replace({ query: { ...route.query, view: v } });
+}
+
+watch(
+  () => route.query.view,
+  (v) => {
+    if (isValidViewKey(v) && v !== activeView.value) {
+      activeView.value = v;
+    }
+  },
+);
 </script>
+
+<style>
+:root {
+  --dash-primary: #1677ff;
+  --dash-received: #16a36a;
+  --dash-invoiced: #0f8fa8;
+  --dash-warning: #d98e04;
+  --dash-danger: #d64545;
+}
+.dark {
+  --dash-primary: #4096ff;
+  --dash-received: #3cc787;
+  --dash-invoiced: #36c5d6;
+  --dash-warning: #e8a33d;
+  --dash-danger: #f27272;
+}
+.dash-text-primary {
+  color: var(--dash-primary);
+}
+.dash-text-received {
+  color: var(--dash-received);
+}
+.dash-text-invoiced {
+  color: var(--dash-invoiced);
+}
+.dash-text-warning {
+  color: var(--dash-warning);
+}
+.dash-text-danger {
+  color: var(--dash-danger);
+}
+.dash-bg-primary {
+  background: color-mix(in srgb, var(--dash-primary) 12%, transparent);
+}
+.dash-bg-received {
+  background: color-mix(in srgb, var(--dash-received) 12%, transparent);
+}
+.dash-bg-invoiced {
+  background: color-mix(in srgb, var(--dash-invoiced) 12%, transparent);
+}
+.dash-bg-warning {
+  background: color-mix(in srgb, var(--dash-warning) 12%, transparent);
+}
+.dash-bg-danger {
+  background: color-mix(in srgb, var(--dash-danger) 12%, transparent);
+}
+</style>

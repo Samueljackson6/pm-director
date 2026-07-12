@@ -41,7 +41,7 @@ jobs:
             for f in $(find backend -name "*.py"); do
               python -c "import ast; ast.parse(open('$f').read())" && echo "  OK $f"
             done
-            ruff check backend/ --quiet || true
+            ruff check backend/ --quiet
           fi
 
   # ============================================================

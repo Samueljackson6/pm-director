@@ -11,10 +11,10 @@
           <a-descriptions-item label="项目编号" :span="2">{{ inv.project_id }}</a-descriptions-item>
           <a-descriptions-item label="发票类型">{{ inv.invoice_type }}</a-descriptions-item>
           <a-descriptions-item label="方向">{{ inv.direction === 'outbound' ? '客户发票' : '供应商发票' }}</a-descriptions-item>
-          <a-descriptions-item label="金额">{{ (inv.amount || 0).toFixed(2) }} 万元</a-descriptions-item>
+          <a-descriptions-item label="金额">{{ yuanToWan(inv.amount || 0).toFixed(2) }} 万元</a-descriptions-item>
           <a-descriptions-item label="税率">{{ inv.tax_rate ? (inv.tax_rate * 100).toFixed(0) + '%' : '-' }}</a-descriptions-item>
-          <a-descriptions-item label="税额">{{ (inv.tax_amount || 0).toFixed(2) }}</a-descriptions-item>
-          <a-descriptions-item label="价税合计">{{ (inv.total_with_tax || 0).toFixed(2) }}</a-descriptions-item>
+          <a-descriptions-item label="税额">{{ yuanToWan(inv.tax_amount || 0).toFixed(2) }} 万元</a-descriptions-item>
+          <a-descriptions-item label="价税合计">{{ yuanToWan(inv.total_with_tax || 0).toFixed(2) }} 万元</a-descriptions-item>
           <a-descriptions-item label="开票日期">{{ inv.invoice_date || '-' }}</a-descriptions-item>
           <a-descriptions-item label="状态">{{ inv.status }}</a-descriptions-item>
           <a-descriptions-item label="来源">{{ inv.source || '-' }}</a-descriptions-item>
@@ -26,10 +26,11 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { getInvoiceDetailApi } from '#/api/invoices'
 import StateBlock from '#/components/state-block/index.vue'
+import { yuanToWan } from './amount'
 
 const route = useRoute()
 const router = useRouter()
@@ -41,7 +42,8 @@ async function load() {
   loading.value = true
   error.value = ''
   try {
-    const data: any = await getInvoiceDetailApi(Number(route.query.id))
+    const id = route.params.id || route.query.id
+    const data: any = await getInvoiceDetailApi(Number(id))
     inv.value = data.invoice ?? null
     if (!inv.value) error.value = '未找到该发票'
   } catch (e: any) {
@@ -52,6 +54,17 @@ async function load() {
 }
 
 onMounted(load)
+
+// 监听路由参数变化
+watch(
+  () => route.params.id || route.query.id,
+  (newId, oldId) => {
+    if (newId && newId !== oldId) {
+      load()
+    }
+  },
+  { immediate: false },
+)
 
 function goBack() {
   router.push({ name: 'InvoiceList' })

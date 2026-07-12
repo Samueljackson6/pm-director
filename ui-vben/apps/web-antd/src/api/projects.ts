@@ -31,6 +31,43 @@ export interface ProjectDetail {
   contracts: ProjectContract[]
 }
 
+
+export interface ProjectStage {
+  stage_id: string
+  stage_name: string
+  start_time?: string | null
+  end_time?: string | null
+  status: string
+  acceptance_criteria?: string | null
+}
+
+export interface ProjectPayment {
+  payment_id: string
+  payment_stage: string
+  payment_condition?: string | null
+  planned_amount: number
+  status: string
+}
+
+export interface ProjectDeliverable {
+  deliverable_id: string
+  deliverable_name: string
+  deliverable_type: string
+  planned_date?: string | null
+  status: string
+}
+
+export interface ProjectStagesResult {
+  stages: ProjectStage[]
+}
+
+export interface ProjectPaymentsResult {
+  payments: ProjectPayment[]
+}
+
+export interface ProjectDeliverablesResult {
+  deliverables: ProjectDeliverable[]
+}
 export interface ProjectProgress {
   stage_rate: number
   payment_rate: number
@@ -61,17 +98,17 @@ export async function getProjectDetailApi(id: string) {
 
 /** 项目阶段列表 */
 export async function getProjectStagesApi(id: string) {
-  return requestClient.get<any[]>('/api/projects/' + id + '/stages')
+  return requestClient.get<ProjectStagesResult>('/api/projects/' + id + '/stages')
 }
 
 /** 项目付款计划 */
 export async function getProjectPaymentsApi(id: string) {
-  return requestClient.get<any[]>('/api/projects/' + id + '/payments')
+  return requestClient.get<ProjectPaymentsResult>('/api/projects/' + id + '/payments')
 }
 
 /** 项目交付物 */
 export async function getProjectDeliverablesApi(id: string) {
-  return requestClient.get<any[]>('/api/projects/' + id + '/deliverables')
+  return requestClient.get<ProjectDeliverablesResult>('/api/projects/' + id + '/deliverables')
 }
 
 /** 项目进度 */

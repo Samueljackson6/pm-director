@@ -48,3 +48,13 @@ export async function getInvoicesApi(params?: {
 export async function getInvoiceSummaryApi() {
   return requestClient.get<{ items: InvoiceSummaryItem[]; total: number }>('/api/invoices/summary')
 }
+
+/** 更新发票 */
+export async function updateInvoiceApi(id: number, data: Record<string, any>) {
+  return requestClient.put('/api/invoices/' + id, data)
+}
+
+/** 新增发票 */
+export async function createInvoiceApi(data: Record<string, any>) {
+  return requestClient.post('/api/invoices', data)
+}

@@ -54,7 +54,7 @@ import type { VxeGridProps } from '#/adapter/vxe-table'
 import { useVbenVxeGrid } from '#/adapter/vxe-table'
 import { getProjectsApi, type ProjectItem } from '#/api/projects'
 import { useRouter } from 'vue-router'
-import { ref, onMounted } from 'vue'
+import { ref } from 'vue'
 
 const router = useRouter()
 
@@ -170,23 +170,24 @@ const gridOptions: VxeGridProps<ProjectItem> = {
   rowConfig: { isHover: true, height: 44 },
 }
 
-const [Grid, gridApi] = useVbenVxeGrid({ gridOptions })
-
-onMounted(() => {
-  // 双击行跳转详情
-  gridApi.on('cell-dblclick', ({ row }: { row: ProjectItem }) => {
-    router.push({ name: 'ProjectDetail', params: { id: row.project_id } })
-  })
+const [Grid, gridApi] = useVbenVxeGrid({
+  gridOptions,
+  gridEvents: {
+    // 双击行跳转详情
+    cellDblclick({ row }: { row: ProjectItem }) {
+      router.push({ name: 'ProjectDetail', params: { id: row.project_id } })
+    },
+  },
 })
 
 function handleSearch() {
-  gridApi.commitProxyQuery()
+  gridApi.query()
 }
 
 function handleReset() {
   searchText.value = ''
   statusFilter.value = undefined
   typeFilter.value = undefined
-  gridApi.commitProxyQuery()
+  gridApi.query()
 }
 </script>

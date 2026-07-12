@@ -12,8 +12,10 @@ services:
       dockerfile: Dockerfile
       target: backend
     container_name: pm-director-backend
+    # ⚠️ 主机 8800 被 Windows Hyper-V 保留（端口范围 8701-8800）
+    # 改用 18080 对外暴露，容器内仍为 8800
     ports:
-      - "8800:8800"
+      - "18080:8800"
     volumes:
       - ./database:/app/database
       - ./cache:/app/cache
@@ -21,10 +23,10 @@ services:
     networks:
       - pm-director-net
     restart: unless-stopped
-    # 后端存活探针：命中新增的 GET /health（纯存活检测，不依赖 DB）
+    # 后端就绪探针：命中 GET /ready，确认应用与数据库均可用
     # 使用 python 而非 curl（python:3.11-slim 基础镜像默认未安装 curl）
     healthcheck:
-      test: ["CMD", "python", "-c", "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://localhost:8800/health').status == 200 else 1)"]
+      test: ["CMD", "python", "-c", "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://localhost:8800/ready').status == 200 else 1)"]
       interval: 30s
       timeout: 5s
       retries: 3
@@ -34,8 +36,9 @@ services:
     image: nginx:alpine
     container_name: pm-director-frontend
     ports:
-      # 注意：Windows 保留端口 5690-5789，不可用
-      - "8900:80"
+      # ⚠️ 主机 8900 被 Windows Hyper-V 保留（端口范围 8801-8900）
+      # 改用 18090 对外暴露，容器内仍为 80
+      - "18090:80"
     volumes:
       # 使用本机构建的 dist 产物（避免 Docker 内 Vite 7 + jiti 兼容问题）
       - ./ui-vben/apps/web-antd/dist:/usr/share/nginx/html
