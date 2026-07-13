@@ -2,7 +2,7 @@
   <div class="p-4">
     <Grid>
       <template #status="{ row }">
-        <a-tag :color="row.status === 'active' ? 'green' : 'default'">
+        <a-tag v-if="row" :color="row.status === 'active' ? 'green' : 'default'">
           {{ row.status === 'active' ? '合作中' : '已暂停' }}
         </a-tag>
       </template>
