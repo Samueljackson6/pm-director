@@ -1,0 +1,328 @@
+{
+  "time": "2026-07-12T15:55:47.345Z",
+  "summary": {
+    "total": 71,
+    "passed": 71,
+    "failed": 0
+  },
+  "results": [
+    {
+      "step": "API: 仪表盘200",
+      "ok": true
+    },
+    {
+      "step": "API: 合同总数",
+      "ok": true,
+      "detail": "42份"
+    },
+    {
+      "step": "API: 合同总金额",
+      "ok": true,
+      "detail": "2405.62万元"
+    },
+    {
+      "step": "API: 开票≈合同",
+      "ok": true,
+      "detail": "差0.00"
+    },
+    {
+      "step": "API: 回款率",
+      "ok": true,
+      "detail": "55.9%"
+    },
+    {
+      "step": "API: 类型一致",
+      "ok": true
+    },
+    {
+      "step": "API: 合同列表",
+      "ok": true,
+      "detail": "20份"
+    },
+    {
+      "step": "API: 必填字段",
+      "ok": true,
+      "detail": "OK"
+    },
+    {
+      "step": "API: 发票列表",
+      "ok": true,
+      "detail": "50条"
+    },
+    {
+      "step": "API: 供应商列表",
+      "ok": true,
+      "detail": "24家"
+    },
+    {
+      "step": "数据: 开票≈合同",
+      "ok": true
+    },
+    {
+      "step": "数据: 回款率",
+      "ok": true
+    },
+    {
+      "step": "数据: 全部signed",
+      "ok": true
+    },
+    {
+      "step": "数据: 无未来日期",
+      "ok": true,
+      "detail": "OK"
+    },
+    {
+      "step": "数据: 无分包超主",
+      "ok": true
+    },
+    {
+      "step": "数据: 待处理",
+      "ok": true,
+      "detail": "未匹配:85 待交付:72 逾期:2"
+    },
+    {
+      "step": "数据: 月度数据",
+      "ok": true
+    },
+    {
+      "step": "数据: 财务趋势",
+      "ok": true
+    },
+    {
+      "step": "数据: 类型分布",
+      "ok": true
+    },
+    {
+      "step": "数据: 发票状态",
+      "ok": true
+    },
+    {
+      "step": "UI: 登录→仪表盘",
+      "ok": true,
+      "detail": "http://localhost:18090/web/dashboard/overview/index"
+    },
+    {
+      "step": "路由: /web/dashboard/overview/index",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "step": "路由: /web/contracts/list",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "step": "路由: /web/invoices/list",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "step": "路由: /web/suppliers/list",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "step": "UI: 仪表盘加载",
+      "ok": true,
+      "detail": "http://localhost:18090/web/dashboard/overview/index"
+    },
+    {
+      "step": "UI: 标题(综合驾驶舱)",
+      "ok": true
+    },
+    {
+      "step": "UI: 合同总额",
+      "ok": true
+    },
+    {
+      "step": "UI: 已开票",
+      "ok": true
+    },
+    {
+      "step": "UI: 已回款",
+      "ok": true
+    },
+    {
+      "step": "UI: 回款率",
+      "ok": true
+    },
+    {
+      "step": "UI: 告警",
+      "ok": true
+    },
+    {
+      "step": "UI: 图表",
+      "ok": true
+    },
+    {
+      "step": "UI: 无JS错误",
+      "ok": true,
+      "detail": "OK"
+    },
+    {
+      "step": "UI: 合同列表",
+      "ok": true,
+      "detail": "http://localhost:18090/web/contracts/list"
+    },
+    {
+      "step": "UI: 有表格",
+      "ok": true
+    },
+    {
+      "step": "UI: VxeTable",
+      "ok": true,
+      "detail": "行数:20"
+    },
+    {
+      "step": "UI: 页面有合同数据",
+      "ok": true,
+      "detail": "页面长度:2492"
+    },
+    {
+      "step": "UI: 详情加载[ZH02-202601011]",
+      "ok": true,
+      "detail": "http://localhost:18090/web/contracts/detail?id=ZH02-202601011"
+    },
+    {
+      "step": "  [ZH02-202601011] 甲方/乙方",
+      "ok": true
+    },
+    {
+      "step": "  [ZH02-202601011] 合同金额",
+      "ok": true
+    },
+    {
+      "step": "  [ZH02-202601011] 税率",
+      "ok": true
+    },
+    {
+      "step": "  [ZH02-202601011] 签订日期",
+      "ok": true
+    },
+    {
+      "step": "  [ZH02-202601011] 付款/回款",
+      "ok": true
+    },
+    {
+      "step": "  [ZH02-202601011] 发票",
+      "ok": true
+    },
+    {
+      "step": "  [ZH02-202601011] 条款",
+      "ok": true
+    },
+    {
+      "step": "  [ZH02-202601011] 整体",
+      "ok": true,
+      "detail": "7/7"
+    },
+    {
+      "step": "UI: 详情加载[ZH02-202509025]",
+      "ok": true,
+      "detail": "http://localhost:18090/web/contracts/detail?id=ZH02-202509025"
+    },
+    {
+      "step": "  [ZH02-202509025] 甲方/乙方",
+      "ok": true
+    },
+    {
+      "step": "  [ZH02-202509025] 合同金额",
+      "ok": true
+    },
+    {
+      "step": "  [ZH02-202509025] 税率",
+      "ok": true
+    },
+    {
+      "step": "  [ZH02-202509025] 签订日期",
+      "ok": true
+    },
+    {
+      "step": "  [ZH02-202509025] 付款/回款",
+      "ok": true
+    },
+    {
+      "step": "  [ZH02-202509025] 发票",
+      "ok": true
+    },
+    {
+      "step": "  [ZH02-202509025] 条款",
+      "ok": true
+    },
+    {
+      "step": "  [ZH02-202509025] 整体",
+      "ok": true,
+      "detail": "7/7"
+    },
+    {
+      "step": "UI: 详情加载[ZH02-202604025]",
+      "ok": true,
+      "detail": "http://localhost:18090/web/contracts/detail?id=ZH02-202604025"
+    },
+    {
+      "step": "  [ZH02-202604025] 甲方/乙方",
+      "ok": true
+    },
+    {
+      "step": "  [ZH02-202604025] 合同金额",
+      "ok": true
+    },
+    {
+      "step": "  [ZH02-202604025] 税率",
+      "ok": true
+    },
+    {
+      "step": "  [ZH02-202604025] 签订日期",
+      "ok": true
+    },
+    {
+      "step": "  [ZH02-202604025] 付款/回款",
+      "ok": true
+    },
+    {
+      "step": "  [ZH02-202604025] 发票",
+      "ok": true
+    },
+    {
+      "step": "  [ZH02-202604025] 条款",
+      "ok": true
+    },
+    {
+      "step": "  [ZH02-202604025] 整体",
+      "ok": true,
+      "detail": "7/7"
+    },
+    {
+      "step": "UI: 发票列表",
+      "ok": true
+    },
+    {
+      "step": "UI: 发票表格",
+      "ok": true
+    },
+    {
+      "step": "UI: 发票详情",
+      "ok": true
+    },
+    {
+      "step": "UI: 供应商列表",
+      "ok": true
+    },
+    {
+      "step": "UI: 供应商表格",
+      "ok": true
+    },
+    {
+      "step": "UI: 供应商详情",
+      "ok": true
+    }
+  ],
+  "consoleErrors": [],
+  "pageErrors": [],
+  "data": {
+    "contracts": 20,
+    "invoices": 50,
+    "suppliers": 24,
+    "totalAmount": 2405.62
+  }
+}
