@@ -40,7 +40,7 @@ const items = computed<AlertItem[]>(() => [
     label: '待匹配回款',
     tone: 'danger',
     count: props.tasks?.unmatched_payments ?? 0,
-    targetPath: '/invoices',
+    targetPath: '/customer-finance/invoices',
     filterParam: 'payment_status=未匹配',
   },
   {
@@ -48,7 +48,7 @@ const items = computed<AlertItem[]>(() => [
     label: '待交付成果',
     tone: 'warning',
     count: props.tasks?.pending_deliverables ?? 0,
-    targetPath: '/contracts',
+    targetPath: '/contracts/list',
     filterParam: 'deliverable_status=pending',
   },
   {
@@ -56,7 +56,7 @@ const items = computed<AlertItem[]>(() => [
     label: '逾期付款',
     tone: 'danger',
     count: props.tasks?.overdue_payments ?? 0,
-    targetPath: '/contracts',
+    targetPath: '/contracts/list',
     filterParam: 'payment_overdue=true',
   },
   {
@@ -64,7 +64,7 @@ const items = computed<AlertItem[]>(() => [
     label: '未开票合同',
     tone: 'warning',
     count: props.tasks?.uninvoiced_contracts ?? 0,
-    targetPath: '/contracts',
+    targetPath: '/contracts/list',
     filterParam: 'invoice_status=uninvoiced',
   },
 ]);

@@ -194,7 +194,7 @@
                     </tr>
                   </thead>
                   <tbody>
-                    <tr v-for="inv in paginatedInvoices" :key="inv.invoice_id" class="border-b border-gray-50 hover:bg-blue-50/30 cursor-pointer" @click="router.push({ name: 'InvoiceDetail', query: { id: inv.invoice_id } })">
+                    <tr v-for="inv in paginatedInvoices" :key="inv.invoice_id" class="border-b border-gray-50 hover:bg-blue-50/30 cursor-pointer" @click="router.push({ name: 'SupplierInvoiceDetail', query: { id: inv.invoice_id } })">
                       <td class="px-4 py-3 font-mono text-xs text-blue-600">{{ inv.invoice_no || 'INV#' + inv.invoice_id }}</td>
                       <td class="px-4 py-3 text-gray-700">{{ inv.project_id }}</td>
                       <td class="px-4 py-3 text-gray-500">{{ inv.invoice_date || '-' }}</td>

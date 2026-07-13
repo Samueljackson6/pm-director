@@ -216,7 +216,7 @@
                 v-for="inv in sortedInvoices"
                 :key="inv.invoice_id"
                 class="flex items-center justify-between p-2.5 bg-gray-50 rounded-lg hover:bg-blue-50/50 cursor-pointer"
-                @click="router.push({ name: 'InvoiceDetail', query: { id: inv.invoice_id } })"
+                @click="router.push({ name: 'CustomerInvoiceDetail', query: { id: inv.invoice_id } })"
               >
                 <div class="flex items-center gap-3 min-w-0">
                   <div class="w-7 h-7 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-xs font-bold shrink-0">

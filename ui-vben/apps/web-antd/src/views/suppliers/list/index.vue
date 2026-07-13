@@ -308,7 +308,7 @@ function handleCellClick({ row }: any) {
 
 function viewDetail(row: any) {
   router.push({
-    path: '/suppliers/detail',
+    name: 'SupplierDetail',
     query: { id: row.credit_code || row.supplier_id }
   })
 }
