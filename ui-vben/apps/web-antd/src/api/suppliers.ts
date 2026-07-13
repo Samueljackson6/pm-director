@@ -37,6 +37,28 @@ export async function createSupplierPaymentApi(data: Record<string, any>) {
   return requestClient.post('/api/suppliers/payments', data)
 }
 
+// ============ 供应商联系人 API ============
+
+/** 获取供应商联系人列表 */
+export async function getSupplierContactsApi(supplierId: string) {
+  return requestClient.get(`/api/suppliers/${supplierId}/contacts`)
+}
+
+/** 新增联系人 */
+export async function createContactApi(supplierId: string, data: Record<string, any>) {
+  return requestClient.post(`/api/suppliers/${supplierId}/contacts`, data)
+}
+
+/** 更新联系人 */
+export async function updateContactApi(supplierId: string, contactId: number, data: Record<string, any>) {
+  return requestClient.put(`/api/suppliers/${supplierId}/contacts/${contactId}`, data)
+}
+
+/** 删除联系人 */
+export async function deleteContactApi(supplierId: string, contactId: number) {
+  return requestClient.delete(`/api/suppliers/${supplierId}/contacts/${contactId}`)
+}
+
 // ============ 企查查 MCP API ============
 
 /**

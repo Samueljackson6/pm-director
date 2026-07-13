@@ -484,12 +484,32 @@ def get_supplier(supplier_id: str):
             (supplier_id,),
         ).fetchall()
     ]
+    contacts = [
+        dict(r)
+        for r in db.execute(
+            'SELECT id, name, position, phone, email, is_primary, notes '
+            'FROM supplier_contacts WHERE supplier_id=? ORDER BY is_primary DESC, id ASC',
+            (supplier_id,),
+        ).fetchall()
+    ]
+    # 获取本地 QCC 数据
+    qcc_data = None
+    sup_dict = dict(sup)
+    credit_code = sup_dict.get('credit_code')
+    if credit_code:
+        try:
+            from backend.qcc_sync import get_local_qcc_data
+            qcc_data = get_local_qcc_data(credit_code)
+        except Exception:
+            qcc_data = None
     db.close()
     return vben_response({
-        'supplier': dict(sup),
+        'supplier': sup_dict,
         'contracts': contracts,
         'invoices': invoices,
         'payments': payments,
+        'contacts': contacts,
+        'qcc_data': qcc_data,
     })
 
 
