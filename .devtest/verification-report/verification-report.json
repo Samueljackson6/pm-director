@@ -1,207 +1,562 @@
 {
-  "timestamp": "2026-07-12T14:04:54.967Z",
+  "startTime": "2026-07-13T05:52:03.974Z",
   "summary": {
-    "passed": 14,
-    "failed": 2,
-    "warnings": 11
+    "total": 25,
+    "passed": 3,
+    "failed": 22,
+    "warnings": 20
   },
   "pages": [
     {
       "page": "仪表盘",
-      "issue": "KPI卡片不足(2)"
-    },
-    {
-      "page": "仪表盘",
-      "status": "passed",
-      "screenshot": "D:\\Tare-workspace\\pm-director\\.devtest\\verification-report\\01-dashboard.png"
+      "checks": [
+        {
+          "name": "KPI卡片数量",
+          "status": "failed",
+          "value": 0
+        },
+        {
+          "name": "图表渲染",
+          "status": "warning",
+          "value": 0
+        }
+      ],
+      "passed": 0,
+      "failed": 2,
+      "screenshot": "01-dashboard.png"
     },
     {
       "page": "合同列表",
-      "status": "passed",
-      "screenshot": "D:\\Tare-workspace\\pm-director\\.devtest\\verification-report\\02-contracts-list.png"
+      "checks": [
+        {
+          "name": "合同表格存在",
+          "status": "passed"
+        },
+        {
+          "name": "合同数据行数",
+          "status": "passed",
+          "value": 41
+        }
+      ],
+      "passed": 2,
+      "failed": 0,
+      "screenshot": "02-contracts-list.png"
     },
     {
       "page": "项目列表",
-      "status": "passed",
-      "screenshot": "D:\\Tare-workspace\\pm-director\\.devtest\\verification-report\\05-projects-list.png"
+      "checks": [
+        {
+          "name": "项目表格",
+          "status": "passed"
+        }
+      ],
+      "passed": 1,
+      "failed": 0,
+      "screenshot": "03-projects-list.png"
     },
     {
       "page": "发票列表",
-      "status": "passed",
-      "screenshot": "D:\\Tare-workspace\\pm-director\\.devtest\\verification-report\\06-invoices-list.png"
+      "checks": [
+        {
+          "name": "发票表格",
+          "status": "passed"
+        }
+      ],
+      "passed": 1,
+      "failed": 0,
+      "screenshot": "04-invoices-list.png"
     },
     {
       "page": "供应商列表",
-      "status": "passed",
-      "screenshot": "D:\\Tare-workspace\\pm-director\\.devtest\\verification-report\\07-suppliers-list.png"
+      "checks": [
+        {
+          "name": "供应商表格",
+          "status": "failed"
+        }
+      ],
+      "passed": 0,
+      "failed": 1,
+      "screenshot": "05-suppliers-list.png"
     }
   ],
   "contracts": [
     {
-      "contractId": "ZH02-202408007",
-      "type": "科研类",
-      "hasGantt": false,
-      "contractAmount": "N/A",
-      "screenshot": "D:\\Tare-workspace\\pm-director\\.devtest\\verification-report\\research-ZH02-202408007.png",
-      "status": "warning"
+      "contractId": "ZH02-202601011",
+      "checks": [
+        {
+          "name": "页面标题",
+          "status": "failed"
+        },
+        {
+          "name": "KPI区域",
+          "status": "warning",
+          "value": 0
+        },
+        {
+          "name": "信息卡片",
+          "status": "failed",
+          "value": 0
+        }
+      ],
+      "passed": 0,
+      "failed": 2,
+      "warnings": 1,
+      "screenshot": "contract-ZH02-202601011.png"
     },
     {
-      "contractId": "ZH02-202604020",
-      "type": "科研类",
-      "hasGantt": false,
-      "contractAmount": "N/A",
-      "screenshot": "D:\\Tare-workspace\\pm-director\\.devtest\\verification-report\\research-ZH02-202604020.png",
-      "status": "warning"
-    },
-    {
-      "contractId": "ZH02-202604021",
-      "type": "科研类",
-      "hasGantt": false,
-      "contractAmount": "N/A",
-      "screenshot": "D:\\Tare-workspace\\pm-director\\.devtest\\verification-report\\research-ZH02-202604021.png",
-      "status": "warning"
-    },
-    {
-      "contractId": "ZH02-202604023",
-      "type": "科研类",
-      "hasGantt": false,
-      "contractAmount": "N/A",
-      "screenshot": "D:\\Tare-workspace\\pm-director\\.devtest\\verification-report\\research-ZH02-202604023.png",
-      "status": "warning"
-    },
-    {
-      "contractId": "ZH02-202604024",
-      "type": "科研类",
-      "hasGantt": false,
-      "contractAmount": "N/A",
-      "screenshot": "D:\\Tare-workspace\\pm-director\\.devtest\\verification-report\\research-ZH02-202604024.png",
-      "status": "warning"
-    },
-    {
-      "contractId": "ZH02-202604025",
-      "type": "科研类",
-      "hasGantt": false,
-      "contractAmount": "N/A",
-      "screenshot": "D:\\Tare-workspace\\pm-director\\.devtest\\verification-report\\research-ZH02-202604025.png",
-      "status": "warning"
-    },
-    {
-      "contractId": "ZH02-202604026",
-      "type": "科研类",
-      "hasGantt": false,
-      "contractAmount": "N/A",
-      "screenshot": "D:\\Tare-workspace\\pm-director\\.devtest\\verification-report\\research-ZH02-202604026.png",
-      "status": "warning"
-    },
-    {
-      "contractId": "ZH02-202507011",
-      "type": "科研类",
-      "hasGantt": false,
-      "contractAmount": "N/A",
-      "screenshot": "D:\\Tare-workspace\\pm-director\\.devtest\\verification-report\\research-ZH02-202507011.png",
-      "status": "warning"
+      "contractId": "ZH02-202601010",
+      "checks": [
+        {
+          "name": "页面标题",
+          "status": "failed"
+        },
+        {
+          "name": "KPI区域",
+          "status": "warning",
+          "value": 0
+        },
+        {
+          "name": "信息卡片",
+          "status": "failed",
+          "value": 0
+        }
+      ],
+      "passed": 0,
+      "failed": 2,
+      "warnings": 1,
+      "screenshot": "contract-ZH02-202601010.png"
     },
     {
       "contractId": "ZH02-202509025",
-      "type": "科研类",
-      "hasGantt": false,
-      "contractAmount": "N/A",
-      "screenshot": "D:\\Tare-workspace\\pm-director\\.devtest\\verification-report\\research-ZH02-202509025.png",
-      "status": "warning"
+      "checks": [
+        {
+          "name": "页面标题",
+          "status": "failed"
+        },
+        {
+          "name": "KPI区域",
+          "status": "warning",
+          "value": 0
+        },
+        {
+          "name": "信息卡片",
+          "status": "failed",
+          "value": 0
+        }
+      ],
+      "passed": 0,
+      "failed": 2,
+      "warnings": 1,
+      "screenshot": "contract-ZH02-202509025.png"
     },
     {
-      "contractId": "ZH02-202512056",
-      "type": "科研类",
-      "hasGantt": false,
-      "contractAmount": "N/A",
-      "screenshot": "D:\\Tare-workspace\\pm-director\\.devtest\\verification-report\\research-ZH02-202512056.png",
-      "status": "warning"
+      "contractId": "ZH02-202604026",
+      "checks": [
+        {
+          "name": "页面标题",
+          "status": "failed"
+        },
+        {
+          "name": "KPI区域",
+          "status": "warning",
+          "value": 0
+        },
+        {
+          "name": "信息卡片",
+          "status": "failed",
+          "value": 0
+        }
+      ],
+      "passed": 0,
+      "failed": 2,
+      "warnings": 1,
+      "screenshot": "contract-ZH02-202604026.png"
+    },
+    {
+      "contractId": "ZH02-202601005",
+      "checks": [
+        {
+          "name": "页面标题",
+          "status": "failed"
+        },
+        {
+          "name": "KPI区域",
+          "status": "warning",
+          "value": 0
+        },
+        {
+          "name": "信息卡片",
+          "status": "failed",
+          "value": 0
+        }
+      ],
+      "passed": 0,
+      "failed": 2,
+      "warnings": 1,
+      "screenshot": "contract-ZH02-202601005.png"
+    },
+    {
+      "contractId": "ZH02-202604025",
+      "checks": [
+        {
+          "name": "页面标题",
+          "status": "failed"
+        },
+        {
+          "name": "KPI区域",
+          "status": "warning",
+          "value": 0
+        },
+        {
+          "name": "信息卡片",
+          "status": "failed",
+          "value": 0
+        }
+      ],
+      "passed": 0,
+      "failed": 2,
+      "warnings": 1,
+      "screenshot": "contract-ZH02-202604025.png"
     },
     {
       "contractId": "ZH02-202508013",
-      "type": "服务类",
-      "hasServiceContent": false,
-      "hasPaymentSection": false,
-      "screenshot": "D:\\Tare-workspace\\pm-director\\.devtest\\verification-report\\service-ZH02-202508013.png",
-      "status": "passed"
+      "checks": [
+        {
+          "name": "页面标题",
+          "status": "failed"
+        },
+        {
+          "name": "KPI区域",
+          "status": "warning",
+          "value": 0
+        },
+        {
+          "name": "信息卡片",
+          "status": "failed",
+          "value": 0
+        }
+      ],
+      "passed": 0,
+      "failed": 2,
+      "warnings": 1,
+      "screenshot": "contract-ZH02-202508013.png"
+    },
+    {
+      "contractId": "ZH02-202604020",
+      "checks": [
+        {
+          "name": "页面标题",
+          "status": "failed"
+        },
+        {
+          "name": "KPI区域",
+          "status": "warning",
+          "value": 0
+        },
+        {
+          "name": "信息卡片",
+          "status": "failed",
+          "value": 0
+        }
+      ],
+      "passed": 0,
+      "failed": 2,
+      "warnings": 1,
+      "screenshot": "contract-ZH02-202604020.png"
+    },
+    {
+      "contractId": "ZH02-202408007",
+      "checks": [
+        {
+          "name": "页面标题",
+          "status": "failed"
+        },
+        {
+          "name": "KPI区域",
+          "status": "warning",
+          "value": 0
+        },
+        {
+          "name": "信息卡片",
+          "status": "failed",
+          "value": 0
+        }
+      ],
+      "passed": 0,
+      "failed": 2,
+      "warnings": 1,
+      "screenshot": "contract-ZH02-202408007.png"
+    },
+    {
+      "contractId": "ZH02-202604021",
+      "checks": [
+        {
+          "name": "页面标题",
+          "status": "failed"
+        },
+        {
+          "name": "KPI区域",
+          "status": "warning",
+          "value": 0
+        },
+        {
+          "name": "信息卡片",
+          "status": "failed",
+          "value": 0
+        }
+      ],
+      "passed": 0,
+      "failed": 2,
+      "warnings": 1,
+      "screenshot": "contract-ZH02-202604021.png"
     },
     {
       "contractId": "ZH02-202508019",
-      "type": "服务类",
-      "hasServiceContent": false,
-      "hasPaymentSection": false,
-      "screenshot": "D:\\Tare-workspace\\pm-director\\.devtest\\verification-report\\service-ZH02-202508019.png",
-      "status": "passed"
+      "checks": [
+        {
+          "name": "页面标题",
+          "status": "failed"
+        },
+        {
+          "name": "KPI区域",
+          "status": "warning",
+          "value": 0
+        },
+        {
+          "name": "信息卡片",
+          "status": "failed",
+          "value": 0
+        }
+      ],
+      "passed": 0,
+      "failed": 2,
+      "warnings": 1,
+      "screenshot": "contract-ZH02-202508019.png"
+    },
+    {
+      "contractId": "ZH02-202604024",
+      "checks": [
+        {
+          "name": "页面标题",
+          "status": "failed"
+        },
+        {
+          "name": "KPI区域",
+          "status": "warning",
+          "value": 0
+        },
+        {
+          "name": "信息卡片",
+          "status": "failed",
+          "value": 0
+        }
+      ],
+      "passed": 0,
+      "failed": 2,
+      "warnings": 1,
+      "screenshot": "contract-ZH02-202604024.png"
+    },
+    {
+      "contractId": "ZH02-202604023",
+      "checks": [
+        {
+          "name": "页面标题",
+          "status": "failed"
+        },
+        {
+          "name": "KPI区域",
+          "status": "warning",
+          "value": 0
+        },
+        {
+          "name": "信息卡片",
+          "status": "failed",
+          "value": 0
+        }
+      ],
+      "passed": 0,
+      "failed": 2,
+      "warnings": 1,
+      "screenshot": "contract-ZH02-202604023.png"
     },
     {
       "contractId": "ZH02-202406004",
-      "type": "服务类",
-      "hasServiceContent": false,
-      "hasPaymentSection": false,
-      "screenshot": "D:\\Tare-workspace\\pm-director\\.devtest\\verification-report\\service-ZH02-202406004.png",
-      "status": "passed"
+      "checks": [
+        {
+          "name": "页面标题",
+          "status": "failed"
+        },
+        {
+          "name": "KPI区域",
+          "status": "warning",
+          "value": 0
+        },
+        {
+          "name": "信息卡片",
+          "status": "failed",
+          "value": 0
+        }
+      ],
+      "passed": 0,
+      "failed": 2,
+      "warnings": 1,
+      "screenshot": "contract-ZH02-202406004.png"
+    },
+    {
+      "contractId": "ZH02-202601008",
+      "checks": [
+        {
+          "name": "页面标题",
+          "status": "failed"
+        },
+        {
+          "name": "KPI区域",
+          "status": "warning",
+          "value": 0
+        },
+        {
+          "name": "信息卡片",
+          "status": "failed",
+          "value": 0
+        }
+      ],
+      "passed": 0,
+      "failed": 2,
+      "warnings": 1,
+      "screenshot": "contract-ZH02-202601008.png"
+    },
+    {
+      "contractId": "ZH02-202507011",
+      "checks": [
+        {
+          "name": "页面标题",
+          "status": "failed"
+        },
+        {
+          "name": "KPI区域",
+          "status": "warning",
+          "value": 0
+        },
+        {
+          "name": "信息卡片",
+          "status": "failed",
+          "value": 0
+        }
+      ],
+      "passed": 0,
+      "failed": 2,
+      "warnings": 1,
+      "screenshot": "contract-ZH02-202507011.png"
     },
     {
       "contractId": "ZH02-202409008",
-      "type": "服务类",
-      "hasServiceContent": false,
-      "hasPaymentSection": false,
-      "screenshot": "D:\\Tare-workspace\\pm-director\\.devtest\\verification-report\\service-ZH02-202409008.png",
-      "status": "passed"
+      "checks": [
+        {
+          "name": "页面标题",
+          "status": "failed"
+        },
+        {
+          "name": "KPI区域",
+          "status": "warning",
+          "value": 0
+        },
+        {
+          "name": "信息卡片",
+          "status": "failed",
+          "value": 0
+        }
+      ],
+      "passed": 0,
+      "failed": 2,
+      "warnings": 1,
+      "screenshot": "contract-ZH02-202409008.png"
+    },
+    {
+      "contractId": "ZH02-202604029",
+      "checks": [
+        {
+          "name": "页面标题",
+          "status": "failed"
+        },
+        {
+          "name": "KPI区域",
+          "status": "warning",
+          "value": 0
+        },
+        {
+          "name": "信息卡片",
+          "status": "failed",
+          "value": 0
+        }
+      ],
+      "passed": 0,
+      "failed": 2,
+      "warnings": 1,
+      "screenshot": "contract-ZH02-202604029.png"
     },
     {
       "contractId": "ZH02-202411014",
-      "type": "服务类",
-      "hasServiceContent": false,
-      "hasPaymentSection": false,
-      "screenshot": "D:\\Tare-workspace\\pm-director\\.devtest\\verification-report\\service-ZH02-202411014.png",
-      "status": "passed"
+      "checks": [
+        {
+          "name": "页面标题",
+          "status": "failed"
+        },
+        {
+          "name": "KPI区域",
+          "status": "warning",
+          "value": 0
+        },
+        {
+          "name": "信息卡片",
+          "status": "failed",
+          "value": 0
+        }
+      ],
+      "passed": 0,
+      "failed": 2,
+      "warnings": 1,
+      "screenshot": "contract-ZH02-202411014.png"
     },
     {
-      "contractId": "ZH02-202410010",
-      "type": "服务类",
-      "hasServiceContent": false,
-      "hasPaymentSection": false,
-      "screenshot": "D:\\Tare-workspace\\pm-director\\.devtest\\verification-report\\service-ZH02-202410010.png",
-      "status": "passed"
-    },
-    {
-      "contractId": "ZH02-202512058",
-      "type": "服务类",
-      "hasServiceContent": false,
-      "hasPaymentSection": false,
-      "screenshot": "D:\\Tare-workspace\\pm-director\\.devtest\\verification-report\\service-ZH02-202512058.png",
-      "status": "passed"
-    },
-    {
-      "contractId": "ZH02-202508016",
-      "type": "服务类",
-      "hasServiceContent": false,
-      "hasPaymentSection": false,
-      "screenshot": "D:\\Tare-workspace\\pm-director\\.devtest\\verification-report\\service-ZH02-202508016.png",
-      "status": "passed"
-    },
-    {
-      "contractId": "ZH02-202602014",
-      "type": "服务类",
-      "hasServiceContent": false,
-      "hasPaymentSection": false,
-      "screenshot": "D:\\Tare-workspace\\pm-director\\.devtest\\verification-report\\service-ZH02-202602014.png",
-      "status": "passed"
-    },
-    {
-      "contractId": "ZH02-202601001",
-      "type": "服务类",
-      "hasServiceContent": false,
-      "hasPaymentSection": false,
-      "screenshot": "D:\\Tare-workspace\\pm-director\\.devtest\\verification-report\\service-ZH02-202601001.png",
-      "status": "passed"
+      "contractId": "SGSCCD00",
+      "checks": [
+        {
+          "name": "页面标题",
+          "status": "failed"
+        },
+        {
+          "name": "KPI区域",
+          "status": "warning",
+          "value": 0
+        },
+        {
+          "name": "信息卡片",
+          "status": "failed",
+          "value": 0
+        }
+      ],
+      "passed": 0,
+      "failed": 2,
+      "warnings": 1,
+      "screenshot": "contract-SGSCCD00.png"
     }
   ],
   "errors": [
     {
-      "type": "console",
-      "message": "validate error {username: 请输入用户名}"
+      "page": "http://localhost:18090/web/suppliers/list",
+      "message": "TypeError: Cannot destructure property 'row' of 'undefined' as it is undefined.\n    at http://localhost:18090/web/js/index-C4t2SxcA.js:1:3750\n    at r (http://localhost:18090/web/jse/index-index-D3c67Nt3.js:14:32607)\n    at os (http://localhost:18090/web/jse/index-index-D3c67Nt3.js:16:42892)\n    at ca (http://localhost:18090/web/jse/index-index-D3c67Nt3.js:16:40990)\n    at pd (http://localhost:18090/web/jse/index-index-D3c67Nt3.js:16:41517)\n    at http://localhost:18090/web/js/index-C4t2SxcA.js:1:3673\n    at r (http://localhost:18090/web/jse/index-index-D3c67Nt3.js:14:32607)\n    at os (http://localhost:18090/web/jse/index-index-D3c67Nt3.js:16:42892)\n    at ca (http://localhost:18090/web/jse/index-index-D3c67Nt3.js:16:40990)\n    at pd (http://localhost:18090/web/jse/index-index-D3c67Nt3.js:16:41517)"
+    },
+    {
+      "page": "http://localhost:18090/web/suppliers/list",
+      "message": "TypeError: Cannot destructure property 'row' of 'undefined' as it is undefined.\n    at http://localhost:18090/web/js/index-C4t2SxcA.js:1:3750\n    at r (http://localhost:18090/web/jse/index-index-D3c67Nt3.js:14:32607)\n    at os (http://localhost:18090/web/jse/index-index-D3c67Nt3.js:16:42892)\n    at ca (http://localhost:18090/web/jse/index-index-D3c67Nt3.js:16:40990)\n    at pd (http://localhost:18090/web/jse/index-index-D3c67Nt3.js:16:41517)\n    at http://localhost:18090/web/js/index-C4t2SxcA.js:1:3673\n    at r (http://localhost:18090/web/jse/index-index-D3c67Nt3.js:14:32607)\n    at os (http://localhost:18090/web/jse/index-index-D3c67Nt3.js:16:42892)\n    at ca (http://localhost:18090/web/jse/index-index-D3c67Nt3.js:16:40990)\n    at pd (http://localhost:18090/web/jse/index-index-D3c67Nt3.js:16:41517)"
+    },
+    {
+      "page": "http://localhost:18090/web/suppliers/list",
+      "message": "TypeError: Cannot destructure property 'row' of 'undefined' as it is undefined.\n    at http://localhost:18090/web/js/index-C4t2SxcA.js:1:3750\n    at r (http://localhost:18090/web/jse/index-index-D3c67Nt3.js:14:32607)\n    at os (http://localhost:18090/web/jse/index-index-D3c67Nt3.js:16:42892)\n    at ca (http://localhost:18090/web/jse/index-index-D3c67Nt3.js:16:40990)\n    at pd (http://localhost:18090/web/jse/index-index-D3c67Nt3.js:16:41517)\n    at http://localhost:18090/web/js/index-C4t2SxcA.js:1:3673\n    at r (http://localhost:18090/web/jse/index-index-D3c67Nt3.js:14:32607)\n    at os (http://localhost:18090/web/jse/index-index-D3c67Nt3.js:16:42892)\n    at ca (http://localhost:18090/web/jse/index-index-D3c67Nt3.js:16:40990)\n    at pd (http://localhost:18090/web/jse/index-index-D3c67Nt3.js:16:41517)"
     }
-  ]
+  ],
+  "warnings": [
+    "仪表盘图表可能未正确渲染"
+  ],
+  "endTime": "2026-07-13T05:53:28.370Z"
 }
