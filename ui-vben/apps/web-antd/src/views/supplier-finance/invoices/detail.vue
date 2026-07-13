@@ -29,7 +29,7 @@
         </div>
         <div class="bg-white rounded-lg border border-gray-200 p-4 text-center">
           <div class="text-xs text-gray-400 mb-1">税率</div>
-          <div class="text-2xl font-bold text-blue-600">{{ inv.tax_rate ? (inv.tax_rate * 100).toFixed(0) + '%' : '-' }}</div>
+          <div class="text-2xl font-bold text-blue-600">{{ inv.tax_rate ? inv.tax_rate.toFixed(0) + '%' : '-' }}</div>
         </div>
         <div class="bg-white rounded-lg border border-gray-200 p-4 text-center">
           <div class="text-xs text-gray-400 mb-1">税额（元）</div>

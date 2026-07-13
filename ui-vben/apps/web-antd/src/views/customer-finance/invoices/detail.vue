@@ -40,7 +40,7 @@
           </div>
           <div class="bg-white rounded-lg border border-gray-200 p-4 text-center">
             <div class="text-xs text-gray-400 mb-1">税率</div>
-            <div class="text-2xl font-bold text-blue-600">{{ inv.tax_rate ? (inv.tax_rate * 100).toFixed(0) + '%' : '-' }}</div>
+            <div class="text-2xl font-bold text-blue-600">{{ inv.tax_rate ? inv.tax_rate.toFixed(0) + '%' : '-' }}</div>
           </div>
           <div class="bg-white rounded-lg border border-gray-200 p-4 text-center">
             <div class="text-xs text-gray-400 mb-1">税额（元）</div>
@@ -94,7 +94,7 @@
         <a-card title="&#x1F4B0; 金额信息" class="rounded-lg mb-4" size="small">
           <a-descriptions :column="2" size="small" bordered>
             <a-descriptions-item label="金额（元）">{{ fmtMoney(inv.amount) }}</a-descriptions-item>
-            <a-descriptions-item label="税率">{{ inv.tax_rate ? (inv.tax_rate * 100).toFixed(0) + '%' : '-' }}</a-descriptions-item>
+            <a-descriptions-item label="税率">{{ inv.tax_rate ? inv.tax_rate.toFixed(0) + '%' : '-' }}</a-descriptions-item>
             <a-descriptions-item label="税额（元）">{{ fmtMoney(inv.tax_amount) }}</a-descriptions-item>
             <a-descriptions-item label="价税合计（元）">{{ fmtMoney(inv.total_with_tax) }}</a-descriptions-item>
           </a-descriptions>

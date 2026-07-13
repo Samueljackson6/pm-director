@@ -248,7 +248,7 @@ function openAddInvoice(direction: string) {
     invoice_type: direction === 'outbound' ? '客户开票' : '供应商开票',
     direction: direction,
     amount: null,
-    tax_rate: null,
+    tax_rate: 6.0,
     status: '已开',
     received_date: '',
     notes: '',

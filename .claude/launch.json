@@ -2,10 +2,10 @@
   "version": "0.0.1",
   "configurations": [
     {
-      "name": "pm-director-frontend",
+      "name": "frontend",
       "runtimeExecutable": "python",
-      "runtimeArgs": [".claude/proxy.py"],
-      "port": 8089
+      "runtimeArgs": ["-m", "http.server", "5173", "-d", "ui-vben/apps/web-antd/dist"],
+      "port": 5173
     }
   ]
 }
