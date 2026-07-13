@@ -1,15 +1,35 @@
+/**
+ * 供应商模块 Legacy 重定向
+ *
+ * 后端模式(accessMode: 'backend')下，业务路由由后端动态生成
+ * 此文件仅保留旧路由重定向，确保历史 URL 不返回 404
+ *
+ * 规范路由：
+ * - SupplierList → /suppliers/list (后端菜单)
+ * - SupplierDetail → /suppliers/detail (后端菜单)
+ *
+ * 详见：docs/规范路由清单-20260713.md
+ */
 import type { RouteRecordRaw } from 'vue-router';
-const routes: RouteRecordRaw[] = [{
-  meta: { icon: 'lucide:building', order: 4, title: '供应商管理', ignoreAccess: true },
-  name: 'Suppliers', path: '/suppliers',
-  children: [{
-    name: 'SupplierList', path: '',
-    component: () => import('#/views/suppliers/index.vue'),
-    meta: { title: '所有供应商', ignoreAccess: true }
-  }, {
-    name: 'SupplierDetail', path: 'detail',
-    component: () => import('#/views/suppliers/detail.vue'),
-    meta: { hideInMenu: true, title: '供应商详情', ignoreAccess: true }
-  }]
-}];
+
+const routes: RouteRecordRaw[] = [
+  // Legacy: /suppliers (空子路径) → /suppliers/list
+  {
+    path: '/suppliers',
+    redirect: '/suppliers/list',
+    name: 'LegacySuppliersRoot',
+    meta: { hideInMenu: true, title: '供应商管理（旧）' },
+  },
+  // Legacy: /suppliers/detail → 重定向到后端菜单定义的路由
+  {
+    path: '/suppliers/detail',
+    redirect: (to) => ({
+      path: '/suppliers/detail',
+      query: to.query,
+    }),
+    name: 'LegacySupplierDetail',
+    meta: { hideInMenu: true, title: '供应商详情（旧）' },
+  },
+];
+
 export default routes;
