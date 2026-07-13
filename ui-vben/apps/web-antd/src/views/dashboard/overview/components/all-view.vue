@@ -34,8 +34,16 @@
         unit="项"
         :digits="0"
         tone="danger"
+        :clickable="true"
+        @click="showRiskModal = true"
       />
     </div>
+
+    <!-- 风险详情弹窗 -->
+    <risk-detail-modal
+      v-model:visible="showRiskModal"
+      :tasks="overview.pending_tasks"
+    />
 
     <!-- Layer2: 待处理告警条 -->
     <alert-strip :tasks="overview.pending_tasks" @navigate="(k) => $emit('navigate', k)" />
@@ -92,11 +100,19 @@
     </div>
     <a-collapse :default-active-key="[]">
       <a-collapse-panel key="finance" header="财务批次趋势（次级信息）">
-        <trend-chart
-          :data="overview.finance_trend ?? []"
-          x-field="batch_id"
-          :series="financeSeries"
-        />
+        <template v-if="hasMultipleBatches">
+          <trend-chart
+            :data="overview.finance_trend ?? []"
+            x-field="batch_id"
+            :series="financeSeries"
+          />
+        </template>
+        <div v-else class="py-6 text-center text-sm text-muted-foreground">
+          当前仅有一个财务批次数据，暂无趋势可展示。
+          <span v-if="overview.finance_trend?.length">
+            批次：{{ overview.finance_trend[0]?.batch_id }}
+          </span>
+        </div>
       </a-collapse-panel>
     </a-collapse>
 
@@ -106,7 +122,7 @@
 </template>
 
 <script lang="ts" setup>
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
 import type { DashboardOverview } from '#/api/dashboard';
 import ContractTypePie from '#/views/dashboard/components/contract-type-pie.vue';
 import TopCustomersBar from '#/views/dashboard/components/top-customers-bar.vue';
@@ -114,10 +130,13 @@ import TrendChart from '#/views/dashboard/components/trend-chart.vue';
 import MetricCard from './metric-card.vue';
 import AlertStrip from './alert-strip.vue';
 import RecentContracts from './recent-contracts.vue';
+import RiskDetailModal from './risk-detail-modal.vue';
 import { FINANCE_SERIES, fmtMoney, pctSafe } from '../dashboard-types';
 
 const props = defineProps<{ overview: DashboardOverview }>();
 defineEmits<{ navigate: [key: string] }>();
+
+const showRiskModal = ref(false);
 
 const financeSeries = FINANCE_SERIES;
 
@@ -151,4 +170,9 @@ const concentration = computed(() =>
     props.overview.summary?.contract_total_amount,
   ),
 );
+
+const hasMultipleBatches = computed(() => {
+  const trend = props.overview.finance_trend ?? [];
+  return trend.length > 1;
+});
 </script>

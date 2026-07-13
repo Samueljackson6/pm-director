@@ -1,5 +1,9 @@
 <template>
-  <div class="rounded-lg border bg-card p-4 shadow-sm">
+  <div
+    class="rounded-lg border bg-card p-4 shadow-sm transition-colors"
+    :class="{ 'cursor-pointer hover:bg-accent': clickable }"
+    @click="handleClick"
+  >
     <div class="text-sm text-muted-foreground">{{ label }}</div>
     <div class="mt-1 text-2xl font-bold" :class="valueClass">
       {{ displayValue
@@ -25,9 +29,12 @@ const props = withDefaults(
     ratio?: string;
     tone?: DashTone;
     hint?: string;
+    clickable?: boolean;
   }>(),
-  { digits: 2, unit: '', tone: 'none' },
+  { digits: 2, unit: '', tone: 'none', clickable: false },
 );
+
+const emit = defineEmits<{ click: [] }>();
 
 const valueClass = computed(() =>
   props.tone !== 'none' ? `dash-text-${props.tone}` : 'text-card-foreground',
@@ -38,4 +45,10 @@ const displayValue = computed(() => {
   if (v == null || Number.isNaN(v)) return '—';
   return Number(v).toFixed(props.digits);
 });
+
+function handleClick() {
+  if (props.clickable) {
+    emit('click');
+  }
+}
 </script>

@@ -1,21 +1,31 @@
 """Invoice endpoints — list and summary."""
 
-from fastapi import APIRouter, HTTPException
+import os
+from fastapi import APIRouter, HTTPException, UploadFile, File
+from fastapi.responses import FileResponse
 
 from backend.database import get_db
 from backend.models import vben_response, vben_list
 
 router = APIRouter(prefix="/api/invoices", tags=["invoices"])
 
+# 文件上传目录
+UPLOAD_DIR = 'uploads/invoices'
+os.makedirs(UPLOAD_DIR, exist_ok=True)
+
 
 @router.get('')
-def get_invoices(project_id: str = '', page: int = 1, size: int = 50):
+def get_invoices(project_id: str = '', direction: str = '', page: int = 1, size: int = 50):
     db = get_db()
-    where = ''
+    where = 'WHERE 1=1'
     params = []
     if project_id:
-        where = 'WHERE project_id = ?'
-        params = [project_id]
+        where += ' AND project_id = ?'
+        params.append(project_id)
+    if direction:
+        where += ' AND direction = ?'
+        params.append(direction)
+
     total = db.execute(f'SELECT COUNT(*) FROM invoices {where}', params).fetchone()[0]
     rows = db.execute(
         f'SELECT * FROM invoices {where} ORDER BY invoice_date DESC LIMIT ? OFFSET ?',
@@ -23,6 +33,23 @@ def get_invoices(project_id: str = '', page: int = 1, size: int = 50):
     ).fetchall()
     db.close()
     return vben_list(page, size, total, [dict(r) for r in rows])
+
+
+@router.get('/supplier-summary')
+def get_supplier_invoice_summary():
+    """供应商发票统计."""
+    db = get_db()
+    rows = db.execute('''
+        SELECT
+            COALESCE(SUM(CASE WHEN i.status != '已付款' THEN i.amount ELSE 0 END), 0) as unpaid,
+            COALESCE(SUM(CASE WHEN i.status = '已付款' THEN i.amount ELSE 0 END), 0) as paid,
+            COUNT(*) as total_count,
+            COALESCE(SUM(i.amount), 0) as total_amount
+        FROM invoices i
+        WHERE i.direction = 'inbound'
+    ''').fetchone()
+    db.close()
+    return vben_response(dict(rows))
 
 
 @router.get('/summary')
@@ -46,7 +73,12 @@ def get_invoice_summary():
 @router.get('/{invoice_id}')
 def get_invoice(invoice_id: int):
     db = get_db()
-    row = db.execute('SELECT * FROM invoices WHERE invoice_id=?', (invoice_id,)).fetchone()
+    row = db.execute('''
+        SELECT i.*, c.project_name, c.party_a as customer_name
+        FROM invoices i
+        LEFT JOIN contracts c ON i.project_id = c.contract_id
+        WHERE i.invoice_id=?
+    ''', (invoice_id,)).fetchone()
     if not row:
         raise HTTPException(404, 'Invoice not found')
     db.close()
@@ -101,3 +133,161 @@ def create_invoice(payload: dict):
     invoice_id = db.execute('SELECT last_insert_rowid()').fetchone()[0]
     db.close()
     return vben_response({'invoice_id': invoice_id, 'created': True})
+
+
+@router.get('/{invoice_id}/files')
+def get_invoice_files(invoice_id: int):
+    """获取发票文件列表。"""
+    db = get_db()
+    files = db.execute(
+        'SELECT * FROM invoice_files WHERE invoice_id=? ORDER BY upload_time DESC',
+        (invoice_id,)
+    ).fetchall()
+    db.close()
+    return vben_response({'files': [dict(f) for f in files]})
+
+
+@router.post('/{invoice_id}/files')
+async def upload_invoice_file(invoice_id: int, file: UploadFile = File(...)):
+    """上传发票文件。"""
+    db = get_db()
+    row = db.execute('SELECT 1 FROM invoices WHERE invoice_id=?', (invoice_id,)).fetchone()
+    if not row:
+        db.close()
+        raise HTTPException(404, 'Invoice not found')
+
+    # 保存文件
+    file_path = os.path.join(UPLOAD_DIR, f'{invoice_id}_{file.filename}')
+    with open(file_path, 'wb') as f:
+        content = await file.read()
+        f.write(content)
+
+    # 记录到数据库
+    db.execute(
+        'INSERT INTO invoice_files (invoice_id, file_name, file_path, file_type, file_size) VALUES (?, ?, ?, ?, ?)',
+        (invoice_id, file.filename, file_path, file.content_type, len(content))
+    )
+    db.commit()
+    file_id = db.execute('SELECT last_insert_rowid()').fetchone()[0]
+    db.close()
+
+    return vben_response({'file_id': file_id, 'uploaded': True})
+
+
+@router.get('/{invoice_id}/files/{file_id}')
+def download_invoice_file(invoice_id: int, file_id: int):
+    """下载发票文件。"""
+    db = get_db()
+    file = db.execute(
+        'SELECT * FROM invoice_files WHERE file_id=? AND invoice_id=?',
+        (file_id, invoice_id)
+    ).fetchone()
+    db.close()
+
+    if not file:
+        raise HTTPException(404, 'File not found')
+
+    return FileResponse(
+        path=file['file_path'],
+        filename=file['file_name'],
+        media_type=file['file_type'] or 'application/octet-stream'
+    )
+
+
+@router.delete('/{invoice_id}/files/{file_id}')
+def delete_invoice_file(invoice_id: int, file_id: int):
+    """删除发票文件。"""
+    db = get_db()
+    file = db.execute(
+        'SELECT * FROM invoice_files WHERE file_id=? AND invoice_id=?',
+        (file_id, invoice_id)
+    ).fetchone()
+
+    if not file:
+        db.close()
+        raise HTTPException(404, 'File not found')
+
+    # 删除文件
+    if os.path.exists(file['file_path']):
+        os.remove(file['file_path'])
+
+    # 删除数据库记录
+    db.execute('DELETE FROM invoice_files WHERE file_id=?', (file_id,))
+    db.commit()
+    db.close()
+
+    return vben_response({'deleted': True})
+
+
+@router.delete('/{invoice_id}')
+def delete_invoice(invoice_id: int):
+    """删除发票。"""
+    db = get_db()
+    row = db.execute('SELECT 1 FROM invoices WHERE invoice_id=?', (invoice_id,)).fetchone()
+    if not row:
+        db.close()
+        raise HTTPException(404, 'Invoice not found')
+
+    # 删除关联文件
+    files = db.execute('SELECT * FROM invoice_files WHERE invoice_id=?', (invoice_id,)).fetchall()
+    for file in files:
+        if os.path.exists(file['file_path']):
+            os.remove(file['file_path'])
+
+    # 删除文件记录
+    db.execute('DELETE FROM invoice_files WHERE invoice_id=?', (invoice_id,))
+    # 删除关联
+    db.execute('DELETE FROM invoice_receipt_link WHERE invoice_id=?', (invoice_id,))
+    # 删除发票
+    db.execute('DELETE FROM invoices WHERE invoice_id=?', (invoice_id,))
+    db.commit()
+    db.close()
+
+    return vben_response({'deleted': True})
+
+
+@router.get('/{invoice_id}/receipts')
+def get_invoice_receipts(invoice_id: int):
+    """获取发票关联的回款。"""
+    db = get_db()
+    receipts = db.execute('''
+        SELECT r.*, irl.link_amount
+        FROM receipts r
+        INNER JOIN invoice_receipt_link irl ON r.receipt_id = irl.receipt_id
+        WHERE irl.invoice_id = ?
+        ORDER BY r.receipt_date DESC
+    ''', (invoice_id,)).fetchall()
+    db.close()
+    return vben_response({'receipts': [dict(r) for r in receipts]})
+
+
+@router.delete('/{invoice_id}/receipts/{receipt_id}')
+def unlink_invoice_receipt(invoice_id: int, receipt_id: int):
+    """取消发票与回款的关联。"""
+    db = get_db()
+    db.execute('DELETE FROM invoice_receipt_link WHERE invoice_id=? AND receipt_id=?', (invoice_id, receipt_id))
+    db.commit()
+    db.close()
+    return vben_response({'unlinked': True})
+
+
+@router.post('/{invoice_id}/receipts/{receipt_id}')
+def link_invoice_receipt(invoice_id: int, receipt_id: int, payload: dict = None):
+    """手动关联发票与回款。"""
+    db = get_db()
+    # 检查发票和回款是否存在
+    invoice = db.execute('SELECT * FROM invoices WHERE invoice_id=?', (invoice_id,)).fetchone()
+    receipt = db.execute('SELECT * FROM receipts WHERE receipt_id=?', (receipt_id,)).fetchone()
+    if not invoice or not receipt:
+        db.close()
+        raise HTTPException(404, 'Invoice or receipt not found')
+
+    link_amount = payload.get('link_amount') if payload else receipt['amount']
+
+    db.execute(
+        'INSERT INTO invoice_receipt_link (invoice_id, receipt_id, link_amount, link_type) VALUES (?, ?, ?, ?)',
+        (invoice_id, receipt_id, link_amount, 'manual')
+    )
+    db.commit()
+    db.close()
+    return vben_response({'linked': True})

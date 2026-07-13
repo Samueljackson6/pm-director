@@ -1,11 +1,169 @@
 """Supplier endpoints — list and detail."""
 
 from fastapi import APIRouter, HTTPException
-
 from backend.database import get_db
-from backend.models import vben_response
+from backend.models import vben_response, vben_list
+from backend.qcc_mcp_client import get_qcc_client
 
 router = APIRouter(prefix="/api/suppliers", tags=["suppliers"])
+
+
+# ── 付款路由（必须在 /{supplier_id} 之前注册以免冲突） ──
+
+
+@router.get('/payments')
+def get_supplier_payments(page: int = 1, size: int = 50, supplier_id: str = ''):
+    """获取供应商付款列表."""
+    db = get_db()
+    where = 'WHERE 1=1'
+    params = []
+    if supplier_id:
+        where += ' AND sp.supplier_id = ?'
+        params.append(supplier_id)
+
+    total = db.execute(f'SELECT COUNT(*) FROM supplier_payments sp {where}', params).fetchone()[0]
+    rows = db.execute(
+        f'''SELECT sp.*, s.supplier_name, s.short_name
+            FROM supplier_payments sp
+            LEFT JOIN suppliers s ON sp.supplier_id = s.supplier_id
+            {where}
+            ORDER BY sp.payment_date DESC
+            LIMIT ? OFFSET ?''',
+        params + [size, (page - 1) * size],
+    ).fetchall()
+    db.close()
+    return vben_list(page, size, total, [dict(r) for r in rows])
+
+
+@router.get('/payments/{payment_id}')
+def get_supplier_payment(payment_id: int):
+    """获取供应商付款详情."""
+    db = get_db()
+    row = db.execute('''
+        SELECT sp.*, s.supplier_name, s.short_name
+        FROM supplier_payments sp
+        LEFT JOIN suppliers s ON sp.supplier_id = s.supplier_id
+        WHERE sp.payment_id=?
+    ''', (payment_id,)).fetchone()
+    if not row:
+        db.close()
+        raise HTTPException(404, 'Payment not found')
+
+    # 获取关联的发票
+    invoices = db.execute('''
+        SELECT i.* FROM invoices i
+        WHERE i.project_id = ? AND i.direction = 'inbound'
+        ORDER BY i.invoice_date DESC
+    ''', (row['project_id'],)).fetchall()
+    db.close()
+    return vben_response({'payment': dict(row), 'linked_invoices': [dict(i) for i in invoices]})
+
+
+@router.put('/payments/{payment_id}')
+def update_supplier_payment(payment_id: int, payload: dict):
+    """更新供应商付款记录."""
+    db = get_db()
+    row = db.execute('SELECT 1 FROM supplier_payments WHERE payment_id=?', (payment_id,)).fetchone()
+    if not row:
+        db.close()
+        raise HTTPException(404, 'Payment not found')
+
+    updatable = {'supplier_id', 'project_id', 'payment_date', 'amount',
+                 'payment_method', 'status', 'notes'}
+    fields = []
+    values = []
+    for k, v in payload.items():
+        if k in updatable and v is not None:
+            fields.append(f'{k}=?')
+            values.append(v)
+
+    if not fields:
+        db.close()
+        return vben_response({'payment_id': payment_id, 'updated': False})
+
+    values.append(payment_id)
+    db.execute(f'UPDATE supplier_payments SET {", ".join(fields)} WHERE payment_id=?', values)
+    db.commit()
+    db.close()
+    return vben_response({'payment_id': payment_id, 'updated': True})
+
+
+@router.delete('/payments/{payment_id}')
+def delete_supplier_payment(payment_id: int):
+    """删除供应商付款记录."""
+    db = get_db()
+    row = db.execute('SELECT 1 FROM supplier_payments WHERE payment_id=?', (payment_id,)).fetchone()
+    if not row:
+        db.close()
+        raise HTTPException(404, 'Payment not found')
+    db.execute('DELETE FROM supplier_payments WHERE payment_id=?', (payment_id,))
+    db.commit()
+    db.close()
+    return vben_response({'deleted': True})
+
+
+@router.post('/payments')
+def create_supplier_payment(payload: dict):
+    """新增供应商付款记录。"""
+    db = get_db()
+    fields = ['supplier_id', 'project_id', 'payment_date', 'amount',
+              'payment_method', 'status', 'notes']
+    values = [payload.get(f) for f in fields]
+
+    if not payload.get('supplier_id'):
+        db.close()
+        raise HTTPException(400, 'supplier_id is required')
+    if not payload.get('amount'):
+        db.close()
+        raise HTTPException(400, 'amount is required')
+
+    placeholders = ', '.join(['?' for _ in fields])
+    db.execute(
+        f'INSERT INTO supplier_payments ({", ".join(fields)}) VALUES ({placeholders})',
+        values,
+    )
+    db.commit()
+    payment_id = db.execute('SELECT last_insert_rowid()').fetchone()[0]
+    db.close()
+    return vben_response({'payment_id': payment_id, 'created': True})
+
+
+@router.get('/payments')
+def get_supplier_payments(page: int = 1, size: int = 50):
+    """获取供应商付款列表"""
+    db = get_db()
+    total = db.execute('SELECT COUNT(*) FROM supplier_payments').fetchone()[0]
+    rows = db.execute(
+        'SELECT * FROM supplier_payments ORDER BY payment_date DESC LIMIT ? OFFSET ?',
+        (size, (page - 1) * size),
+    ).fetchall()
+    db.close()
+    return vben_list(page, size, total, [dict(r) for r in rows])
+
+
+@router.put('/payments/{payment_id}')
+def update_supplier_payment(payment_id: int, payload: dict):
+    """更新供应商付款"""
+    db = get_db()
+    fields = ', '.join([f'{k}=?' for k in payload.keys()])
+    values = list(payload.values()) + [payment_id]
+    db.execute(f'UPDATE supplier_payments SET {fields} WHERE payment_id=?', values)
+    db.commit()
+    db.close()
+    return vben_response({'updated': True})
+
+
+@router.delete('/payments/{payment_id}')
+def delete_supplier_payment(payment_id: int):
+    """删除供应商付款"""
+    db = get_db()
+    db.execute('DELETE FROM supplier_payments WHERE payment_id=?', (payment_id,))
+    db.commit()
+    db.close()
+    return vben_response({'deleted': True})
+
+
+# ── 供应商基础路由 ──
 
 
 @router.get('')
@@ -37,8 +195,36 @@ def get_supplier(supplier_id: str):
             (supplier_id,),
         ).fetchall()
     ]
+    invoices = [
+        dict(r)
+        for r in db.execute(
+            '''
+            SELECT i.* FROM invoices i
+            INNER JOIN supplier_contracts sc ON i.project_id = sc.project_id
+            WHERE sc.supplier_id = ? AND i.direction = 'inbound'
+            ORDER BY i.invoice_date DESC
+            ''',
+            (supplier_id,),
+        ).fetchall()
+    ]
+    payments = [
+        dict(r)
+        for r in db.execute(
+            '''
+            SELECT * FROM supplier_payments
+            WHERE supplier_id = ?
+            ORDER BY payment_date DESC
+            ''',
+            (supplier_id,),
+        ).fetchall()
+    ]
     db.close()
-    return vben_response({'supplier': dict(sup), 'contracts': contracts})
+    return vben_response({
+        'supplier': dict(sup),
+        'contracts': contracts,
+        'invoices': invoices,
+        'payments': payments,
+    })
 
 
 @router.put('/{supplier_id}')
@@ -90,3 +276,304 @@ def create_supplier(payload: dict):
     db.commit()
     db.close()
     return vben_response({'supplier_id': payload['supplier_id'], 'created': True})
+
+
+# ── 企查查 MCP 路由（必须放在 /{supplier_id} 之后） ──
+
+
+@router.get('/qcc/{credit_code}')
+async def get_supplier_qcc_info(credit_code: str):
+    """
+    从企查查 MCP 获取供应商详细信息
+
+    包含5个维度的数据：
+    1. 工商信息
+    2. 企业简介
+    3. 风险扫描
+    4. 软件著作权
+    5. 对外投资
+
+    Args:
+        credit_code: 统一社会信用代码
+
+    Returns:
+        包含所有维度数据的字典
+    """
+    try:
+        client = get_qcc_client()
+        data = await client.get_supplier_detail(credit_code)
+
+        if not data:
+            raise HTTPException(404, '未找到企业信息')
+
+        return vben_response({
+            'basic_info': data.get('basic_info'),
+            'profile': data.get('profile'),
+            'risk_scan': data.get('risk_scan'),
+            'software_copyrights': data.get('software_copyrights'),
+            'external_investments': data.get('external_investments'),
+        })
+
+    except Exception as e:
+        raise HTTPException(500, f'查询企查查数据失败: {str(e)}')
+
+
+@router.get('/qcc/{credit_code}/basic')
+async def get_qcc_basic(credit_code: str):
+    """企查查 MCP - 工商信息"""
+    try:
+        client = get_qcc_client()
+        data = await client.get_company_registration_info(credit_code)
+        return vben_response(data)
+    except Exception as e:
+        raise HTTPException(500, f'查询失败: {str(e)}')
+
+
+@router.get('/qcc/{credit_code}/profile')
+async def get_qcc_profile(credit_code: str):
+    """企查查 MCP - 企业简介"""
+    try:
+        client = get_qcc_client()
+        data = await client.get_company_profile(credit_code)
+        return vben_response(data)
+    except Exception as e:
+        raise HTTPException(500, f'查询失败: {str(e)}')
+
+
+@router.get('/qcc/{credit_code}/risk')
+async def get_qcc_risk(credit_code: str):
+    """企查查 MCP - 风险扫描"""
+    try:
+        client = get_qcc_client()
+        data = await client.get_company_risk_scan(credit_code)
+        return vben_response(data)
+    except Exception as e:
+        raise HTTPException(500, f'查询失败: {str(e)}')
+
+
+@router.get('/qcc/{credit_code}/software')
+async def get_qcc_software(credit_code: str):
+    """企查查 MCP - 软件著作权"""
+    try:
+        client = get_qcc_client()
+        data = await client.get_software_copyright_info(credit_code)
+        return vben_response(data)
+    except Exception as e:
+        raise HTTPException(500, f'查询失败: {str(e)}')
+
+
+@router.get('/qcc/{credit_code}/investment')
+async def get_qcc_investment(credit_code: str):
+    """企查查 MCP - 对外投资"""
+    try:
+        client = get_qcc_client()
+        data = await client.get_external_investments(credit_code)
+        return vben_response(data)
+    except Exception as e:
+        raise HTTPException(500, f'查询失败: {str(e)}')
+
+
+@router.get('/qcc/{credit_code}/changes')
+async def detect_qcc_changes(credit_code: str):
+    """检测企查查数据变化"""
+    try:
+        from backend.qcc_sync import detect_changes
+
+        # 先查询最新数据
+        client = get_qcc_client()
+        new_data = await client.get_supplier_detail(credit_code)
+
+        if not new_data:
+            raise HTTPException(404, '未找到企业信息')
+
+        # 检测变化
+        result = detect_changes(credit_code, new_data)
+        return vben_response(result)
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(500, f'检测失败: {str(e)}')
+
+
+@router.get('/qcc/{credit_code}/changes/check')
+async def check_and_alert_changes(credit_code: str):
+    """检测变化并创建预警"""
+    try:
+        from backend.qcc_sync import detect_changes
+        from backend.qcc_alerts import check_and_create_alerts
+
+        # 查询最新数据
+        client = get_qcc_client()
+        new_data = await client.get_supplier_detail(credit_code)
+
+        if not new_data:
+            raise HTTPException(404, '未找到企业信息')
+
+        # 检测变化
+        changes = detect_changes(credit_code, new_data)
+
+        # 创建预警
+        alerts = check_and_create_alerts(credit_code, changes)
+
+        return vben_response({
+            'changes': changes,
+            'alerts_created': len(alerts),
+            'alerts': alerts
+        })
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(500, f'检测失败: {str(e)}')
+
+
+# ── 风险预警 API ──
+
+
+@router.get('/alerts')
+async def get_risk_alerts(credit_code: str = None, unread_only: bool = False, limit: int = 50):
+    """获取风险预警列表"""
+    try:
+        from backend.qcc_alerts import get_alerts
+        alerts = get_alerts(credit_code, unread_only, limit)
+        return vben_response({'alerts': alerts})
+    except Exception as e:
+        raise HTTPException(500, f'查询失败: {str(e)}')
+
+
+@router.put('/alerts/{alert_id}/read')
+async def mark_alert_as_read(alert_id: int):
+    """标记预警为已读"""
+    try:
+        from backend.qcc_alerts import mark_alert_read
+        success = mark_alert_read(alert_id)
+        return vben_response({'success': success})
+    except Exception as e:
+        raise HTTPException(500, f'操作失败: {str(e)}')
+
+
+@router.get('/alerts/stats')
+async def get_alert_statistics(credit_code: str = None):
+    """获取预警统计"""
+    try:
+        from backend.qcc_alerts import get_alert_stats
+        stats = get_alert_stats(credit_code)
+        return vben_response(stats)
+    except Exception as e:
+        raise HTTPException(500, f'查询失败: {str(e)}')
+
+
+@router.get('/alerts/config/{credit_code}')
+async def get_alert_configuration(credit_code: str):
+    """获取预警配置"""
+    try:
+        from backend.qcc_alerts import get_alert_config
+        config = get_alert_config(credit_code)
+        return vben_response(config)
+    except Exception as e:
+        raise HTTPException(500, f'查询失败: {str(e)}')
+
+
+@router.put('/alerts/config/{credit_code}')
+async def update_alert_configuration(credit_code: str, config: dict):
+    """更新预警配置"""
+    try:
+        from backend.qcc_alerts import update_alert_config
+        success = update_alert_config(credit_code, config)
+        return vben_response({'success': success})
+    except Exception as e:
+        raise HTTPException(500, f'更新失败: {str(e)}')
+
+
+# ── 数据同步路由 ──
+
+
+@router.post('/sync/{credit_code}')
+async def sync_supplier_qcc_data(credit_code: str):
+    """
+    同步供应商企查查数据到本地数据库
+
+    Args:
+        credit_code: 统一社会信用代码
+
+    Returns:
+        同步结果
+    """
+    try:
+        from backend.qcc_sync import sync_supplier_qcc_data as sync_func
+        result = await sync_func(credit_code)
+        return vben_response(result)
+    except Exception as e:
+        raise HTTPException(500, f'同步失败: {str(e)}')
+
+
+@router.get('/local/{credit_code}')
+def get_local_qcc_data(credit_code: str):
+    """
+    从本地数据库获取企查查数据
+
+    Args:
+        credit_code: 统一社会信用代码
+
+    Returns:
+        企查查数据
+    """
+    try:
+        from backend.qcc_sync import get_local_qcc_data
+        data = get_local_qcc_data(credit_code)
+        if not data:
+            raise HTTPException(404, '本地无数据，请先同步')
+        return vben_response(data)
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(500, f'查询失败: {str(e)}')
+
+
+@router.get('/sync/{credit_code}/history')
+def get_sync_history(credit_code: str, limit: int = 10):
+    """
+    获取同步历史记录
+
+    Args:
+        credit_code: 统一社会信用代码
+        limit: 返回记录数
+
+    Returns:
+        同步历史列表
+    """
+    try:
+        from backend.qcc_sync import get_sync_history
+        history = get_sync_history(credit_code, limit)
+        return vben_response({'history': history})
+    except Exception as e:
+        raise HTTPException(500, f'查询失败: {str(e)}')
+
+
+@router.get('/cache/stats')
+def get_cache_stats():
+    """获取缓存统计信息"""
+    try:
+        client = get_qcc_client()
+        stats = client.get_cache_stats()
+        return vben_response(stats)
+    except Exception as e:
+        raise HTTPException(500, f'查询失败: {str(e)}')
+
+
+@router.delete('/cache/{credit_code}')
+def clear_supplier_cache(credit_code: str):
+    """
+    清除指定供应商的缓存
+
+    Args:
+        credit_code: 统一社会信用代码
+
+    Returns:
+        清除结果
+    """
+    try:
+        client = get_qcc_client()
+        cleared = client.clear_supplier_cache(credit_code)
+        return vben_response({'cleared': cleared})
+    except Exception as e:
+        raise HTTPException(500, f'清除失败: {str(e)}')

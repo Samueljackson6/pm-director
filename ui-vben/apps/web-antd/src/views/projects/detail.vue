@@ -187,7 +187,7 @@ const route = useRoute()
 const router = useRouter()
 const loading = ref(true)
 const error = ref('')
-const id = computed(() => route.params.id as string)
+const id = computed(() => (route.params.id || route.query.id) as string)
 
 const project = ref<ProjectItem | null>(null)
 const contracts = ref<ProjectContract[]>([])

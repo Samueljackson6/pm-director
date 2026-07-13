@@ -139,6 +139,7 @@ def get_dashboard_overview(
 
     # ------------------------------------------------------------------
     # invoice_monthly — line chart (开票 vs 回款, 万元)
+    # 过滤空日期记录，避免横坐标出现 null 值
     # ------------------------------------------------------------------
     rows = db.execute(
         "SELECT strftime('%Y-%m', invoice_date) as month, "
@@ -146,7 +147,8 @@ def get_dashboard_overview(
         "  THEN amount END), 0) / 10000 as invoiced_wan, "
         "COALESCE(SUM(CASE WHEN invoice_type = '客户回款' "
         "  THEN amount END), 0) / 10000 as received_wan "
-        "FROM invoices GROUP BY month ORDER BY month"
+        "FROM invoices WHERE invoice_date IS NOT NULL AND invoice_date != '' "
+        "GROUP BY month ORDER BY month"
     ).fetchall()
     invoice_monthly = [dict(r) for r in rows]
 

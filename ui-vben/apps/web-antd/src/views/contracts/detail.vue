@@ -207,13 +207,16 @@
           size="small"
           :body-style="{ padding: '12px' }"
         >
+          <template #extra>
+            <a-button type="primary" size="small" ghost @click="openAddInvoice">+ 新增发票</a-button>
+          </template>
           <template v-if="sortedInvoices.length">
             <div class="space-y-2 max-h-[400px] overflow-y-auto">
               <div
                 v-for="inv in sortedInvoices"
                 :key="inv.invoice_id"
                 class="flex items-center justify-between p-2.5 bg-gray-50 rounded-lg hover:bg-blue-50/50 cursor-pointer"
-                @click="router.push(`/web/invoices/detail/${inv.invoice_id}`)"
+                @click="router.push({ name: 'InvoiceDetail', query: { id: inv.invoice_id } })"
               >
                 <div class="flex items-center gap-3 min-w-0">
                   <div class="w-7 h-7 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-xs font-bold shrink-0">
@@ -240,7 +243,7 @@
           </template>
           <div v-else class="py-8 flex flex-col items-center text-center">
             <a-empty description="暂无关联发票" />
-            <div class="text-sm text-gray-400 mt-2">发票数据待补充</div>
+            <a-button type="primary" size="small" class="mt-3" @click="openAddInvoice">+ 添加第一张发票</a-button>
           </div>
         </a-card>
       </div>
@@ -257,7 +260,7 @@
               <div class="flex-1 min-w-0">
                 <a
                   class="text-primary font-medium cursor-pointer hover:underline truncate block"
-                  @click="router.push({ name: 'ProjectDetail', params: { id: p.project_id } })"
+                  @click="router.push({ name: 'ProjectDetail', query: { id: p.project_id } })"
                 >
                   {{ p.project_name }}
                 </a>

@@ -121,6 +121,11 @@ export default defineConfig(async () => {
             target: 'http://localhost:8800',
             ws: true,
           },
+          '/api': {
+            changeOrigin: true,
+            target: 'http://localhost:8800',
+            ws: true,
+          },
         },
       },
       build: {

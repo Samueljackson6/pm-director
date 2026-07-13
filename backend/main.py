@@ -13,7 +13,7 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 
 from backend import database
-from backend.routers import auth, contracts, finance, invoices, suppliers, dashboard, database as db_router, projects
+from backend.routers import auth, contracts, finance, invoices, suppliers, dashboard, database as db_router, projects, receipts
 
 # 服务版本号（轻量探针返回，可随发版更新）
 SERVICE_VERSION = '0.1.0'
@@ -45,6 +45,7 @@ app.include_router(suppliers.router)
 app.include_router(dashboard.router)
 app.include_router(db_router.router)
 app.include_router(projects.router)
+app.include_router(receipts.router)
 
 
 @app.get('/health')

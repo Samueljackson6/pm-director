@@ -31,3 +31,49 @@ export async function updateSupplierApi(id: string, data: Record<string, any>) {
 export async function createSupplierApi(data: Record<string, any>) {
   return requestClient.post('/api/suppliers', data)
 }
+
+/** 创建供应商付款记录 */
+export async function createSupplierPaymentApi(data: Record<string, any>) {
+  return requestClient.post('/api/suppliers/payments', data)
+}
+
+// ============ 企查查 MCP API ============
+
+/**
+ * 获取供应商企查查详细信息（5个维度聚合）
+ *
+ * 包含：
+ * 1. 工商信息
+ * 2. 企业简介
+ * 3. 风险扫描
+ * 4. 软件著作权
+ * 5. 对外投资
+ */
+export async function getSupplierQccInfoApi(creditCode: string) {
+  return requestClient.get(`/api/suppliers/qcc/${creditCode}`)
+}
+
+/** 企查查 MCP - 工商信息 */
+export async function getQccBasicApi(creditCode: string) {
+  return requestClient.get(`/api/suppliers/qcc/${creditCode}/basic`)
+}
+
+/** 企查查 MCP - 企业简介 */
+export async function getQccProfileApi(creditCode: string) {
+  return requestClient.get(`/api/suppliers/qcc/${creditCode}/profile`)
+}
+
+/** 企查查 MCP - 风险扫描 */
+export async function getQccRiskApi(creditCode: string) {
+  return requestClient.get(`/api/suppliers/qcc/${creditCode}/risk`)
+}
+
+/** 企查查 MCP - 软件著作权 */
+export async function getQccSoftwareApi(creditCode: string) {
+  return requestClient.get(`/api/suppliers/qcc/${creditCode}/software`)
+}
+
+/** 企查查 MCP - 对外投资 */
+export async function getQccInvestmentApi(creditCode: string) {
+  return requestClient.get(`/api/suppliers/qcc/${creditCode}/investment`)
+}

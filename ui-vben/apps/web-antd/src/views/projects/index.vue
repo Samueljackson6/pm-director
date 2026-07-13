@@ -175,7 +175,7 @@ const [Grid, gridApi] = useVbenVxeGrid({
   gridEvents: {
     // 双击行跳转详情
     cellDblclick({ row }: { row: ProjectItem }) {
-      router.push({ name: 'ProjectDetail', params: { id: row.project_id } })
+      router.push({ name: 'ProjectDetail', query: { id: row.project_id } })
     },
   },
 })

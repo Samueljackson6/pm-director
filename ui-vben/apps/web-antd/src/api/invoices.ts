@@ -58,3 +58,8 @@ export async function updateInvoiceApi(id: number, data: Record<string, any>) {
 export async function createInvoiceApi(data: Record<string, any>) {
   return requestClient.post('/api/invoices', data)
 }
+
+/** 删除发票 */
+export async function deleteInvoiceApi(id: number) {
+  return requestClient.delete('/api/invoices/' + id)
+}

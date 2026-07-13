@@ -8,6 +8,7 @@
       :row-config="{ height: 44, isHover: true }"
       size="small"
       height="400"
+      @cell-click="handleRowClick"
     >
       <VxeColumn field="contract_id" title="合同编号" width="150" showOverflow />
       <VxeColumn field="project_name" title="项目名称" minWidth="240" showOverflow />
@@ -44,13 +45,21 @@
 </template>
 
 <script lang="ts" setup>
+import { useRouter } from 'vue-router';
 import { VxeTable, VxeColumn } from '#/adapter/vxe-table';
 import type { RecentContract } from '#/api/dashboard';
 import { fmtMoney } from '../dashboard-types';
 
-defineProps<{ rows?: RecentContract[] }>();
+const props = defineProps<{ rows?: RecentContract[] }>();
+const router = useRouter();
 
 function fmt(v: number | null | undefined): string {
   return fmtMoney(v, 2);
+}
+
+function handleRowClick({ row }: { row: RecentContract }) {
+  if (row?.contract_id) {
+    router.push(`/contracts/detail?id=${row.contract_id}`);
+  }
 }
 </script>
