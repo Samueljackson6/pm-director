@@ -1,10 +1,8 @@
 """企查查风险预警模块 - 监控企业风险变化并发送通知"""
 
 import json
-from datetime import datetime
 from typing import Dict, Any, List
 from backend.database import get_db
-from backend.qcc_sync import get_local_qcc_data, detect_changes
 
 
 def init_alert_tables():
