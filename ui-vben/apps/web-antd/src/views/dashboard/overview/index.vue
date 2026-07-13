@@ -72,10 +72,10 @@ function load() {
 onMounted(load);
 
 const NAV_MAP: Record<string, string> = {
-  unmatched_payments: '/invoices',
-  pending_deliverables: '/projects',
-  overdue_payments: '/projects',
-  uninvoiced_contracts: '/contracts',
+  unmatched_payments: '/customer-finance/invoices',
+  pending_deliverables: '/contracts/list',
+  overdue_payments: '/contracts/list',
+  uninvoiced_contracts: '/contracts/list',
 };
 
 function onAlertNavigate(key: string) {

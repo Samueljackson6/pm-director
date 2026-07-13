@@ -72,7 +72,7 @@ const riskItems = computed<RiskItem[]>(() => [
     description: '发票/回款记录未正确匹配到合同，需人工核对',
     count: props.tasks?.unmatched_payments ?? 0,
     tone: 'danger',
-    targetPath: '/invoices',
+    targetPath: '/customer-finance/invoices',
     filterParam: 'payment_status=未匹配',
   },
   {
@@ -81,7 +81,7 @@ const riskItems = computed<RiskItem[]>(() => [
     description: '项目交付物尚未完成交付',
     count: props.tasks?.pending_deliverables ?? 0,
     tone: 'warning',
-    targetPath: '/contracts',
+    targetPath: '/contracts/list',
     filterParam: 'deliverable_status=pending',
   },
   {
@@ -90,7 +90,7 @@ const riskItems = computed<RiskItem[]>(() => [
     description: '计划付款日期已过但未全额收到款项',
     count: props.tasks?.overdue_payments ?? 0,
     tone: 'danger',
-    targetPath: '/contracts',
+    targetPath: '/contracts/list',
     filterParam: 'payment_overdue=true',
   },
   {
@@ -99,7 +99,7 @@ const riskItems = computed<RiskItem[]>(() => [
     description: '合同金额大于已开票金额，存在未开票部分',
     count: props.tasks?.uninvoiced_contracts ?? 0,
     tone: 'warning',
-    targetPath: '/contracts',
+    targetPath: '/contracts/list',
     filterParam: 'invoice_status=uninvoiced',
   },
 ]);

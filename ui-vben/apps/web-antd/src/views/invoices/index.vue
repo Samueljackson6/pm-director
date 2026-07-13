@@ -295,7 +295,7 @@ const outboundGridOptions: VxeGridProps<InvoiceItem> = {
       slots: { default: 'outbound_type' },
     },
     { field: 'project_id', title: '项目编号', minWidth: 220, showOverflow: true,
-      cellRender: { name: 'CellRouterLink', props: { name: 'InvoiceDetail', idField: 'invoice_id', field: 'project_id' } } },
+      cellRender: { name: 'CellRouterLink', props: { name: 'CustomerInvoiceDetail', idField: 'invoice_id', field: 'project_id' } } },
     {
       field: 'amount',
       title: '金额(万元)',
@@ -360,7 +360,7 @@ const inboundGridOptions: VxeGridProps<InvoiceItem> = {
       showOverflow: true,
     },
     { field: 'project_id', title: '项目编号', minWidth: 220, showOverflow: true,
-      cellRender: { name: 'CellRouterLink', props: { name: 'InvoiceDetail', idField: 'invoice_id', field: 'project_id' } } },
+      cellRender: { name: 'CellRouterLink', props: { name: 'CustomerInvoiceDetail', idField: 'invoice_id', field: 'project_id' } } },
     {
       field: 'amount',
       title: '金额(万元)',
