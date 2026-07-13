@@ -274,7 +274,7 @@
               <a-button
                 size="small"
                 type="link"
-                @click="router.push({ name: 'ProjectDetail', params: { id: p.project_id } })"
+                @click="router.push({ name: 'ProjectDetail', query: { id: p.project_id } })"
               >
                 查看详情 &#8594;
               </a-button>
@@ -948,10 +948,8 @@ const finance = computed(() => detail.value?.finance ?? null)
 const projects = computed(() => detail.value?.projects ?? [])
 const files = computed(() => {
   const raw = (detail.value?.files as any[]) ?? []
-  return raw.filter((f: any) => {
-    const t = (f.file_type || '').toLowerCase()
-    return !t.includes('text') && !t.includes('.txt') && !t.includes('plain')
-  })
+  // 显示所有合同文件，包括 .txt 文件
+  return raw
 })
 const clauses = computed(() => detail.value?.clauses ?? [])
 
