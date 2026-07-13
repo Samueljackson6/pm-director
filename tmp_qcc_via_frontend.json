@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="zh">
+  <head>
+    <script type="module" src="/@vite/client"></script>
+
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+    <meta name="renderer" content="webkit" />
+    <meta name="description" content="A Modern Back-end Management System" />
+    <meta name="keywords" content="Vben Admin Vue3 Vite" />
+    <meta name="author" content="Vben" />
+    <meta
+      name="viewport"
+      content="width=device-width,initial-scale=1.0,minimum-scale=1.0,maximum-scale=1.0,user-scalable=0"
+    />
+    <!-- 由 vite 注入 VITE_APP_TITLE 变量，在 .env 文件内配置 -->
+    <title>���Ĵ���Ŀ����</title>
+    <link rel="icon" href="/favicon.ico" />
+    <!-- ========== 流量统计 ========== -->
+    <!-- 百度统计：VITE_APP_BAIDU_CODE 由构建环境变量注入，不硬编码在源码中 -->
+    <script>
+      var HM_ID =
+        '';
+      if (HM_ID) {
+        var _hmt = _hmt || [];
+        (function () {
+          var hm = document.createElement('script');
+          hm.src = 'https://hm.baidu.com/hm.js?' + HM_ID;
+          var s = document.getElementsByTagName('script')[0];
+          s.parentNode.insertBefore(hm, s);
+        })();
+      }
+    </script>
+    <!-- Google Analytics (GA4)：VITE_APP_GA_ID 由构建环境变量注入，不硬编码在源码中 -->
+    <script>
+      var GA_ID =
+        '';
+      if (GA_ID) {
+        (function () {
+          var gs = document.createElement('script');
+          gs.async = true;
+          gs.src = 'https://www.googletagmanager.com/gtag/js?id=' + GA_ID;
+          document.head.appendChild(gs);
+          window.dataLayer = window.dataLayer || [];
+          function gtag() {
+            dataLayer.push(arguments);
+          }
+          gtag('js', new Date());
+          gtag('config', GA_ID);
+          window.gtag = gtag;
+        })();
+      }
+    </script>
+  </head>
+  <body>
+  <script data-app-loading="inject-js">
+  var theme = localStorage.getItem('undefined-5.6.0-dev-preferences-theme');
+  document.documentElement.classList.toggle('dark', /dark/.test(theme));
+</script>
+<style data-app-loading="inject-css">
+  html {
+    /* same as ant-design-vue/dist/reset.css setting, avoid the title line-height changed */
+    line-height: 1.15;
+  }
+
+  .loading {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background-color: #f4f7f9;
+
+    /* transition: all 0.8s ease-out; */
+  }
+
+  .loading.hidden {
+    pointer-events: none;
+    visibility: hidden;
+    opacity: 0;
+    transition: all 0.8s ease-out;
+  }
+
+  .dark .loading {
+    background: #0d0d10;
+  }
+
+  .title {
+    margin-top: 66px;
+    font-size: 28px;
+    font-weight: 600;
+    color: rgba(0, 0, 0, 0.85);
+  }
+
+  .dark .title {
+    color: #fff;
+  }
+
+  .loader {
+    position: relative;
+    width: 48px;
+    height: 48px;
+  }
+
+  .loader::before {
+    position: absolute;
+    top: 60px;
+    left: 0;
+    width: 48px;
+    height: 5px;
+    content: '';
+    background: hsla(210, 100%, 50%, 0.5);
+    background: hsl(var(--primary, 210 100% 50%) / 50%);
+    border-radius: 50%;
+    animation: shadow-ani 0.5s linear infinite;
+  }
+
+  .loader::after {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    content: '';
+    background: hsl(210, 100%, 50%);
+    background: hsl(var(--primary, 210 100% 50%));
+    border-radius: 4px;
+    animation: jump-ani 0.5s linear infinite;
+  }
+
+  @keyframes jump-ani {
+    15% {
+      border-bottom-right-radius: 3px;
+    }
+
+    25% {
+      transform: translateY(9px) rotate(22.5deg);
+    }
+
+    50% {
+      border-bottom-right-radius: 40px;
+      transform: translateY(18px) scale(1, 0.9) rotate(45deg);
+    }
+
+    75% {
+      transform: translateY(9px) rotate(67.5deg);
+    }
+
+    100% {
+      transform: translateY(0) rotate(90deg);
+    }
+  }
+
+  @keyframes shadow-ani {
+    0%,
+    100% {
+      transform: scale(1, 1);
+    }
+
+    50% {
+      transform: scale(1.2, 1);
+    }
+  }
+</style>
+<div class="loading" id="__app-loading__">
+  <div class="loader"></div>
+  <div class="title">���Ĵ���Ŀ����</div>
+</div>
+
+    <div id="app"></div>
+    <script type="module" src="/src/main.ts?t=1783919199501"></script>
+  </body>
+</html>
