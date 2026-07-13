@@ -32,8 +32,19 @@ const routes: RouteRecordRaw[] = [
 /** 基本路由列表，这些路由不需要进入权限拦截 */
 const coreRouteNames = traverseTreeValues(coreRoutes, (route) => route.name);
 
-/** 有权限校验的路由列表，包含动态路由和静态路由 */
-const accessRoutes = [...dynamicRoutes, ...staticRoutes];
+/**
+ * 有权限校验的路由列表
+ * 后端模式(accessMode: 'backend')下，业务路由由后端动态生成
+ *
+ * 但需要保留旧路由重定向，确保历史 URL 不返回 404
+ * - legacy-redirects.ts: /invoices → /customer-finance/invoices 等
+ *
+ * 详见：docs/规范路由清单-20260713.md
+ */
+const legacyRedirectRoutes = dynamicRoutes.filter(
+  (route) => route.name?.toString().startsWith('Legacy'),
+);
+const accessRoutes: RouteRecordRaw[] = [...legacyRedirectRoutes];
 
 // add by 芋艿：from https://github.com/vbenjs/vue-vben-admin/blob/main/playground/src/router/routes/index.ts#L38-L45
 const componentKeys: string[] = Object.keys(

@@ -319,7 +319,7 @@ async function deleteInvoice() {
   if (!inv.value) return
   try {
     await deleteInvoiceApi(inv.value.invoice_id)
-    message.success('发票已删除'); router.push({ name: 'InvoiceList' })
+    message.success('发票已删除'); router.push({ name: 'CustomerInvoices' })
   } catch (e: any) { message.error('删除失败: ' + (e?.message || '未知错误')) }
 }
 
@@ -376,7 +376,7 @@ function formatSize(bytes: number): string {
   return (bytes / Math.pow(1024, i)).toFixed(1) + ' ' + units[i]
 }
 
-function goBack() { router.push({ name: 'InvoiceList' }) }
+function goBack() { router.push({ name: 'CustomerInvoices' }) }
 
 function fmtMoney(n: number | null | undefined): string {
   return n == null ? '0.00' : n.toLocaleString('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })

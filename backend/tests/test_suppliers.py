@@ -36,6 +36,8 @@ class _FakeConnection:
             return _FakeResult(many=[])
         if 'FROM supplier_payments' in sql:
             return _FakeResult(many=[])
+        if 'FROM supplier_contacts' in sql:
+            return _FakeResult(many=[])
         raise AssertionError(f'未预期的 SQL：{sql}')
 
     def close(self):
