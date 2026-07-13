@@ -128,157 +128,7 @@ def create_supplier_payment(payload: dict):
     return vben_response({'payment_id': payment_id, 'created': True})
 
 
-@router.get('/payments')
-def get_supplier_payments(page: int = 1, size: int = 50):
-    """获取供应商付款列表"""
-    db = get_db()
-    total = db.execute('SELECT COUNT(*) FROM supplier_payments').fetchone()[0]
-    rows = db.execute(
-        'SELECT * FROM supplier_payments ORDER BY payment_date DESC LIMIT ? OFFSET ?',
-        (size, (page - 1) * size),
-    ).fetchall()
-    db.close()
-    return vben_list(page, size, total, [dict(r) for r in rows])
-
-
-@router.put('/payments/{payment_id}')
-def update_supplier_payment(payment_id: int, payload: dict):
-    """更新供应商付款"""
-    db = get_db()
-    fields = ', '.join([f'{k}=?' for k in payload.keys()])
-    values = list(payload.values()) + [payment_id]
-    db.execute(f'UPDATE supplier_payments SET {fields} WHERE payment_id=?', values)
-    db.commit()
-    db.close()
-    return vben_response({'updated': True})
-
-
-@router.delete('/payments/{payment_id}')
-def delete_supplier_payment(payment_id: int):
-    """删除供应商付款"""
-    db = get_db()
-    db.execute('DELETE FROM supplier_payments WHERE payment_id=?', (payment_id,))
-    db.commit()
-    db.close()
-    return vben_response({'deleted': True})
-
-
-# ── 供应商基础路由 ──
-
-
-@router.get('')
-def get_suppliers():
-    db = get_db()
-    rows = db.execute('''
-        SELECT * FROM suppliers WHERE status='active' AND total_contract_amount > 0
-        ORDER BY total_contract_amount DESC
-    ''').fetchall()
-    db.close()
-    return vben_response({'items': [dict(r) for r in rows]})
-
-
-@router.get('/{supplier_id}')
-def get_supplier(supplier_id: str):
-    db = get_db()
-    sup = db.execute('SELECT * FROM suppliers WHERE supplier_id=?', (supplier_id,)).fetchone()
-    if not sup:
-        db.close()
-        raise HTTPException(404, 'Supplier not found')
-    contracts = [
-        dict(r)
-        for r in db.execute(
-            '''
-            SELECT sc.*, c.project_name FROM supplier_contracts sc
-            LEFT JOIN contracts c ON sc.project_id = c.contract_id
-            WHERE sc.supplier_id=?
-            ''',
-            (supplier_id,),
-        ).fetchall()
-    ]
-    invoices = [
-        dict(r)
-        for r in db.execute(
-            '''
-            SELECT i.* FROM invoices i
-            INNER JOIN supplier_contracts sc ON i.project_id = sc.project_id
-            WHERE sc.supplier_id = ? AND i.direction = 'inbound'
-            ORDER BY i.invoice_date DESC
-            ''',
-            (supplier_id,),
-        ).fetchall()
-    ]
-    payments = [
-        dict(r)
-        for r in db.execute(
-            '''
-            SELECT * FROM supplier_payments
-            WHERE supplier_id = ?
-            ORDER BY payment_date DESC
-            ''',
-            (supplier_id,),
-        ).fetchall()
-    ]
-    db.close()
-    return vben_response({
-        'supplier': dict(sup),
-        'contracts': contracts,
-        'invoices': invoices,
-        'payments': payments,
-    })
-
-
-@router.put('/{supplier_id}')
-def update_supplier(supplier_id: str, payload: dict):
-    """更新供应商信息。"""
-    db = get_db()
-    row = db.execute('SELECT 1 FROM suppliers WHERE supplier_id=?', (supplier_id,)).fetchone()
-    if not row:
-        db.close()
-        raise HTTPException(404, 'Supplier not found')
-
-    updatable = {'supplier_name', 'short_name', 'contact_person', 'contact_phone',
-                 'category', 'status', 'notes', 'evaluation'}
-    fields = []
-    values = []
-    for k, v in payload.items():
-        if k in updatable and v is not None:
-            fields.append(f'{k}=?')
-            values.append(v)
-
-    if not fields:
-        db.close()
-        return vben_response({'supplier_id': supplier_id, 'updated': False})
-
-    values.append(supplier_id)
-    db.execute(f'UPDATE suppliers SET {", ".join(fields)} WHERE supplier_id=?', values)
-    db.commit()
-    db.close()
-    return vben_response({'supplier_id': supplier_id, 'updated': True})
-
-
-@router.post('')
-def create_supplier(payload: dict):
-    """新增供应商。"""
-    db = get_db()
-    fields = ['supplier_id', 'supplier_name', 'short_name', 'contact_person',
-              'contact_phone', 'category', 'notes']
-    values = [payload.get(f) for f in fields]
-
-    if not payload.get('supplier_id'):
-        db.close()
-        raise HTTPException(400, 'supplier_id is required')
-
-    placeholders = ', '.join(['?' for _ in fields])
-    db.execute(
-        f'INSERT INTO suppliers ({", ".join(fields)}, status, created_at) VALUES ({placeholders}, \'active\', datetime(\'now\'))',
-        values,
-    )
-    db.commit()
-    db.close()
-    return vben_response({'supplier_id': payload['supplier_id'], 'created': True})
-
-
-# ── 企查查 MCP 路由（必须放在 /{supplier_id} 之后） ──
+# ── 企查查 MCP 路由（特定路径，必须在 /{supplier_id} 之前注册） ──
 
 
 @router.get('/qcc/{credit_code}')
@@ -426,7 +276,7 @@ async def check_and_alert_changes(credit_code: str):
         raise HTTPException(500, f'检测失败: {str(e)}')
 
 
-# ── 风险预警 API ──
+# ── 风险预警 API（必须在 /{supplier_id} 之前注册以免冲突） ──
 
 
 @router.get('/alerts')
@@ -484,7 +334,7 @@ async def update_alert_configuration(credit_code: str, config: dict):
         raise HTTPException(500, f'更新失败: {str(e)}')
 
 
-# ── 数据同步路由 ──
+# ── 数据同步路由（必须在 /{supplier_id} 之前注册以免冲突） ──
 
 
 @router.post('/sync/{credit_code}')
@@ -577,3 +427,118 @@ def clear_supplier_cache(credit_code: str):
         return vben_response({'cleared': cleared})
     except Exception as e:
         raise HTTPException(500, f'清除失败: {str(e)}')
+
+
+# ── 供应商基础路由（泛匹配 /{supplier_id}，必须放在最后以免截获其他路由） ──
+
+
+@router.get('')
+def get_suppliers():
+    db = get_db()
+    rows = db.execute('''
+        SELECT * FROM suppliers WHERE status='active' AND total_contract_amount > 0
+        ORDER BY total_contract_amount DESC
+    ''').fetchall()
+    db.close()
+    return vben_response({'items': [dict(r) for r in rows]})
+
+
+@router.get('/{supplier_id}')
+def get_supplier(supplier_id: str):
+    db = get_db()
+    sup = db.execute('SELECT * FROM suppliers WHERE supplier_id=?', (supplier_id,)).fetchone()
+    if not sup:
+        db.close()
+        raise HTTPException(404, 'Supplier not found')
+    contracts = [
+        dict(r)
+        for r in db.execute(
+            '''
+            SELECT sc.*, c.project_name FROM supplier_contracts sc
+            LEFT JOIN contracts c ON sc.project_id = c.contract_id
+            WHERE sc.supplier_id=?
+            ''',
+            (supplier_id,),
+        ).fetchall()
+    ]
+    invoices = [
+        dict(r)
+        for r in db.execute(
+            '''
+            SELECT i.* FROM invoices i
+            INNER JOIN supplier_contracts sc ON i.project_id = sc.project_id
+            WHERE sc.supplier_id = ? AND i.direction = 'inbound'
+            ORDER BY i.invoice_date DESC
+            ''',
+            (supplier_id,),
+        ).fetchall()
+    ]
+    payments = [
+        dict(r)
+        for r in db.execute(
+            '''
+            SELECT * FROM supplier_payments
+            WHERE supplier_id = ?
+            ORDER BY payment_date DESC
+            ''',
+            (supplier_id,),
+        ).fetchall()
+    ]
+    db.close()
+    return vben_response({
+        'supplier': dict(sup),
+        'contracts': contracts,
+        'invoices': invoices,
+        'payments': payments,
+    })
+
+
+@router.put('/{supplier_id}')
+def update_supplier(supplier_id: str, payload: dict):
+    """更新供应商信息。"""
+    db = get_db()
+    row = db.execute('SELECT 1 FROM suppliers WHERE supplier_id=?', (supplier_id,)).fetchone()
+    if not row:
+        db.close()
+        raise HTTPException(404, 'Supplier not found')
+
+    updatable = {'supplier_name', 'short_name', 'contact_person', 'contact_phone',
+                 'category', 'status', 'notes', 'evaluation'}
+    fields = []
+    values = []
+    for k, v in payload.items():
+        if k in updatable and v is not None:
+            fields.append(f'{k}=?')
+            values.append(v)
+
+    if not fields:
+        db.close()
+        return vben_response({'supplier_id': supplier_id, 'updated': False})
+
+    values.append(supplier_id)
+    db.execute(f'UPDATE suppliers SET {", ".join(fields)} WHERE supplier_id=?', values)
+    db.commit()
+    db.close()
+    return vben_response({'supplier_id': supplier_id, 'updated': True})
+
+
+@router.post('')
+def create_supplier(payload: dict):
+    """新增供应商。"""
+    db = get_db()
+    fields = ['supplier_id', 'supplier_name', 'short_name', 'contact_person',
+              'contact_phone', 'category', 'notes']
+    values = [payload.get(f) for f in fields]
+
+    if not payload.get('supplier_id'):
+        db.close()
+        raise HTTPException(400, 'supplier_id is required')
+
+    placeholders = ', '.join(['?' for _ in fields])
+    db.execute(
+        f'INSERT INTO suppliers ({", ".join(fields)}, status, created_at) VALUES ({placeholders}, \'active\', datetime(\'now\'))',
+        values,
+    )
+    db.commit()
+    db.close()
+    return vben_response({'supplier_id': payload['supplier_id'], 'created': True})
