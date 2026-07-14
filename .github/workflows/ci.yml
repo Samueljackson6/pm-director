@@ -160,58 +160,46 @@ jobs:
         with:
           version: '10'
 
-      - name: 前端构建与产物校验（部署前强制重新构建，避免 stale-dist）
+      - name: Docker 构建与部署
         shell: bash
         run: |
           set -e
-          FRONTEND_DIR="ui-vben/apps/web-antd"
-          DIST_INDEX="$FRONTEND_DIR/dist/index.html"
-          if [ ! -d "$FRONTEND_DIR" ]; then
-            echo "❌ 前端目录不存在: $FRONTEND_DIR"
-            exit 1
-          fi
-          BUILD_START_TS=$(date +%s)
-          ( cd "$FRONTEND_DIR" && pnpm install --frozen-lockfile || pnpm install )
-          ( cd "$FRONTEND_DIR" && pnpm build ) || { echo "❌ 前端 pnpm build 失败"; exit 1; }
-          if [ ! -f "$DIST_INDEX" ]; then
-            echo "❌ 构建产物缺失: $DIST_INDEX"
-            exit 1
-          fi
-          DIST_MTIME=$(date -r "$DIST_INDEX" +%s 2>/dev/null || stat -c %Y "$DIST_INDEX" 2>/dev/null || echo 0)
-          if [ "$DIST_MTIME" -lt "$BUILD_START_TS" ]; then
-            echo "❌ 构建产物不新鲜 (stale-dist)，中止"
-            exit 1
-          fi
-          echo "✅ 前端产物校验通过: $DIST_INDEX"
-
-      - name: Deploy via Docker compose
-        shell: bash
-        run: |
           echo "=== 开始 Docker 部署 ==="
           rsync -a --exclude='database/' --exclude='cache/' --exclude='ui-vben/node_modules' --exclude='.git/config' \
             "${{ github.workspace }}/" /home/samuel/.openclaw/workspace/pm-director/
           cd /home/samuel/.openclaw/workspace/pm-director
-          bash scripts/deploy-docker.sh
 
-      - name: Verify
+          echo "=== 构建前端镜像 (Dockerfile.frontend) ==="
+          docker compose build frontend --no-cache 2>&1 | tail -20
+
+          echo "=== 构建后端镜像 ==="
+          docker compose build backend 2>&1 | tail -10
+
+          echo "=== 启动服务 ==="
+          docker compose up -d --remove-orphans
+
+          echo "=== 等待服务就绪 ==="
+          sleep 10
+
+      - name: 验证部署
         shell: bash
         run: |
           set -e
           echo "=== 验证 ==="
           sleep 5
-          curl -s -o /dev/null -w 'Frontend (Docker): HTTP %{http_code}\n' http://localhost:8900/web/
-          curl -s -o /dev/null -w 'Backend (Docker): HTTP %{http_code}\n' http://localhost:8800/api/stats
+          curl -s -o /dev/null -w 'Frontend (Docker): HTTP %{http_code}\n' http://localhost:18090/web/
+          curl -s -o /dev/null -w 'Backend (Docker): HTTP %{http_code}\n' http://localhost:18080/api/stats
           echo "--- API 测试 ---"
-          curl -s http://localhost:8800/api/projects?page=1\&size=1 | head -c 100
+          curl -s http://localhost:18080/api/projects?page=1\&size=1 | head -c 100
 
-      - name: Audit
+      - name: 部署审计
         shell: bash
         run: |
           echo "=== 审计 ==="
           echo "Commit: ${{ github.sha }}"
           echo "Time: $(date)"
-          FE=$(curl -s -o /dev/null -w '%{http_code}' http://localhost:8900/web/ || echo 000)
-          BE=$(curl -s -o /dev/null -w '%{http_code}' http://localhost:8800/api/stats || echo 000)
+          FE=$(curl -s -o /dev/null -w '%{http_code}' http://localhost:18090/web/ || echo 000)
+          BE=$(curl -s -o /dev/null -w '%{http_code}' http://localhost:18080/api/stats || echo 000)
           echo "Frontend: HTTP $FE"
           echo "Backend:  HTTP $BE"
           if [ "$FE" = "200" ] && [ "$BE" = "200" ]; then

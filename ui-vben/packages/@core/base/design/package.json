@@ -28,6 +28,9 @@
     ".": {
       "types": "./src/index.ts",
       "development": "./src/index.ts",
+      "default": "./dist/index.mjs"
+    },
+    "./css": {
       "default": "./dist/design.css"
     }
   },

@@ -49,6 +49,7 @@ RUN mkdir -p /build/apps/web-antd/src/shims/node-fs-stub && \
     node -e "const fs=require('fs');let c=fs.readFileSync('./apps/web-antd/vite.config.mts','utf8');c=c.replace('node-fs-stub.ts','node-fs-stub/index.ts');fs.writeFileSync('./apps/web-antd/vite.config.mts',c);console.log('updated alias');"
 
 # 修正 workspace 包 exports：指向不存在的 dist 条目→改为指向 src/ 或创建空文件
+# 特别处理 @vben-core/design: exports["."].default 指向 CSS 文件时需要创建有效的 JS 入口
 RUN node <<'NODEEOF'
 const fs=require('fs'),path=require('path');
 function sd(d){const r=[];if(!fs.existsSync(d))return r;for(const e of fs.readdirSync(d)){const full=path.join(d,e);if(fs.statSync(full).isDirectory()){if(e!=='node_modules')r.push(...sd(full));const p=path.join(full,'package.json');if(fs.existsSync(p))r.push(p);}}return r;}
@@ -69,11 +70,28 @@ all.forEach(f=>{
           else if(dev&&dev.endsWith('.css')&&fs.existsSync(path.join(dir,dev))){fs.copyFileSync(path.join(dir,dev),abs);}
           else{fs.writeFileSync(abs,'');}
         }else if(v.match(/\.(mjs|js|ts)$/)){
-          // 指向 development（src/）让 Vite + tsx 处理
           if(o?.['development']&&o['development'].startsWith('./src/')&&fs.existsSync(path.join(dir,o['development']))){
             o[k]=o['development'];ch=true;return;
           }
         }
+        ch=true;
+      }else if(typeof v==='string'&&v.includes('./dist/')&&v.endsWith('.css')&&k==='default'){
+        // 特殊处理：当 exports["."].default 指向 CSS 文件时，需要创建有效的 JS 入口
+        // 并将 default 改为指向 JS 文件
+        const mjsPath=v.replace('.css','.mjs');
+        const absMjs=path.join(dir,mjsPath);
+        if(fs.existsSync(absMjs)){
+          const content=fs.readFileSync(absMjs,'utf8');
+          if(content.trim().length<10){
+            // 文件为空或几乎为空，创建有效的入口
+            fs.writeFileSync(absMjs,'// CSS-only package entry\\nexport {};\\n');
+            console.log('  fixed empty mjs: '+p.name);
+          }
+        }
+        // 修改 exports 配置，让 default 指向 mjs 文件
+        o['default']=mjsPath;
+        // 添加 ./css 入口用于直接导入 CSS
+        if(!o['./css']){o['./css']={'default':v};}
         ch=true;
       }else if(typeof v==='object')walk(v);
     }
