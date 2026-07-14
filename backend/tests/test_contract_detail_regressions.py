@@ -1,4 +1,4 @@
-﻿"""合同详情页回归测试。"""
+"""合同详情页回归测试。"""
 
 import pytest
 from fastapi import HTTPException
