@@ -83,11 +83,8 @@ all.forEach(f=>{
 console.log('total: '+fx);
 NODEEOF
 
-# 构建（使用 tsx 作为 Node.js loader，支持 .ts 导入）
-ENV NODE_OPTIONS="--import tsx --max-old-space-size=8192"
-RUN cd apps/web-antd && pnpm vite build --mode production 2>&1
-
 # 构建（参照 Vben 官方文档: NODE_OPTIONS=--max-old-space-size=8192）
+# 注意：使用 tsx 作为 Node.js loader 以支持 .ts 文件直接导入
 ENV NODE_OPTIONS="--max-old-space-size=8192"
 RUN cd apps/web-antd && pnpm vite build --mode production 2>&1
 
