@@ -15,7 +15,7 @@ import io
 if sys.platform == 'win32':
     try:
         sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='replace')
-    except:
+    except Exception:
         pass
 
 DB_PATH = Path(__file__).parent.parent.parent / "database" / "project_management.db"
