@@ -183,8 +183,11 @@ jobs:
           echo "=== 构建后端镜像 ==="
           docker compose build backend 2>&1 | tail -10
 
+          echo "=== 停止并移除旧容器 ==="
+          docker compose down --remove-orphans 2>/dev/null || true
+
           echo "=== 启动服务 ==="
-          docker compose up -d --remove-orphans
+          docker compose up -d
 
           echo "=== 等待服务就绪 ==="
           sleep 10
