@@ -33,11 +33,11 @@
         </div>
         <div class="bg-white rounded-lg border border-gray-200 p-4 text-center">
           <div class="text-xs text-gray-400 mb-1">税额（元）</div>
-          <div class="text-2xl font-bold text-orange-600">{{ fmtMoney(inv.tax_amount) }}</div>
+          <div class="text-2xl font-bold text-orange-600">{{ fmtMoney(calculatedTaxAmount) }}</div>
         </div>
         <div class="bg-white rounded-lg border border-gray-200 p-4 text-center">
           <div class="text-xs text-gray-400 mb-1">价税合计（元）</div>
-          <div class="text-2xl font-bold text-green-600">{{ fmtMoney(inv.total_with_tax) }}</div>
+          <div class="text-2xl font-bold text-green-600">{{ fmtMoney(calculatedTotalWithTax) }}</div>
         </div>
       </div>
 
@@ -75,7 +75,7 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, onMounted, watch } from 'vue'
+import { ref, onMounted, watch, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { message } from 'ant-design-vue'
 import { getInvoiceDetailApi, updateInvoiceApi, deleteInvoiceApi } from '#/api/invoices'
@@ -89,6 +89,28 @@ const error = ref('')
 const editModalVisible = ref(false)
 const editSaving = ref(false)
 const editForm = ref<Record<string, any>>({})
+
+/** 计算税额：优先使用数据库值，否则根据金额和税率计算 */
+const calculatedTaxAmount = computed(() => {
+  if (!inv.value) return 0
+  if (inv.value.tax_amount != null && inv.value.tax_amount !== 0) {
+    return inv.value.tax_amount
+  }
+  const amount = inv.value.amount || 0
+  const rate = inv.value.tax_rate || 0
+  const taxRate = rate <= 1 ? rate : rate / 100
+  return amount * taxRate
+})
+
+/** 计算价税合计：金额 + 税额 */
+const calculatedTotalWithTax = computed(() => {
+  if (!inv.value) return 0
+  if (inv.value.total_with_tax != null && inv.value.total_with_tax !== 0) {
+    return inv.value.total_with_tax
+  }
+  const amount = inv.value.amount || 0
+  return amount + calculatedTaxAmount.value
+})
 
 async function load() {
   loading.value = true; error.value = ''
