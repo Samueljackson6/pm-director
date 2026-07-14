@@ -160,7 +160,7 @@ jobs:
         with:
           version: '10'
 
-      - name: Docker 构建与部署
+      - name: 前端构建与部署
         shell: bash
         run: |
           set -e
@@ -169,12 +169,16 @@ jobs:
             "${{ github.workspace }}/" /home/samuel/.openclaw/workspace/pm-director/
           cd /home/samuel/.openclaw/workspace/pm-director
 
-          echo "=== 检查目录结构 ==="
-          ls -la ui-vben/apps/ || echo "ui-vben/apps/ 不存在"
-          ls -la ui-vben/apps/web-antd/ 2>/dev/null | head -5 || echo "ui-vben/apps/web-antd/ 不存在"
-
-          echo "=== 构建前端镜像 (Dockerfile.frontend) ==="
-          docker compose build frontend 2>&1
+          echo "=== 前端构建 (本地 pnpm build) ==="
+          cd ui-vben/apps/web-antd
+          pnpm install --frozen-lockfile || pnpm install
+          pnpm build
+          if [ ! -f "dist/index.html" ]; then
+            echo "❌ 前端构建产物缺失"
+            exit 1
+          fi
+          echo "✅ 前端构建完成"
+          cd ../..
 
           echo "=== 构建后端镜像 ==="
           docker compose build backend 2>&1 | tail -10

@@ -33,15 +33,16 @@ services:
       start_period: 10s
 
   frontend:
-    build:
-      context: .
-      dockerfile: Dockerfile.frontend
-    image: pm-director-frontend:latest
+    image: nginx:alpine
     container_name: pm-director-frontend
     ports:
       # ⚠️ 主机 8900 被 Windows Hyper-V 保留（端口范围 8801-8900）
       # 改用 18090 对外暴露，容器内仍为 80
       - "18090:80"
+    volumes:
+      # 使用本机构建的 dist 产物
+      - ./ui-vben/apps/web-antd/dist:/usr/share/nginx/html
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf
     depends_on:
       - backend
     networks:
