@@ -5,7 +5,10 @@
 
 # Node.js
 node_modules/
-ui-vben/
+# 只排除 ui-vben 的 node_modules，保留源码用于 Docker 构建
+ui-vben/**/node_modules
+ui-vben/**/dist
+ui-vben/**/.turbo
 **/node_modules
 **/dist
 **/.turbo
