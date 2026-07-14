@@ -169,8 +169,12 @@ jobs:
             "${{ github.workspace }}/" /home/samuel/.openclaw/workspace/pm-director/
           cd /home/samuel/.openclaw/workspace/pm-director
 
+          echo "=== 检查目录结构 ==="
+          ls -la ui-vben/apps/ || echo "ui-vben/apps/ 不存在"
+          ls -la ui-vben/apps/web-antd/ 2>/dev/null | head -5 || echo "ui-vben/apps/web-antd/ 不存在"
+
           echo "=== 构建前端镜像 (Dockerfile.frontend) ==="
-          docker compose build frontend --no-cache 2>&1 | tail -20
+          docker compose build frontend 2>&1
 
           echo "=== 构建后端镜像 ==="
           docker compose build backend 2>&1 | tail -10
