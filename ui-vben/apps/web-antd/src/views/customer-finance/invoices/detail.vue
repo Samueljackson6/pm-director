@@ -35,7 +35,7 @@
         <!-- KPI 指标行 -->
         <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
           <div class="bg-white rounded-lg border border-gray-200 p-4 text-center">
-            <div class="text-xs text-gray-400 mb-1">金额（元）</div>
+            <div class="text-xs text-gray-400 mb-1">发票金额（含税）</div>
             <div class="text-2xl font-bold text-gray-900">{{ fmtMoney(inv.amount) }}</div>
           </div>
           <div class="bg-white rounded-lg border border-gray-200 p-4 text-center">
@@ -43,11 +43,11 @@
             <div class="text-2xl font-bold text-blue-600">{{ inv.tax_rate ? inv.tax_rate.toFixed(0) + '%' : '-' }}</div>
           </div>
           <div class="bg-white rounded-lg border border-gray-200 p-4 text-center">
-            <div class="text-xs text-gray-400 mb-1">税额（元）</div>
+            <div class="text-xs text-gray-400 mb-1">税额</div>
             <div class="text-2xl font-bold text-orange-600">{{ fmtMoney(calculatedTaxAmount) }}</div>
           </div>
           <div class="bg-white rounded-lg border border-gray-200 p-4 text-center">
-            <div class="text-xs text-gray-400 mb-1">价税合计（元）</div>
+            <div class="text-xs text-gray-400 mb-1">价税合计</div>
             <div class="text-2xl font-bold text-green-600">{{ fmtMoney(calculatedTotalWithTax) }}</div>
           </div>
         </div>
@@ -93,10 +93,10 @@
         <!-- ── 金额信息 ── -->
         <a-card title="&#x1F4B0; 金额信息" class="rounded-lg mb-4" size="small">
           <a-descriptions :column="2" size="small" bordered>
-            <a-descriptions-item label="金额（元）">{{ fmtMoney(inv.amount) }}</a-descriptions-item>
+            <a-descriptions-item label="发票金额（含税/元）">{{ fmtMoney(inv.amount) }}</a-descriptions-item>
             <a-descriptions-item label="税率">{{ inv.tax_rate ? inv.tax_rate.toFixed(0) + '%' : '-' }}</a-descriptions-item>
             <a-descriptions-item label="税额（元）">{{ fmtMoney(calculatedTaxAmount) }}</a-descriptions-item>
-            <a-descriptions-item label="价税合计（元）">{{ fmtMoney(calculatedTotalWithTax) }}</a-descriptions-item>
+            <a-descriptions-item label="不含税金额（元）">{{ fmtMoney(inv.amount / (1 + (inv.tax_rate || 0) / 100)) }}</a-descriptions-item>
           </a-descriptions>
         </a-card>
 
@@ -244,7 +244,9 @@ const matchedAmount = computed(() =>
   linkedReceipts.value.reduce((sum: number, rec: any) => sum + (rec.link_amount || rec.amount || 0), 0)
 )
 
-/** 计算税额：优先使用数据库值，否则根据金额和税率计算 */
+/** 计算税额：优先使用数据库值，否则根据金额和税率计算
+ * 注意：amount 字段存的是含税金额（发票面额）
+ * 不含税金额 = amount / (1 + rate)，税额 = amount - 不含税金额 */
 const calculatedTaxAmount = computed(() => {
   if (!inv.value) return 0
   // 如果数据库有值，直接使用
@@ -256,19 +258,18 @@ const calculatedTaxAmount = computed(() => {
   const rate = inv.value.tax_rate || 0
   // 税率可能是小数（如 0.13）或百分比（如 13）
   const taxRate = rate <= 1 ? rate : rate / 100
-  return amount * taxRate
+  return amount * taxRate / (1 + taxRate)
 })
 
-/** 计算价税合计：金额 + 税额 */
+/** 计算价税合计：优先使用数据库值，否则直接用 amount（含税金额）*/
 const calculatedTotalWithTax = computed(() => {
   if (!inv.value) return 0
   // 如果数据库有值，直接使用
   if (inv.value.total_with_tax != null && inv.value.total_with_tax !== 0) {
     return inv.value.total_with_tax
   }
-  // 否则根据金额和计算后的税额计算
-  const amount = inv.value.amount || 0
-  return amount + calculatedTaxAmount.value
+  // amount 本身就是含税金额（发票面额）
+  return inv.value.amount || 0
 })
 
 /** 解析备注中的结构化数据字符串 */
