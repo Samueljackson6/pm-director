@@ -44,11 +44,11 @@
           </div>
           <div class="bg-white rounded-lg border border-gray-200 p-4 text-center">
             <div class="text-xs text-gray-400 mb-1">税额（元）</div>
-            <div class="text-2xl font-bold text-orange-600">{{ fmtMoney(inv.tax_amount) }}</div>
+            <div class="text-2xl font-bold text-orange-600">{{ fmtMoney(calculatedTaxAmount) }}</div>
           </div>
           <div class="bg-white rounded-lg border border-gray-200 p-4 text-center">
             <div class="text-xs text-gray-400 mb-1">价税合计（元）</div>
-            <div class="text-2xl font-bold text-green-600">{{ fmtMoney(inv.total_with_tax) }}</div>
+            <div class="text-2xl font-bold text-green-600">{{ fmtMoney(calculatedTotalWithTax) }}</div>
           </div>
         </div>
 
@@ -95,8 +95,8 @@
           <a-descriptions :column="2" size="small" bordered>
             <a-descriptions-item label="金额（元）">{{ fmtMoney(inv.amount) }}</a-descriptions-item>
             <a-descriptions-item label="税率">{{ inv.tax_rate ? inv.tax_rate.toFixed(0) + '%' : '-' }}</a-descriptions-item>
-            <a-descriptions-item label="税额（元）">{{ fmtMoney(inv.tax_amount) }}</a-descriptions-item>
-            <a-descriptions-item label="价税合计（元）">{{ fmtMoney(inv.total_with_tax) }}</a-descriptions-item>
+            <a-descriptions-item label="税额（元）">{{ fmtMoney(calculatedTaxAmount) }}</a-descriptions-item>
+            <a-descriptions-item label="价税合计（元）">{{ fmtMoney(calculatedTotalWithTax) }}</a-descriptions-item>
           </a-descriptions>
         </a-card>
 
@@ -243,6 +243,33 @@ const editForm = ref<Record<string, any>>({})
 const matchedAmount = computed(() =>
   linkedReceipts.value.reduce((sum: number, rec: any) => sum + (rec.link_amount || rec.amount || 0), 0)
 )
+
+/** 计算税额：优先使用数据库值，否则根据金额和税率计算 */
+const calculatedTaxAmount = computed(() => {
+  if (!inv.value) return 0
+  // 如果数据库有值，直接使用
+  if (inv.value.tax_amount != null && inv.value.tax_amount !== 0) {
+    return inv.value.tax_amount
+  }
+  // 否则根据金额和税率计算
+  const amount = inv.value.amount || 0
+  const rate = inv.value.tax_rate || 0
+  // 税率可能是小数（如 0.13）或百分比（如 13）
+  const taxRate = rate <= 1 ? rate : rate / 100
+  return amount * taxRate
+})
+
+/** 计算价税合计：金额 + 税额 */
+const calculatedTotalWithTax = computed(() => {
+  if (!inv.value) return 0
+  // 如果数据库有值，直接使用
+  if (inv.value.total_with_tax != null && inv.value.total_with_tax !== 0) {
+    return inv.value.total_with_tax
+  }
+  // 否则根据金额和计算后的税额计算
+  const amount = inv.value.amount || 0
+  return amount + calculatedTaxAmount.value
+})
 
 /** 解析备注中的结构化数据字符串 */
 const parsedNotes = computed(() => {
