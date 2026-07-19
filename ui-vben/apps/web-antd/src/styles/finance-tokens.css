@@ -9,7 +9,7 @@
 :root {
   /* 财务流向语义色 */
   --finance-invoiced: #1677ff;   /* 已开票 / 应收 */
-  --finance-received: #52c41a;   /* 已回款 / 已收 */
+  --finance-received: #237804;   /* 已回款 / 已收，满足浅色背景下的文字对比度 */
   --finance-unreceived: #fa8c16; /* 未回款 / 应收未收 */
   --finance-paid: #52c41a;       /* 已付款 */
   --finance-unpaid: #fa8c16;     /* 未付款 */
@@ -282,6 +282,15 @@ body:not([data-theme='dark']) .pm-section-note + .pm-section-note {
   justify-content: space-between;
   padding: 16px;
   border-bottom: 1px solid var(--pm-workbench-border);
+}
+
+/* 链接按钮在白底任务队列中使用深色文字，保持可读性。 */
+.dashboard-action-item .ant-btn-link {
+  color: #0958d9;
+}
+
+.dashboard-action-item .ant-btn-link:hover {
+  color: #003eb3;
 }
 
 .dashboard-action-item:last-child {
@@ -625,4 +634,13 @@ body:not([data-theme='dark']) .pm-section-note + .pm-section-note {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
   }
+}
+
+.dashboard-stale-note {
+  display: inline-block;
+  margin-left: 6px;
+  color: #9a6700;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 20px;
 }

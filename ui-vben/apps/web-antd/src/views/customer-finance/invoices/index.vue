@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen overflow-x-hidden bg-slate-50 px-4 py-4 md:px-6">
+  <div class="pm-workbench-page min-h-screen overflow-x-hidden bg-slate-50 px-4 py-4 md:px-6">
     <!-- 页面标题和操作按钮 -->
     <div class="flex items-center justify-between mb-6">
       <div>
@@ -17,9 +17,9 @@
       <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
         <div class="flex items-center justify-between">
           <div>
-            <div class="text-xs text-gray-400 mb-1">累计开票</div>
+            <div class="text-xs text-gray-600 mb-1">累计开票</div>
             <div class="text-2xl font-bold text-gray-900">{{ summary.totalInvoiced.toFixed(2) }}</div>
-            <div class="text-xs text-gray-400 mt-1">万元</div>
+            <div class="text-xs text-gray-600 mt-1">万元</div>
           </div>
           <div class="flex h-10 w-10 items-center justify-center rounded-full bg-blue-50">
             <span class="text-2xl">📄</span>
@@ -29,9 +29,9 @@
       <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
         <div class="flex items-center justify-between">
           <div>
-            <div class="text-xs text-gray-400 mb-1">累计回款</div>
-            <div class="text-2xl font-bold text-green-600">{{ summary.totalReceived.toFixed(2) }}</div>
-            <div class="text-xs text-gray-400 mt-1">万元</div>
+            <div class="text-xs text-gray-600 mb-1">累计回款</div>
+            <div class="text-2xl font-bold text-green-800">{{ summary.totalReceived.toFixed(2) }}</div>
+            <div class="text-xs text-gray-600 mt-1">万元</div>
           </div>
           <div class="flex h-10 w-10 items-center justify-center rounded-full bg-green-50">
             <span class="text-2xl">💰</span>
@@ -41,7 +41,7 @@
       <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
         <div class="flex items-center justify-between">
           <div>
-            <div class="text-xs text-gray-400 mb-1">回款率</div>
+            <div class="text-xs text-gray-600 mb-1">回款率</div>
             <div class="text-2xl font-bold" :class="summary.receiptRateClass">{{ summary.receiptRate }}</div>
           </div>
           <div class="flex h-10 w-10 items-center justify-center rounded-full bg-purple-50">
@@ -52,9 +52,9 @@
       <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
         <div class="flex items-center justify-between">
           <div>
-            <div class="text-xs text-gray-400 mb-1">未开票金额</div>
-            <div class="text-2xl font-bold text-orange-600">{{ summary.pendingAmount.toFixed(2) }}</div>
-            <div class="text-xs text-gray-400 mt-1">万元</div>
+            <div class="text-xs text-gray-600 mb-1">未开票金额</div>
+            <div class="text-2xl font-bold text-orange-800">{{ summary.pendingAmount.toFixed(2) }}</div>
+            <div class="text-xs text-gray-600 mt-1">万元</div>
           </div>
           <div class="flex h-10 w-10 items-center justify-center rounded-full bg-orange-50">
             <span class="text-2xl">⏳</span>
@@ -251,7 +251,7 @@ async function loadSummary() {
     summary.totalReceived = totalReceived
     summary.receiptRate = rate.toFixed(1) + '%'
     summary.receiptRateClass =
-      rate >= 80 ? 'text-green-600' : rate >= 50 ? 'text-orange-600' : 'text-red-600'
+      rate >= 80 ? 'text-green-800' : rate >= 50 ? 'text-orange-800' : 'text-red-800'
     summary.pendingAmount = totalPending
   } finally {
     summaryLoading.value = false
@@ -478,6 +478,11 @@ const [InboundGrid] = useVbenVxeGrid({ gridOptions: inboundGridOptions })
   padding: 14px 0;
   font-size: 15px;
   font-weight: 500;
+}
+
+/* 非激活标签也保持 WCAG 2.1 AA 的文字对比度。 */
+.invoice-tabs :deep(.ant-tabs-tab:not(.ant-tabs-tab-active) .ant-tabs-tab-btn) {
+  color: #595959 !important;
 }
 
 .invoice-tabs :deep(.ant-tabs-content) {

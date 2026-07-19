@@ -10,20 +10,32 @@
         <a-input v-model:value="filters.search" placeholder="合同编号/项目名称" allow-clear style="width:200px" />
       </a-form-item>
       <a-form-item label="项目类型">
-        <a-select v-model:value="filters.project_type" placeholder="全部" allow-clear style="width:120px">
+        <A11ySelect
+          v-model:value="filters.project_type"
+          allow-clear
+          label="按项目类型筛选"
+          placeholder="全部"
+          style="width: 120px"
+        >
           <a-select-option value="科研类">科研类</a-select-option>
           <a-select-option value="服务类">服务类</a-select-option>
           <a-select-option value="物资类">物资类</a-select-option>
           <a-select-option value="施工类">施工类</a-select-option>
-        </a-select>
+        </A11ySelect>
       </a-form-item>
       <a-form-item label="合同状态">
-        <a-select v-model:value="filters.contract_status" placeholder="全部" allow-clear style="width:120px">
+        <A11ySelect
+          v-model:value="filters.contract_status"
+          allow-clear
+          label="按合同状态筛选"
+          placeholder="全部"
+          style="width: 120px"
+        >
           <a-select-option value="signed">已签订</a-select-option>
           <a-select-option value="active">进行中</a-select-option>
           <a-select-option value="completed">已完成</a-select-option>
           <a-select-option value="terminated">已终止</a-select-option>
-        </a-select>
+        </A11ySelect>
       </a-form-item>
       <a-form-item label="金额范围">
         <a-input-number v-model:value="filters.min_amount" placeholder="最小值" :min="0" style="width:100px" />
@@ -41,7 +53,7 @@
         <a-button type="primary" @click="openCreateModal">+ 新增合同</a-button>
       </a-form-item>
     </a-form>
-    <Grid />
+    <div ref="gridContainer"><Grid /></div>
 
     <!-- 新增合同弹窗 -->
     <a-modal
@@ -100,6 +112,8 @@
 // ╚══════════════════════════════════════════════════════════╝
 import type { VxeGridProps } from '#/adapter/vxe-table'
 import { useVbenVxeGrid } from '#/adapter/vxe-table'
+import A11ySelect from '#/components/accessibility/a11y-select.vue'
+import { useAccessibleVxeGrid } from '#/composables/use-accessible-vxe-grid'
 import { getContractsApi, type ContractItem, createContractApi, type ContractQueryParams } from '#/api/contracts'
 import { buildDetailLocation } from '#/utils/business-navigation'
 import { useRoute, useRouter } from 'vue-router'
@@ -228,6 +242,9 @@ const gridOptions: VxeGridProps<ContractItem> = {
   sortConfig: { multiple: true },
   rowConfig: { keyField: 'contract_id', isHover: true, height: 44 },
 }
+
+const gridContainer = ref<HTMLElement>()
+useAccessibleVxeGrid(gridContainer, '合同台账')
 
 const [Grid, gridApi] = useVbenVxeGrid({
   gridOptions,

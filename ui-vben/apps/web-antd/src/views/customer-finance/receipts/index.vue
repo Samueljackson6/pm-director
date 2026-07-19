@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen overflow-x-hidden bg-slate-50 px-4 py-4 md:px-6">
+  <div class="pm-workbench-page min-h-screen overflow-x-hidden bg-slate-50 px-4 py-4 md:px-6">
     <!-- 页面标题 -->
     <div class="mb-4 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
       <div>
@@ -8,7 +8,7 @@
       </div>
       <div class="flex flex-wrap gap-2">
         <a-button size="large" @click="autoMatch">
-          <template #icon><span>??</span></template>自动匹配（写入关联）
+          <template #icon><span>⚠</span></template>自动匹配（写入关联）
         </a-button>
         <a-button type="primary" size="large" @click="openAddReceipt">
           <template #icon><span>+</span></template>新增回款
@@ -19,16 +19,16 @@
     <!-- 统计卡片 -->
     <div class="grid grid-cols-1 gap-3 sm:grid-cols-3">
       <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-        <div class="text-xs text-gray-400">累计回款（万元）</div>
-        <div class="text-2xl font-bold text-green-600 mt-1">{{ formatSummaryAmount(receiptSummary.receipt_total) }}</div>
+        <div class="text-xs text-gray-600">累计回款（万元）</div>
+        <div class="text-2xl font-bold text-green-800 mt-1">{{ formatSummaryAmount(receiptSummary.receipt_total) }}</div>
       </div>
       <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-        <div class="text-xs text-gray-400">已匹配（万元）</div>
+        <div class="text-xs text-gray-600">已匹配（万元）</div>
         <div class="text-2xl font-bold text-blue-600 mt-1">{{ formatSummaryAmount(receiptSummary.matched_total) }}</div>
       </div>
       <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-        <div class="text-xs text-gray-400">未匹配（万元）</div>
-        <div class="text-2xl font-bold text-orange-600 mt-1">{{ formatSummaryAmount(receiptSummary.unmatched_total) }}</div>
+        <div class="text-xs text-gray-600">未匹配（万元）</div>
+        <div class="text-2xl font-bold text-orange-800 mt-1">{{ formatSummaryAmount(receiptSummary.unmatched_total) }}</div>
       </div>
     </div>
 

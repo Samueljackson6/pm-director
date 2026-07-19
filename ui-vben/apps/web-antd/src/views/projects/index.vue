@@ -12,20 +12,32 @@
           <a-input v-model:value="searchText" placeholder="搜索项目名称/编号" allow-clear />
         </a-col>
         <a-col :span="4">
-          <a-select v-model:value="statusFilter" placeholder="项目状态" allow-clear style="width: 100%">
+          <A11ySelect
+            v-model:value="statusFilter"
+            allow-clear
+            label="按项目状态筛选"
+            placeholder="项目状态"
+            style="width: 100%"
+          >
             <a-select-option value="active">进行中</a-select-option>
             <a-select-option value="paused">已暂停</a-select-option>
             <a-select-option value="completed">已完成</a-select-option>
             <a-select-option value="cancelled">已取消</a-select-option>
-          </a-select>
+          </A11ySelect>
         </a-col>
         <a-col :span="4">
-          <a-select v-model:value="typeFilter" placeholder="项目类型" allow-clear style="width: 100%">
+          <A11ySelect
+            v-model:value="typeFilter"
+            allow-clear
+            label="按项目类型筛选"
+            placeholder="项目类型"
+            style="width: 100%"
+          >
             <a-select-option value="engineering">工程类</a-select-option>
             <a-select-option value="consulting">咨询类</a-select-option>
             <a-select-option value="research">研发类</a-select-option>
             <a-select-option value="other">其他</a-select-option>
-          </a-select>
+          </A11ySelect>
         </a-col>
         <a-col :span="6">
           <a-space>
@@ -36,7 +48,7 @@
       </a-row>
     </a-card>
 
-    <section class="pm-table-surface"><Grid>
+    <section ref="gridContainer" class="pm-table-surface"><Grid>
       <template #statusSlot="{ row }">
         <a-tag :color="statusColor(row.project_status)">
           {{ statusLabel(row.project_status) }}
@@ -57,6 +69,8 @@
 <script lang="ts" setup>
 import type { VxeGridProps } from '#/adapter/vxe-table'
 import { useVbenVxeGrid } from '#/adapter/vxe-table'
+import A11ySelect from '#/components/accessibility/a11y-select.vue'
+import { useAccessibleVxeGrid } from '#/composables/use-accessible-vxe-grid'
 import { getProjectsApi, type ProjectItem } from '#/api/projects'
 import { buildDetailLocation } from '#/utils/business-navigation'
 import { useRoute, useRouter } from 'vue-router'
@@ -71,6 +85,8 @@ const statusFilter = ref<string | undefined>()
 const typeFilter = ref<string | undefined>()
 const currentPage = ref(1)
 const currentPageSize = ref(20)
+const gridContainer = ref<HTMLElement>()
+useAccessibleVxeGrid(gridContainer, '项目台账')
 
 function projectDetailLocation(projectId: string) {
   return buildDetailLocation({

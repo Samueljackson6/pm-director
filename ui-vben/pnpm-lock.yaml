@@ -874,6 +874,9 @@ importers:
         specifier: 'catalog:'
         version: 4.1.0(vue@3.5.39(typescript@5.9.3))
     devDependencies:
+      axe-core:
+        specifier: ^4.12.1
+        version: 4.12.1
       vitest:
         specifier: ^3.2.6
         version: 3.2.6(@types/node@26.1.0)(happy-dom@17.6.3)(jiti@2.7.0)(less@4.6.7)(sass@1.80.6)(terser@5.48.0)(yaml@2.9.0)
@@ -6569,6 +6572,10 @@ packages:
   available-typed-arrays@1.0.7:
     resolution: {integrity: sha512-wvUjBtSGN7+7SjNpq/9M2Tg350UZD3q62IFZLbRAR1bSMlCo1ZaeW+BJ+D090e4hIIZLBcTDWe4Mh4jvUDajzQ==}
     engines: {node: '>= 0.4'}
+
+  axe-core@4.12.1:
+    resolution: {integrity: sha512-s7iGf5GaVMxEG0ENN9x+xTr7GFZCb1ZP/1uATUpCEK2X78nDB3RwbtFCo9pGAf9ru+VwoQ464DkaLEeRM08wJA==}
+    engines: {node: '>=4'}
 
   axios-mock-adapter@2.1.0:
     resolution: {integrity: sha512-AZUe4OjECGCNNssH8SOdtneiQELsqTsat3SQQCWLPjN436/H+L9AjWfV7bF+Zg/YL9cgbhrz5671hoh+Tbn98w==}
@@ -17401,6 +17408,8 @@ snapshots:
   available-typed-arrays@1.0.7:
     dependencies:
       possible-typed-array-names: 1.1.0
+
+  axe-core@4.12.1: {}
 
   axios-mock-adapter@2.1.0(axios@1.18.1):
     dependencies:
