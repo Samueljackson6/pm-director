@@ -1,10 +1,12 @@
 """Invoice endpoints — list and summary."""
 
+import math
 import os
+import sqlite3
 from fastapi import APIRouter, HTTPException, UploadFile, File
 from fastapi.responses import FileResponse
 
-from backend.database import get_db
+from backend.database import get_db, get_readonly_db
 from backend.models import vben_response, vben_list
 
 router = APIRouter(prefix="/api/invoices", tags=["invoices"])
@@ -14,25 +16,62 @@ UPLOAD_DIR = 'uploads/invoices'
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 
 
-@router.get('')
-def get_invoices(project_id: str = '', direction: str = '', page: int = 1, size: int = 50):
-    db = get_db()
-    where = 'WHERE 1=1'
-    params = []
-    if project_id:
-        where += ' AND project_id = ?'
-        params.append(project_id)
-    if direction:
-        where += ' AND direction = ?'
-        params.append(direction)
+def _collection_data_state(rows: list[dict]) -> str:
+    """区分可用数据、已知零值与需要人工核验的金额。"""
+    if not rows:
+        return 'known_zero'
+    for row in rows:
+        try:
+            amount = float(row.get('amount'))
+        except (TypeError, ValueError):
+            return 'pending_verification'
+        if not math.isfinite(amount) or amount < 0:
+            return 'pending_verification'
+    return 'available'
 
-    total = db.execute(f'SELECT COUNT(*) FROM invoices {where}', params).fetchone()[0]
-    rows = db.execute(
-        f'SELECT * FROM invoices {where} ORDER BY invoice_date DESC LIMIT ? OFFSET ?',
-        params + [size, (page - 1) * size],
-    ).fetchall()
-    db.close()
-    return vben_list(page, size, total, [dict(r) for r in rows])
+
+def _is_missing_table(error: sqlite3.OperationalError, table_name: str) -> bool:
+    return f'no such table: {table_name}' in str(error).lower()
+
+
+@router.get('')
+def get_invoices(
+    project_id: str = '',
+    direction: str = '',
+    invoice_type: str = '',
+    page: int = 1,
+    size: int = 50,
+):
+    """读取发票列表；读取路径不得初始化或改写业务数据库。"""
+    db = get_readonly_db()
+    try:
+        where = 'WHERE 1=1'
+        params = []
+        if project_id:
+            where += ' AND project_id = ?'
+            params.append(project_id)
+        if direction:
+            where += ' AND direction = ?'
+            params.append(direction)
+        if invoice_type:
+            where += ' AND invoice_type = ?'
+            params.append(invoice_type)
+
+        try:
+            total = db.execute(f'SELECT COUNT(*) FROM invoices {where}', params).fetchone()[0]
+            rows = db.execute(
+                f'SELECT * FROM invoices {where} ORDER BY invoice_date DESC LIMIT ? OFFSET ?',
+                params + [size, (page - 1) * size],
+            ).fetchall()
+        except sqlite3.OperationalError as error:
+            if _is_missing_table(error, 'invoices'):
+                return vben_list(page, size, 0, [], data_state='source_not_established')
+            raise
+
+        items = [dict(row) for row in rows]
+        return vben_list(page, size, total, items, data_state=_collection_data_state(items))
+    finally:
+        db.close()
 
 
 @router.get('/supplier-summary')
@@ -72,17 +111,20 @@ def get_invoice_summary():
 
 @router.get('/{invoice_id}')
 def get_invoice(invoice_id: int):
-    db = get_db()
-    row = db.execute('''
-        SELECT i.*, c.project_name, c.party_a as customer_name
-        FROM invoices i
-        LEFT JOIN contracts c ON i.project_id = c.contract_id
-        WHERE i.invoice_id=?
-    ''', (invoice_id,)).fetchone()
-    if not row:
-        raise HTTPException(404, 'Invoice not found')
-    db.close()
-    return vben_response({'invoice': dict(row)})
+    """读取单张发票详情；禁止通过详情 GET 触发写入。"""
+    db = get_readonly_db()
+    try:
+        row = db.execute('''
+            SELECT i.*, c.project_name, c.party_a as customer_name
+            FROM invoices i
+            LEFT JOIN contracts c ON i.project_id = c.contract_id
+            WHERE i.invoice_id=?
+        ''', (invoice_id,)).fetchone()
+        if not row:
+            raise HTTPException(404, 'Invoice not found')
+        return vben_response({'invoice': dict(row)})
+    finally:
+        db.close()
 
 
 @router.put('/{invoice_id}')

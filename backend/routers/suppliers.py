@@ -1,7 +1,10 @@
 """Supplier endpoints — list and detail."""
 
+import math
+import sqlite3
+
 from fastapi import APIRouter, HTTPException
-from backend.database import get_db
+from backend.database import get_db, get_readonly_db
 from backend.models import vben_response, vben_list
 from backend.qcc_mcp_client import get_qcc_client
 
@@ -11,52 +14,95 @@ router = APIRouter(prefix="/api/suppliers", tags=["suppliers"])
 # ── 付款路由（必须在 /{supplier_id} 之前注册以免冲突） ──
 
 
+def _collection_data_state(rows: list[dict]) -> str:
+    """付款列表的空值、负值与已知零值必须保留不同业务语义。"""
+    if not rows:
+        return 'known_zero'
+    for row in rows:
+        try:
+            amount = float(row.get('amount'))
+        except (TypeError, ValueError):
+            return 'pending_verification'
+        if not math.isfinite(amount) or amount < 0:
+            return 'pending_verification'
+    return 'available'
+
+
+def _is_missing_table(error: sqlite3.OperationalError, table_name: str) -> bool:
+    return f'no such table: {table_name}' in str(error).lower()
+
+
 @router.get('/payments')
 def get_supplier_payments(page: int = 1, size: int = 50, supplier_id: str = ''):
-    """获取供应商付款列表."""
-    db = get_db()
-    where = 'WHERE 1=1'
-    params = []
-    if supplier_id:
-        where += ' AND sp.supplier_id = ?'
-        params.append(supplier_id)
+    """读取供应商付款列表，不允许由 GET 建表或写入。"""
+    db = get_readonly_db()
+    try:
+        where = 'WHERE 1=1'
+        params = []
+        if supplier_id:
+            where += ' AND sp.supplier_id = ?'
+            params.append(supplier_id)
 
-    total = db.execute(f'SELECT COUNT(*) FROM supplier_payments sp {where}', params).fetchone()[0]
-    rows = db.execute(
-        f'''SELECT sp.*, s.supplier_name, s.short_name
-            FROM supplier_payments sp
-            LEFT JOIN suppliers s ON sp.supplier_id = s.supplier_id
-            {where}
-            ORDER BY sp.payment_date DESC
-            LIMIT ? OFFSET ?''',
-        params + [size, (page - 1) * size],
-    ).fetchall()
-    db.close()
-    return vben_list(page, size, total, [dict(r) for r in rows])
+        try:
+            total = db.execute(f'SELECT COUNT(*) FROM supplier_payments sp {where}', params).fetchone()[0]
+            rows = db.execute(
+                f'''SELECT sp.*, s.supplier_name, s.short_name
+                    FROM supplier_payments sp
+                    LEFT JOIN suppliers s ON sp.supplier_id = s.supplier_id
+                    {where}
+                    ORDER BY sp.payment_date DESC
+                    LIMIT ? OFFSET ?''',
+                params + [size, (page - 1) * size],
+            ).fetchall()
+        except sqlite3.OperationalError as error:
+            if _is_missing_table(error, 'supplier_payments'):
+                return vben_list(page, size, 0, [], data_state='source_not_established')
+            raise
+
+        items = [dict(row) for row in rows]
+        return vben_list(page, size, total, items, data_state=_collection_data_state(items))
+    finally:
+        db.close()
 
 
 @router.get('/payments/{payment_id}')
 def get_supplier_payment(payment_id: int):
-    """获取供应商付款详情."""
-    db = get_db()
-    row = db.execute('''
-        SELECT sp.*, s.supplier_name, s.short_name
-        FROM supplier_payments sp
-        LEFT JOIN suppliers s ON sp.supplier_id = s.supplier_id
-        WHERE sp.payment_id=?
-    ''', (payment_id,)).fetchone()
-    if not row:
-        db.close()
-        raise HTTPException(404, 'Payment not found')
+    """读取付款及同项目供应商收票，客户回款不得混入关联单据。"""
+    db = get_readonly_db()
+    try:
+        row = db.execute('''
+            SELECT sp.*, s.supplier_name, s.short_name
+            FROM supplier_payments sp
+            LEFT JOIN suppliers s ON sp.supplier_id = s.supplier_id
+            WHERE sp.payment_id=?
+        ''', (payment_id,)).fetchone()
+        if not row:
+            raise HTTPException(404, 'Payment not found')
 
-    # 获取关联的发票
-    invoices = db.execute('''
-        SELECT i.* FROM invoices i
-        WHERE i.project_id = ? AND i.direction = 'inbound'
-        ORDER BY i.invoice_date DESC
-    ''', (row['project_id'],)).fetchall()
-    db.close()
-    return vben_response({'payment': dict(row), 'linked_invoices': [dict(i) for i in invoices]})
+        try:
+            invoice_rows = db.execute('''
+                SELECT i.* FROM invoices i
+                WHERE i.project_id = ?
+                  AND i.direction = 'inbound'
+                  AND i.invoice_type = '供应商开票'
+                ORDER BY i.invoice_date DESC
+            ''', (row['project_id'],)).fetchall()
+        except sqlite3.OperationalError as error:
+            if _is_missing_table(error, 'invoices'):
+                invoice_rows = []
+                linked_invoices_data_state = 'source_not_established'
+            else:
+                raise
+        else:
+            linked_invoices_data_state = _collection_data_state([dict(item) for item in invoice_rows])
+
+        return vben_response({
+            'payment': dict(row),
+            'linked_invoices': [dict(item) for item in invoice_rows],
+            'linked_invoices_data_state': linked_invoices_data_state,
+        })
+    finally:
+        db.close()
 
 
 @router.put('/payments/{payment_id}')
@@ -445,58 +491,61 @@ def get_suppliers():
 
 @router.get('/{supplier_id}')
 def get_supplier(supplier_id: str):
-    db = get_db()
-    sup = db.execute('SELECT * FROM suppliers WHERE supplier_id=?', (supplier_id,)).fetchone()
-    if not sup:
+    db = get_readonly_db()
+    try:
+        sup = db.execute('SELECT * FROM suppliers WHERE supplier_id=?', (supplier_id,)).fetchone()
+        if not sup:
+            raise HTTPException(404, 'Supplier not found')
+        contracts = [
+            dict(r)
+            for r in db.execute(
+                '''
+                SELECT sc.*, c.project_name FROM supplier_contracts sc
+                LEFT JOIN contracts c ON sc.project_id = c.contract_id
+                WHERE sc.supplier_id=?
+                ''',
+                (supplier_id,),
+            ).fetchall()
+        ]
+        supplier_invoices = [
+            dict(r)
+            for r in db.execute(
+                '''
+                SELECT i.* FROM invoices i
+                INNER JOIN supplier_contracts sc ON i.project_id = sc.project_id
+                WHERE sc.supplier_id = ?
+                  AND i.invoice_type = '供应商开票'
+                  AND i.direction = 'inbound'
+                ORDER BY i.invoice_date DESC
+                ''',
+                (supplier_id,),
+            ).fetchall()
+        ]
+        payments = [
+            dict(r)
+            for r in db.execute(
+                '''
+                SELECT * FROM supplier_payments
+                WHERE supplier_id = ?
+                ORDER BY payment_date DESC
+                ''',
+                (supplier_id,),
+            ).fetchall()
+        ]
+        contacts = [
+            dict(r)
+            for r in db.execute(
+                'SELECT id, name, position, phone, email, is_primary, notes '
+                'FROM supplier_contacts WHERE supplier_id=? ORDER BY is_primary DESC, id ASC',
+                (supplier_id,),
+            ).fetchall()
+        ]
+        sup_dict = dict(sup)
+    finally:
         db.close()
-        raise HTTPException(404, 'Supplier not found')
-    contracts = [
-        dict(r)
-        for r in db.execute(
-            '''
-            SELECT sc.*, c.project_name FROM supplier_contracts sc
-            LEFT JOIN contracts c ON sc.project_id = c.contract_id
-            WHERE sc.supplier_id=?
-            ''',
-            (supplier_id,),
-        ).fetchall()
-    ]
-    supplier_invoices = [
-        dict(r)
-        for r in db.execute(
-            '''
-            SELECT i.* FROM invoices i
-            INNER JOIN supplier_contracts sc ON i.project_id = sc.project_id
-            WHERE sc.supplier_id = ?
-              AND i.invoice_type = '供应商开票'
-              AND i.direction = 'inbound'
-            ORDER BY i.invoice_date DESC
-            ''',
-            (supplier_id,),
-        ).fetchall()
-    ]
-    payments = [
-        dict(r)
-        for r in db.execute(
-            '''
-            SELECT * FROM supplier_payments
-            WHERE supplier_id = ?
-            ORDER BY payment_date DESC
-            ''',
-            (supplier_id,),
-        ).fetchall()
-    ]
-    contacts = [
-        dict(r)
-        for r in db.execute(
-            'SELECT id, name, position, phone, email, is_primary, notes '
-            'FROM supplier_contacts WHERE supplier_id=? ORDER BY is_primary DESC, id ASC',
-            (supplier_id,),
-        ).fetchall()
-    ]
-    # 获取本地 QCC 数据
+
+    # 本地企查查缓存使用独立只读连接，失败时不影响供应商主档展示。
     qcc_data = None
-    sup_dict = dict(sup)
     credit_code = sup_dict.get('credit_code')
     if credit_code:
         try:
@@ -504,7 +553,6 @@ def get_supplier(supplier_id: str):
             qcc_data = get_local_qcc_data(credit_code)
         except Exception:
             qcc_data = None
-    db.close()
     data_states = {
         'supplier_invoices': 'available' if supplier_invoices else 'source_not_established',
         'supplier_payments': 'available' if payments else 'known_zero',

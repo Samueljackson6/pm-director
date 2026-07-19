@@ -43,6 +43,7 @@ def supplier_detail_client(
     app.state.supplier_detail_db_path = str(db_path)
     app.include_router(suppliers_router.router)
     monkeypatch.setattr(suppliers_router, "get_db", get_test_db)
+    monkeypatch.setattr(suppliers_router, "get_readonly_db", get_test_db)
 
     with TestClient(app) as client:
         yield client

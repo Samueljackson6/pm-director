@@ -1,5 +1,7 @@
 import { requestClient } from '#/api/request'
 
+export type DomainDataState = 'available' | 'known_zero' | 'pending_verification' | 'source_not_established'
+
 export interface SupplierPaymentItem {
   payment_id: number
   supplier_id: string
@@ -19,7 +21,7 @@ export async function getSupplierPaymentsApi(params?: {
   size?: number
   supplier_id?: string
 }) {
-  return requestClient.get('/api/suppliers/payments', { params })
+  return requestClient.get<SupplierPaymentListResponse>('/api/suppliers/payments', { params })
 }
 
 /** 付款详情 */

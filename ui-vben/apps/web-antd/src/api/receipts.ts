@@ -2,14 +2,31 @@ import { requestClient } from '#/api/request'
 
 export interface ReceiptItem {
   receipt_id: number
-  project_id: string
-  receipt_date: string
-  amount: number
-  receipt_no?: string
-  payer_name?: string
-  receipt_method?: string
-  status: string
-  notes?: string
+  project_id: string | null
+  receipt_date: string | null
+  amount: number | null
+  receipt_no?: string | null
+  payer_name?: string | null
+  receipt_method?: string | null
+  status: string | null
+  notes?: string | null
+}
+
+/** 回款列表的全量汇总；接口金额单位固定为元。 */
+export interface ReceiptSummary {
+  currency_unit: '元'
+  status: 'available' | 'pending_verification'
+  receipt_total: number | null
+  matched_total: number | null
+  unmatched_total: number | null
+}
+
+export interface ReceiptListResponse {
+  total: number
+  page: number
+  size: number
+  items: ReceiptItem[]
+  summary: ReceiptSummary
 }
 
 /** 回款列表 */
@@ -18,7 +35,7 @@ export async function getReceiptsApi(params?: {
   size?: number
   project_id?: string
 }) {
-  return requestClient.get('/api/receipts', { params })
+  return requestClient.get<ReceiptListResponse>('/api/receipts', { params })
 }
 
 /** 回款详情 */

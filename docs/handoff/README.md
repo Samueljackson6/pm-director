@@ -22,3 +22,7 @@
 - `docs/audits/` 保存已完成的验收记录和机器证据。
 - `prototypes/phase3-ui-demo/` 是已被用户否决的早期视觉探索稿，仅用于理解错误方向，禁止继续作为生产目标。
 - `.omo/ulw-loop/...` 是本地执行账本，不作为 GitHub 交付的唯一真相；本目录已导出其有效目标和状态。
+
+## 2026-07-19 G003 收口更新
+
+- [G003 领域真值收口验收](../audits/stage3-g003-domain-truth-closure-20260719.md)

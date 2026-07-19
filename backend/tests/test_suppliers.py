@@ -1,5 +1,6 @@
 """供应商详情接口契约与异常路径测试。"""
 
+import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
@@ -44,11 +45,21 @@ class _FakeConnection:
         self.closed = True
 
 
+class _FailingConnection(_FakeConnection):
+    """在读取关联合同时模拟查询异常，用于验证连接清理。"""
+
+    def execute(self, sql, params):
+        if 'FROM supplier_contracts' in sql:
+            raise RuntimeError('simulated query failure')
+        return super().execute(sql, params)
+
+
 def _supplier_client(db: _FakeConnection, monkeypatch) -> TestClient:
     """创建只挂载供应商路由的测试客户端，避免引入无关路由依赖。"""
     app = FastAPI()
     app.include_router(suppliers_router.router)
     monkeypatch.setattr(suppliers_router, 'get_db', lambda: db)
+    monkeypatch.setattr(suppliers_router, 'get_readonly_db', lambda: db)
     return TestClient(app)
 
 
@@ -77,4 +88,14 @@ def test_missing_supplier_closes_database_connection(monkeypatch) -> None:
         response = client.get('/api/suppliers/NOT-FOUND')
 
     assert response.status_code == 404
+    assert db.closed is True
+
+
+def test_supplier_detail_closes_database_connection_on_query_error(monkeypatch) -> None:
+    """详情中途查询失败时也必须关闭只读连接。"""
+    db = _FailingConnection({'supplier_id': 'SUP-1', 'supplier_name': '测试供应商'})
+
+    with _supplier_client(db, monkeypatch) as client, pytest.raises(RuntimeError):
+        client.get('/api/suppliers/SUP-1')
+
     assert db.closed is True
