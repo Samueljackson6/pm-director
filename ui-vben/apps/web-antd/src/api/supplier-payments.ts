@@ -2,6 +2,12 @@ import { requestClient } from '#/api/request'
 
 export type DomainDataState = 'available' | 'known_zero' | 'pending_verification' | 'source_not_established'
 
+export interface SupplierPaymentListResponse {
+  data_state?: DomainDataState
+  items: SupplierPaymentItem[]
+  total: number
+}
+
 export interface SupplierPaymentItem {
   payment_id: number
   supplier_id: string

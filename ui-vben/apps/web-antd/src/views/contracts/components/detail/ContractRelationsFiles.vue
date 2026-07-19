@@ -73,20 +73,53 @@ import { message } from 'ant-design-vue'
 import { useRouter } from 'vue-router'
 import { contractFileDownloadUrl, uploadContractFileApi } from '#/api/contracts'
 
-const props = defineProps(['contractId', 'projects', 'files', 'teamMembers', 'clauses'])
+interface ContractClause {
+  clause_category?: string
+  [key: string]: any
+}
+
+const props = defineProps<{
+  clauses?: ContractClause[]
+  contractId: string
+  files?: any[]
+  projects?: any[]
+  teamMembers?: readonly any[]
+}>()
 const emit = defineEmits(['updated'])
 const router = useRouter()
 const uploading = ref(false)
 const confidentialClauses = computed(() => {
-  return (props.clauses ?? []).filter((clause) => ['confidentiality', 'confidential'].includes(clause.clause_category))
+  return (props.clauses ?? []).filter((clause) =>
+    ['confidentiality', 'confidential'].includes(clause.clause_category ?? ''),
+  )
 })
 const groups = computed(() => {
-  const labels = { breach_liability: '违约责任', liquidated_damages: '违约金', penalty: '罚款', overdue: '逾期', compensation: '赔偿', ip: '知识产权', force_majeure: '不可抗力', termination: '解除/终止', dispute: '争议解决' }
-  const groupsByCategory = new Map()
-  for (const clause of (props.clauses ?? []).filter((item) => !['confidentiality', 'confidential'].includes(item.clause_category))) {
-    groupsByCategory.set(clause.clause_category, [...(groupsByCategory.get(clause.clause_category) ?? []), clause])
+  const labels: Record<string, string> = {
+    breach_liability: '违约责任',
+    liquidated_damages: '违约金',
+    penalty: '罚款',
+    overdue: '逾期',
+    compensation: '赔偿',
+    ip: '知识产权',
+    force_majeure: '不可抗力',
+    termination: '解除/终止',
+    dispute: '争议解决',
   }
-  return [...groupsByCategory].map(([key, items]) => ({ key, label: labels[key] ?? key, items }))
+  const groupsByCategory = new Map<string, ContractClause[]>()
+  for (const clause of (props.clauses ?? []).filter(
+    (item) => !['confidentiality', 'confidential'].includes(item.clause_category ?? ''),
+  )) {
+    const category = clause.clause_category ?? 'other'
+    groupsByCategory.set(category, [
+      ...(groupsByCategory.get(category) ?? []),
+      clause,
+    ])
+  }
+  return [...groupsByCategory].map(([key, items]) => ({
+    key,
+    label: labels[key] ?? key,
+    items,
+  }))
 })
 
 function openProject(id: unknown) { router.push({ name: 'ProjectDetail', query: { id: String(id) } }) }

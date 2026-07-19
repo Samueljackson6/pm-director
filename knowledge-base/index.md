@@ -31,7 +31,7 @@ knowledge-base/
 |------|------|------|
 | 阶段3团队交接 | `../docs/handoff/README.md` | 总体目标、设计基线、已完成内容、当前进度、后续任务、风险与验证入口 |
 | 阶段3实施进度 | `../docs/handoff/阶段3-实施进度与后续任务-20260719.md` | G002–G006 状态、接手顺序、完成门与团队分工 |
-| 阶段3 G006 QA | rchived/2026-07/phase3-g006-final-qa.md | 业务范围 axe、四视口、状态、零写入与存量债务分层 |
+| 阶段3 G006 QA | `archived/2026-07/phase3-g006-final-qa.md` | 业务范围 axe、四视口、状态、零写入、静态边界收口与存量债务分层 |
 | 阶段3风险清单 | `../docs/handoff/阶段3-风险与验证清单-20260719.md` | 数据真值、只读边界、安全、运行时和最终关闭检查 |
 | 路由规范 | `patterns/route-patterns.md` | 后端路由模式、路径格式 |
 | 返回契约 | `patterns/return-contract.md` | 详情页返回逻辑规范 |

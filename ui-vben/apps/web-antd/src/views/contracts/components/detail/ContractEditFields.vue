@@ -49,7 +49,7 @@
       <div v-for="(stage, index) in form.editStages" :key="stage.stage_id || index" class="mb-2 grid grid-cols-[1fr_1fr_auto] gap-2">
         <a-input v-model:value="stage.stage_name" placeholder="阶段名称" />
         <a-select v-model:value="stage.status"><a-select-option value="completed">已完成</a-select-option><a-select-option value="in_progress">进行中</a-select-option><a-select-option value="pending">待开始</a-select-option></a-select>
-        <a-button danger @click="removeStage(index)">删除</a-button>
+        <a-button danger @click="removeStage(Number(index))">删除</a-button>
       </div>
       <a-button type="dashed" block @click="addStage">添加阶段</a-button>
 
@@ -57,7 +57,7 @@
       <div v-for="(deliverable, index) in form.editDeliverables" :key="deliverable.deliverable_id || index" class="mb-2 grid grid-cols-[1fr_1fr_auto] gap-2">
         <a-input v-model:value="deliverable.deliverable_name" placeholder="交付物名称" />
         <a-select v-model:value="deliverable.status"><a-select-option value="completed">已完成</a-select-option><a-select-option value="pending">待交付</a-select-option></a-select>
-        <a-button danger @click="removeDeliverable(index)">删除</a-button>
+        <a-button danger @click="removeDeliverable(Number(index))">删除</a-button>
       </div>
       <a-button type="dashed" block @click="addDeliverable">添加交付物</a-button>
     </template>
@@ -67,9 +67,9 @@
 <script lang="ts" setup>
 const props = defineProps(['form'])
 function addStage() { props.form.editStages.push({ stage_name: '', status: 'pending', stage_number: props.form.editStages.length + 1 }) }
-function removeStage(index) { props.form.editStages.splice(index, 1) }
+function removeStage(index: number) { props.form.editStages.splice(index, 1) }
 function addDeliverable() { props.form.editDeliverables.push({ deliverable_name: '', deliverable_type: '报告', status: 'pending' }) }
-function removeDeliverable(index) { props.form.editDeliverables.splice(index, 1) }
+function removeDeliverable(index: number) { props.form.editDeliverables.splice(index, 1) }
 </script>
 
 <style scoped>

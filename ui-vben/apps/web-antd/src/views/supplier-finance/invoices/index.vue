@@ -13,7 +13,7 @@
       <div class="p-4">
         <a-alert v-if="dataState !== 'available'" class="mb-4" :type="dataState === 'pending_verification' ? 'warning' : 'info'" show-icon :message="dataStateText" />
         <a-table :data-source="list" :columns="columns" :loading="loading" row-key="invoice_id" size="middle"
-          :pagination="{ pageSize: 50, total, showSizeChanger: true, showTotal: t => '共 ' + t + ' 条' }"
+          :pagination="{ pageSize: 50, total, showSizeChanger: true, showTotal: (t: number) => '共 ' + t + ' 条' }"
           @change="handleChange">
           <template #bodyCell="{ column, record }">
             <template v-if="column.key === 'amount'"><span class="font-mono">{{ formatAmount(record.amount) }}</span></template>

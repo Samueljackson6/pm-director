@@ -45,7 +45,7 @@
           row-key="receipt_id"
           size="middle"
           :scroll="{ x: 1100 }"
-          :pagination="{ current: currentPage, pageSize: pageSize, total, showSizeChanger: true, showTotal: t => '共 ' + t + ' 条' }"
+          :pagination="{ current: currentPage, pageSize: pageSize, total, showSizeChanger: true, showTotal: (t: number) => '共 ' + t + ' 条' }"
           @change="handleTableChange"
         >
           <template #bodyCell="{ column, record }">
@@ -140,7 +140,7 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, reactive, onMounted } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { message } from 'ant-design-vue'
 import { buildDetailLocation } from '#/utils/business-navigation'
@@ -168,7 +168,7 @@ const loading = ref(false)
 const currentPage = ref(readPositivePageQuery(route.query.page, 1))
 const pageSize = ref(readPositivePageQuery(route.query.pageSize, 20))
 const receiptSummary = ref<ReceiptSummary>({
-  currency_unit: '?',
+  currency_unit: '元',
   status: 'pending_verification',
   receipt_total: null,
   matched_total: null,

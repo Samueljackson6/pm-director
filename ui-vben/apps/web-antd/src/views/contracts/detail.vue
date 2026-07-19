@@ -44,7 +44,11 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { getContractDetailApi, getContractTeamApi } from '#/api/contracts'
+import {
+  getContractDetailApi,
+  getContractTeamApi,
+  type ContractDetail,
+} from '#/api/contracts'
 import StateBlock from '#/components/state-block/index.vue'
 import ContractFinance from '#/views/contracts/components/detail/ContractFinance.vue'
 import ContractFulfillment from '#/views/contracts/components/detail/ContractFulfillment.vue'
@@ -53,7 +57,7 @@ import ContractRelationsFiles from '#/views/contracts/components/detail/Contract
 
 const route = useRoute()
 const router = useRouter()
-const detail = ref<Record<string, unknown> | null>(null)
+const detail = ref<ContractDetail | null>(null)
 const teamMembers = ref<readonly Record<string, unknown>[]>([])
 const loading = ref(true)
 const error = ref('')

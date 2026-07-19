@@ -43,7 +43,7 @@
         <a-input-number v-model:value="filters.max_amount" placeholder="最大值" :min="0" style="width:100px" />
       </a-form-item>
       <a-form-item>
-        <a-button type="primary" @click="handleSearch">查询</a-button>
+        <a-button aria-label="查询" type="primary" @click="handleSearch">查询</a-button>
         <a-button class="ml-2" @click="handleReset">重置</a-button>
       </a-form-item>
       <a-form-item>
@@ -258,7 +258,7 @@ const [Grid, gridApi] = useVbenVxeGrid({
 })
 
 function handleSearch() {
-  gridApi.commitQuery()
+  gridApi.query()
 }
 
 function handleReset() {
@@ -267,7 +267,7 @@ function handleReset() {
   filters.contract_status = ''
   filters.min_amount = undefined
   filters.max_amount = undefined
-  gridApi.commitQuery()
+  gridApi.query()
 }
 
 function handleExport() {
@@ -312,7 +312,7 @@ async function saveCreate() {
     await createContractApi(createForm.value)
     message.success('合同新增成功')
     createModalVisible.value = false
-    gridApi.commitQuery()
+    gridApi.query()
   } catch (e: any) {
     message.error('新增失败: ' + (e?.message || '未知错误'))
   } finally {

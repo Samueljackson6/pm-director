@@ -461,7 +461,7 @@ function contactColor(name: string): string {
   const colors = ['#2563eb', '#16a34a', '#9333ea', '#ea580c', '#0891b2', '#dc2626']
   let hash = 0
   for (let i = 0; i < name.length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash)
-  return colors[Math.abs(hash) % colors.length]
+  return colors[Math.abs(hash) % colors.length] ?? '#2563eb'
 }
 
 // ── 加载数据 ──

@@ -137,6 +137,7 @@ function renderGantt() {
     return [rows.length, d._time, d.deliverable_name || '未命名', d.deliverable_type || '其他'];
   });
 
+  const series: any[] = [];
   const opt: ECOption = {
     tooltip: {
       trigger: 'item',
@@ -180,12 +181,12 @@ function renderGantt() {
       axisLine: { show: false },
       axisLabel: { fontSize: 11, overflow: 'truncate', width: 150 },
     },
-    series: [] as any[],
+    series: series as any,
   };
 
   // ── 阶段条：用自定义 series ──
   // ★ 核心修复：api.coord 第二个参数用类别标签字符串而非数字索引
-  opt.series.push({
+  series.push({
     name: '阶段',
     type: 'custom',
     renderItem: (_params: any, api: any) => {
@@ -242,7 +243,7 @@ function renderGantt() {
   });
 
   // ── 今日标记线 ──
-  opt.series.push({
+  series.push({
     name: '今日',
     type: 'custom',
     renderItem: (_params: any, api: any) => {

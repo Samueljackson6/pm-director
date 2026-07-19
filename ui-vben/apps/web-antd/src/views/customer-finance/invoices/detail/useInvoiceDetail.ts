@@ -73,7 +73,7 @@ export function useInvoiceDetail() {
       (receipt) => receipt.link_amount ?? receipt.amount,
     );
     if (amounts.some((amount) => amount == null)) return null;
-    return amounts.reduce((sum, amount) => sum + (amount as number), 0);
+    return amounts.reduce<number>((sum, amount) => sum + Number(amount), 0);
   });
   const calculatedTaxAmount = computed(() => calculateTaxAmount(invoice.value));
   const calculatedTotalWithTax = computed(() => {
@@ -85,7 +85,7 @@ export function useInvoiceDetail() {
   async function loadLinkedReceipts(): Promise<void> {
     if (!invoice.value) return;
     try {
-      const data = await requestClient.get(
+      const data = await requestClient.get<{ receipts?: InvoiceReceipt[] }>(
         `/api/invoices/${invoice.value.invoice_id}/receipts`,
       );
       linkedReceipts.value = data.receipts ?? [];
