@@ -30,7 +30,7 @@ const screenOptions = [
   { label: '合同详情', value: 'detail' },
   { label: '数据核验', value: 'review' },
   { label: '移动任务', value: 'mobile' },
-] as const;
+];
 
 function openDetail(contract: ReviewContract) {
   selectedContract.value = contract;

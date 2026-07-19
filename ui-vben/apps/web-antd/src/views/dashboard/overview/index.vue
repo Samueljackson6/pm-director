@@ -1,156 +1,103 @@
 <template>
-  <Phase3Review v-if="isPhase3Review" />
-  <StateBlock
-    v-else
-    :loading="loading"
-    :error="error"
-    error-title="综合看板加载失败"
-    empty-text="暂无数据"
-    @retry="load"
+  <Page
+    class="pm-workbench-page dashboard-page"
+    content-class="dashboard-page__content"
+    description="从任务缺口、风险、数据口径进入合同、项目和财务对象。"
+    title="经营与任务驾驶舱"
   >
-    <div class="space-y-4 p-4">
-      <dashboard-header
+    <template #extra>
+      <DashboardHeader
         :generated-at="overview?.generated_at"
-        :unit="overview?.summary?.currency_unit"
         :loading="loading"
+        :unit="overview?.summary?.currency_unit"
         @refresh="load"
       />
-      <dashboard-tabs v-model="activeView" @change="onTabChange" />
-      <all-view v-if="activeView === 'all'" :overview="currentOverview" @navigate="onAlertNavigate" />
-      <management-view
-        v-else-if="activeView === 'management'"
-        :overview="currentOverview"
-      />
-      <project-view v-else-if="activeView === 'projects'" :overview="currentOverview" />
-      <finance-view v-else :overview="currentOverview" />
-    </div>
-  </StateBlock>
+    </template>
+
+    <StateBlock
+      :error="error"
+      :loading="loading"
+      empty-text="暂无可用的驾驶舱聚合数据"
+      error-title="驾驶舱加载失败"
+      @retry="load"
+    >
+      <div v-if="overview" class="dashboard-page__body">
+        <DashboardTabs v-model="activeView" @change="onTabChange" />
+
+        <section
+          :id="`dashboard-panel-${activeView}`"
+          :aria-labelledby="`dashboard-tab-${activeView}`"
+          role="tabpanel"
+        >
+          <AllView v-if="activeView === 'all'" :overview="overview" />
+          <ManagementView v-else-if="activeView === 'management'" :overview="overview" />
+          <ProjectView v-else-if="activeView === 'projects'" :overview="overview" />
+          <FinanceView v-else-if="activeView === 'finance'" :overview="overview" />
+          <DataVerificationView v-else :overview="overview" />
+        </section>
+      </div>
+    </StateBlock>
+  </Page>
 </template>
 
 <script lang="ts" setup>
-import { computed, onMounted, ref, watch } from 'vue';
-import { useRoute, useRouter } from 'vue-router';
+import { onMounted, ref, watch } from 'vue'
+import { useRoute } from 'vue-router'
 
-import { getDashboardOverviewApi } from '#/api/dashboard';
-import type { DashboardOverview } from '#/api/dashboard';
-import StateBlock from '#/components/state-block/index.vue';
+import { Page } from '@vben/common-ui'
 
-import DashboardHeader from './components/dashboard-header.vue';
-import DashboardTabs from './components/dashboard-tabs.vue';
-import AllView from './components/all-view.vue';
-import ManagementView from './components/management-view.vue';
-import ProjectView from './components/project-view.vue';
-import FinanceView from './components/finance-view.vue';
-import { isValidViewKey, type ViewKey } from './dashboard-types';
-import Phase3Review from './phase3-review/index.vue';
+import { getDashboardOverviewApi, type DashboardOverview } from '#/api/dashboard'
+import StateBlock from '#/components/state-block/index.vue'
 
-const route = useRoute();
-const router = useRouter();
+import AllView from './components/all-view.vue'
+import DashboardHeader from './components/dashboard-header.vue'
+import DashboardTabs from './components/dashboard-tabs.vue'
+import DataVerificationView from './components/DataVerificationView.vue'
+import FinanceView from './components/finance-view.vue'
+import ManagementView from './components/management-view.vue'
+import ProjectView from './components/project-view.vue'
+import { isValidViewKey, type ViewKey } from './dashboard-types'
 
-const overview = ref<DashboardOverview | null>(null);
-const loading = ref(true);
-const error = ref('');
-const isPhase3Review = computed(() => route.query.review === 'phase3');
-
+const route = useRoute()
+const overview = ref<DashboardOverview | null>(null)
+const loading = ref(true)
+const error = ref('')
 const activeView = ref<ViewKey>(
-  isValidViewKey(route.query.view) ? (route.query.view as ViewKey) : 'all',
-);
+  isValidViewKey(route.query.view) ? route.query.view : 'all',
+)
 
-const currentOverview = computed(() => overview.value as DashboardOverview);
-
-function load() {
-  loading.value = true;
-  error.value = '';
-  getDashboardOverviewApi()
-    .then((res) => {
-      overview.value = res;
-    })
-    .catch((e: any) => {
-      error.value = e?.response?.data?.message || e?.message || '未知错误';
-    })
-    .finally(() => {
-      loading.value = false;
-    });
+async function load() {
+  loading.value = true
+  error.value = ''
+  try {
+    overview.value = await getDashboardOverviewApi()
+  } catch (cause: any) {
+    error.value = cause?.response?.data?.message || cause?.message || '未知错误'
+  } finally {
+    loading.value = false
+  }
 }
 
-onMounted(() => {
-  if (!isPhase3Review.value) load();
-});
-
-const NAV_MAP: Record<string, string> = {
-  unmatched_payments: '/customer-finance/invoices',
-  pending_deliverables: '/contracts/list',
-  overdue_payments: '/contracts/list',
-  uninvoiced_contracts: '/contracts/list',
-};
-
-function onAlertNavigate(key: string) {
-  const path = NAV_MAP[key];
-  if (path) router.push(path);
-}
-
-function onTabChange(v: ViewKey) {
-  activeView.value = v;
-  router.replace({ query: { ...route.query, view: v } });
+function onTabChange(view: ViewKey) {
+  // Update only the current hash query; do not remount or re-fetch the overview.
+  const url = new URL(window.location.href)
+  const [hashPath, hashQuery = ''] = url.hash.replace(/^#/, '').split('?')
+  const query = new URLSearchParams(hashQuery)
+  query.set('view', view)
+  url.hash = `${hashPath}?${query.toString()}`
+  window.history.replaceState(window.history.state, '', url)
 }
 
 watch(
   () => route.query.view,
-  (v) => {
-    if (isValidViewKey(v) && v !== activeView.value) {
-      activeView.value = v;
+  (value) => {
+    if (isValidViewKey(value) && value !== activeView.value) {
+      activeView.value = value
     }
   },
-);
+)
 
-watch(isPhase3Review, (active) => {
-  if (!active && overview.value === null) load();
-});
+onMounted(() => {
+  void load()
+})
 </script>
-
-<style>
-:root {
-  --dash-primary: #1677ff;
-  --dash-received: #16a36a;
-  --dash-invoiced: #0f8fa8;
-  --dash-warning: #d98e04;
-  --dash-danger: #d64545;
-}
-.dark {
-  --dash-primary: #4096ff;
-  --dash-received: #3cc787;
-  --dash-invoiced: #36c5d6;
-  --dash-warning: #e8a33d;
-  --dash-danger: #f27272;
-}
-.dash-text-primary {
-  color: var(--dash-primary);
-}
-.dash-text-received {
-  color: var(--dash-received);
-}
-.dash-text-invoiced {
-  color: var(--dash-invoiced);
-}
-.dash-text-warning {
-  color: var(--dash-warning);
-}
-.dash-text-danger {
-  color: var(--dash-danger);
-}
-.dash-bg-primary {
-  background: color-mix(in srgb, var(--dash-primary) 12%, transparent);
-}
-.dash-bg-received {
-  background: color-mix(in srgb, var(--dash-received) 12%, transparent);
-}
-.dash-bg-invoiced {
-  background: color-mix(in srgb, var(--dash-invoiced) 12%, transparent);
-}
-.dash-bg-warning {
-  background: color-mix(in srgb, var(--dash-warning) 12%, transparent);
-}
-.dash-bg-danger {
-  background: color-mix(in srgb, var(--dash-danger) 12%, transparent);
-}
-</style>

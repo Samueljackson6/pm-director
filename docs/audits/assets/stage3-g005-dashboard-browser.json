@@ -1,0 +1,23 @@
+{
+  "status": "passed",
+  "boolean_failures": [],
+  "checks": {
+    "formal_dashboard_not_review_demo": true,
+    "first_view_task_queue": true,
+    "initial_single_aggregation": true,
+    "view_经营": true,
+    "view_项目": true,
+    "view_财务": true,
+    "view_数据核验": true,
+    "action_available": true,
+    "action_drilldown_has_id": true,
+    "action_drilldown_not_dashboard": true,
+    "verification_route_consumes_view_query": true,
+    "tab_switch_does_not_reaggregate": true,
+    "dashboard_request_count": 2,
+    "page_errors": [],
+    "request_failures": [],
+    "http_failures": []
+  },
+  "screenshot": "docs/audits/assets/stage3-g005-dashboard-browser.png"
+}

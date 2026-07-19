@@ -105,7 +105,7 @@ const riskItems = computed<RiskItem[]>(() => [
 ]);
 
 function toneColor(tone: DashTone): string {
-  return DASH_COLORS[tone] || DASH_COLORS.primary;
+  return tone === 'none' ? DASH_COLORS.primary : DASH_COLORS[tone];
 }
 
 function handleNavigate(key: string) {

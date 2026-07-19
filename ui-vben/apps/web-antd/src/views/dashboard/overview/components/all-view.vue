@@ -1,178 +1,50 @@
 <template>
-  <div class="space-y-4">
-    <!-- Layer1: KPI 卡片 -->
-    <div class="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-6">
-      <metric-card
-        label="合同总额"
-        :value="s?.contract_total_amount"
-        unit="万元"
-        tone="primary"
-      />
-      <metric-card label="合同数量" :value="s?.contract_count" unit="个" :digits="0" />
-      <metric-card
-        label="已开票"
-        :value="s?.invoiced_amount"
-        unit="万元"
-        tone="invoiced"
-      />
-      <metric-card
-        label="已回款"
-        :value="s?.received_amount"
-        unit="万元"
-        tone="received"
-      />
-      <metric-card
-        label="回款率"
-        :value="s?.receipt_rate"
-        unit="%"
-        :digits="1"
-        tone="received"
-      />
-      <metric-card
-        label="风险与待处理"
-        :value="riskTotal"
-        unit="项"
-        :digits="0"
-        tone="danger"
-        :clickable="true"
-        @click="showRiskModal = true"
-      />
-    </div>
-
-    <!-- 风险详情弹窗 -->
-    <risk-detail-modal
-      v-model:visible="showRiskModal"
-      :tasks="overview.pending_tasks"
+  <div class="dashboard-view-stack">
+    <!-- 首屏顺序固定：任务、风险、可信度、角色、变化。 -->
+    <DashboardActionQueue
+      :actions="overview.task_actions"
+      empty-text="当前未识别到带对象的任务缺口。"
+      kicker="任务 / 缺口"
+      title="现在需要推进的事项"
     />
+    <DashboardActionQueue
+      :actions="overview.risk_actions"
+      empty-text="当前未识别到带对象的风险或到期事项。"
+      kicker="风险 / 到期"
+      title="需优先核对的财务与合同缺口"
+    />
+    <DashboardDataContract :contract="overview.data_contract" />
+    <DashboardRoleSummary :overview="overview" />
+    <DashboardRecentChanges :changes="overview.recent_changes" />
 
-    <!-- Layer2: 待处理告警条 -->
-    <alert-strip :tasks="overview.pending_tasks" @navigate="(k) => $emit('navigate', k)" />
-
-    <!-- Layer3: 类型/状态/Top客户 -->
-    <div class="grid grid-cols-1 gap-4 lg:grid-cols-3">
-      <div class="rounded-lg border bg-card p-4 shadow-sm">
-        <div class="mb-2 font-medium text-card-foreground">合同类型分布</div>
-        <contract-type-pie :data="overview.contracts_by_type ?? []" />
-      </div>
-      <div class="rounded-lg border bg-card p-4 shadow-sm">
-        <div class="mb-2 font-medium text-card-foreground">合同状态分布</div>
-        <div class="space-y-3">
-          <div v-for="b in statusBars" :key="b.status" class="space-y-1">
-            <div class="flex justify-between text-sm">
-              <span class="text-card-foreground">{{ b.status }}</span>
-              <span class="text-xs text-muted-foreground"
-                >{{ fmtMoney(b.amount) }} 万元 · {{ b.count }} 个</span
-              >
-            </div>
-            <div class="h-2 w-full rounded bg-accent">
-              <div
-                class="h-2 rounded dash-bg-primary"
-                :style="{ width: b.pct + '%' }"
-              ></div>
-            </div>
-          </div>
-          <div v-if="!statusBars.length" class="text-sm text-muted-foreground">
-            暂无数据
-          </div>
+    <section aria-label="经营快照" class="dashboard-panel">
+      <div class="dashboard-panel__header">
+        <div>
+          <p class="dashboard-panel__kicker">经营快照</p>
+          <h2 class="dashboard-panel__title">合同与资金的当前覆盖</h2>
         </div>
       </div>
-      <div class="rounded-lg border bg-card p-4 shadow-sm">
-        <div class="mb-2 font-medium text-card-foreground">Top 客户</div>
-        <top-customers-bar :data="overview.top_customers ?? []" />
-        <div class="mt-2 text-xs text-muted-foreground">
-          客户集中度：{{ concentration }}
-        </div>
+      <div class="dashboard-summary-grid">
+        <MetricCard label="合同总额" :value="summary.contract_total_amount" unit="万元" tone="primary" />
+        <MetricCard label="累计开票" :value="summary.invoiced_amount" unit="万元" tone="invoiced" />
+        <MetricCard label="累计回款" :value="summary.received_amount" unit="万元" tone="received" />
+        <MetricCard label="未回款" :value="summary.unreceived_amount" unit="万元" tone="warning" />
       </div>
-    </div>
-
-    <!-- Layer4: 趋势 + 批次趋势 -->
-    <div class="rounded-lg border bg-card p-4 shadow-sm">
-      <div class="mb-2 font-medium text-card-foreground">
-        月度开票 / 回款趋势
-      </div>
-      <trend-chart
-        :data="overview.invoice_monthly ?? []"
-        x-field="month"
-        :series="financeSeries"
-        :x-rotate="45"
-        :legend-bottom="10"
-      />
-    </div>
-    <a-collapse :default-active-key="[]">
-      <a-collapse-panel key="finance" header="财务批次趋势（次级信息）">
-        <template v-if="hasMultipleBatches">
-          <trend-chart
-            :data="overview.finance_trend ?? []"
-            x-field="batch_id"
-            :series="financeSeries"
-          />
-        </template>
-        <div v-else class="py-6 text-center text-sm text-muted-foreground">
-          当前仅有一个财务批次数据，暂无趋势可展示。
-          <span v-if="overview.finance_trend?.length">
-            批次：{{ overview.finance_trend[0]?.batch_id }}
-          </span>
-        </div>
-      </a-collapse-panel>
-    </a-collapse>
-
-    <!-- Layer5: 最近合同 -->
-    <recent-contracts :rows="overview.recent_contracts" />
+    </section>
   </div>
 </template>
 
 <script lang="ts" setup>
-import { computed, ref } from 'vue';
-import type { DashboardOverview } from '#/api/dashboard';
-import ContractTypePie from '#/views/dashboard/components/contract-type-pie.vue';
-import TopCustomersBar from '#/views/dashboard/components/top-customers-bar.vue';
-import TrendChart from '#/views/dashboard/components/trend-chart.vue';
-import MetricCard from './metric-card.vue';
-import AlertStrip from './alert-strip.vue';
-import RecentContracts from './recent-contracts.vue';
-import RiskDetailModal from './risk-detail-modal.vue';
-import { FINANCE_SERIES, fmtMoney, pctSafe } from '../dashboard-types';
+import { computed } from 'vue'
 
-const props = defineProps<{ overview: DashboardOverview }>();
-defineEmits<{ navigate: [key: string] }>();
+import type { DashboardOverview } from '#/api/dashboard'
 
-const showRiskModal = ref(false);
+import DashboardActionQueue from './DashboardActionQueue.vue'
+import DashboardDataContract from './DashboardDataContract.vue'
+import DashboardRecentChanges from './DashboardRecentChanges.vue'
+import DashboardRoleSummary from './DashboardRoleSummary.vue'
+import MetricCard from './metric-card.vue'
 
-const financeSeries = FINANCE_SERIES;
-
-const s = computed(() => props.overview.summary);
-
-const riskTotal = computed(() => {
-  const t = props.overview.pending_tasks;
-  if (!t) return 0;
-  return (
-    t.unmatched_payments +
-    t.pending_deliverables +
-    t.overdue_payments +
-    t.uninvoiced_contracts
-  );
-});
-
-const statusBars = computed(() => {
-  const arr = props.overview.contracts_by_status ?? [];
-  const max = Math.max(1, ...arr.map((d) => d.amount || 0));
-  return arr.map((d) => ({
-    status: d.contract_status || '未分类',
-    amount: d.amount,
-    count: d.count,
-    pct: ((d.amount || 0) / max) * 100,
-  }));
-});
-
-const concentration = computed(() =>
-  pctSafe(
-    props.overview.top_customers?.[0]?.total_amount,
-    props.overview.summary?.contract_total_amount,
-  ),
-);
-
-const hasMultipleBatches = computed(() => {
-  const trend = props.overview.finance_trend ?? [];
-  return trend.length > 1;
-});
+const props = defineProps<{ overview: DashboardOverview }>()
+const summary = computed(() => props.overview.summary)
 </script>

@@ -12,13 +12,73 @@ Amounts are returned in **万元** (ten-thousand CNY) to match ``/api/stats``:
 """
 
 from datetime import datetime, timezone
+from typing import Any
 
 from fastapi import APIRouter, Query
 
-from backend.database import get_db
+from backend.database import get_readonly_db
 from backend.models import vben_response
 
 router = APIRouter(prefix="/api/dashboard", tags=["dashboard"])
+
+
+def _table_columns(db: Any, table_name: str) -> set[str]:
+    """Return table fields to avoid presenting absent fields as zero values."""
+    return {
+        str(row["name"])
+        for row in db.execute(f"PRAGMA table_info({table_name})").fetchall()
+    }
+
+
+def _latest_data_value(
+    db: Any, table_name: str, candidates: tuple[str, ...]
+) -> str | None:
+    """Read the newest available business timestamp without inventing a value."""
+    available = [column for column in candidates if column in _table_columns(db, table_name)]
+    if not available:
+        return None
+    expression = available[0] if len(available) == 1 else f"COALESCE({', '.join(available)})"
+    row = db.execute(
+        f"SELECT MAX({expression}) AS data_as_of FROM {table_name}"
+    ).fetchone()
+    return row["data_as_of"] if row and row["data_as_of"] else None
+
+
+def _action(
+    *, action_id: str, category: str, title: str, object_type: str,
+    object_id: str | int, reason: str, due_date: str | None,
+    owner: str | None, status: str, path: str, query: dict[str, str],
+) -> dict[str, Any]:
+    """Create an actionable record; unknown owner and due date remain null."""
+    return {
+        "action_id": action_id,
+        "category": category,
+        "title": title,
+        "object_type": object_type,
+        "object_id": str(object_id),
+        "reason": reason,
+        "due_date": due_date,
+        "owner": owner,
+        "status": status,
+        "target": {"path": path, "query": query},
+    }
+
+
+def _metric(
+    key: str, label: str, unit: str, definition: str, source: list[str],
+    coverage: str, data_as_of: str | None,
+) -> dict[str, Any]:
+    """Build reviewable metric metadata; mirrored records remain unverified by default."""
+    return {
+        "key": key,
+        "label": label,
+        "unit": unit,
+        "definition": definition,
+        "source": source,
+        "coverage": coverage,
+        "verification_status": "pending_verification",
+        "data_as_of": data_as_of,
+    }
 
 
 @router.get("/overview")
@@ -39,7 +99,7 @@ def get_dashboard_overview(
     Returns the Vben-wrapped payload described in the P2 architecture doc
     §1.2.1.
     """
-    db = get_db()
+    db = get_readonly_db()
 
     # Echo the incoming filters back so the frontend can render active chips.
     filters = {
@@ -211,6 +271,174 @@ def get_dashboard_overview(
     }
 
     # ------------------------------------------------------------------
+    # action queues ? every record retains an object ID and a target route.
+    # ------------------------------------------------------------------
+    task_actions: list[dict[str, Any]] = []
+    risk_actions: list[dict[str, Any]] = []
+    verification_actions: list[dict[str, Any]] = []
+
+    for row in db.execute(
+        "SELECT invoice_id FROM invoices "
+        "WHERE invoice_type = '客户回款' AND payment_status = '未匹配' "
+        "ORDER BY invoice_date DESC LIMIT 8"
+    ).fetchall():
+        task_actions.append(
+            _action(
+                action_id=f"unmatched-receipt-{row['invoice_id']}",
+                category="task",
+                title="核对未匹配回款",
+                object_type="invoice",
+                object_id=row["invoice_id"],
+                reason="客户回款记录尚未建立发票关联。",
+                due_date=None,
+                owner=None,
+                status="pending_verification",
+                path="/customer-finance/invoice-detail",
+                query={"id": str(row["invoice_id"])},
+            )
+        )
+
+    deliverable_columns = _table_columns(db, "deliverables")
+    deliverable_due_field = "planned_date" if "planned_date" in deliverable_columns else "NULL"
+    deliverable_order = (
+        "CASE WHEN planned_date IS NULL OR planned_date = '' THEN 1 ELSE 0 END, planned_date ASC"
+        if "planned_date" in deliverable_columns
+        else "deliverable_id ASC"
+    )
+    for row in db.execute(
+        "SELECT deliverable_id, contract_id, project_id, "
+        f"{deliverable_due_field} AS planned_date FROM deliverables "
+        "WHERE status NOT IN ('completed', '已交付', '已验收') "
+        f"ORDER BY {deliverable_order} LIMIT 8"
+    ).fetchall():
+        parent_id = row["project_id"] or row["contract_id"]
+        if parent_id:
+            task_actions.append(
+                _action(
+                    action_id=f"pending-deliverable-{row['deliverable_id']}",
+                    category="task",
+                    title="推进待交付成果",
+                    object_type="deliverable",
+                    object_id=row["deliverable_id"],
+                    reason="交付物尚未标记为已交付或已验收。",
+                    due_date=row["planned_date"],
+                    owner=None,
+                    status="pending",
+                    path="/projects/detail" if row["project_id"] else "/contracts/detail",
+                    query={"id": str(parent_id)},
+                )
+            )
+
+    for row in db.execute(
+        "SELECT payment_id, contract_id, project_id, planned_date FROM payments "
+        "WHERE planned_amount > COALESCE(paid_amount, 0) "
+        "AND planned_date IS NOT NULL AND planned_date < date('now') "
+        "ORDER BY planned_date ASC LIMIT 8"
+    ).fetchall():
+        parent_id = row["contract_id"] or row["project_id"]
+        if parent_id:
+            risk_actions.append(
+                _action(
+                    action_id=f"overdue-payment-{row['payment_id']}",
+                    category="risk",
+                    title="跟进逾期付款条件",
+                    object_type="payment",
+                    object_id=row["payment_id"],
+                    reason="计划付款日已过，且计划金额尚未全部支付。",
+                    due_date=row["planned_date"],
+                    owner=None,
+                    status="overdue",
+                    path="/contracts/detail" if row["contract_id"] else "/projects/detail",
+                    query={"id": str(parent_id)},
+                )
+            )
+
+    for row in db.execute(
+        "SELECT c.contract_id FROM contracts c "
+        "LEFT JOIN current_finance_view cv ON c.contract_id = cv.project_id "
+        "WHERE c.contract_amount > COALESCE(cv.invoice_total, 0) "
+        "ORDER BY c.contract_amount DESC LIMIT 8"
+    ).fetchall():
+        risk_actions.append(
+            _action(
+                action_id=f"uninvoiced-contract-{row['contract_id']}",
+                category="risk",
+                title="核对合同开票缺口",
+                object_type="contract",
+                object_id=row["contract_id"],
+                reason="合同金额高于当前财务快照中的累计开票金额。",
+                due_date=None,
+                owner=None,
+                status="pending_verification",
+                path="/contracts/detail",
+                query={"id": str(row["contract_id"])},
+            )
+        )
+
+    for row in db.execute(
+        "SELECT project_id FROM projects "
+        "WHERE project_manager IS NULL OR TRIM(project_manager) = '' "
+        "ORDER BY COALESCE(updated_at, created_at) DESC LIMIT 8"
+    ).fetchall():
+        verification_actions.append(
+            _action(
+                action_id=f"missing-project-manager-{row['project_id']}",
+                category="verification",
+                title="补充项目责任人",
+                object_type="project",
+                object_id=row["project_id"],
+                reason="项目记录未填写项目经理，责任归属无法核验。",
+                due_date=None,
+                owner=None,
+                status="pending_verification",
+                path="/projects/detail",
+                query={"id": str(row["project_id"])},
+            )
+        )
+
+    if "ocr_doc_path" in _table_columns(db, "contracts"):
+        for row in db.execute(
+            "SELECT contract_id FROM contracts "
+            "WHERE ocr_doc_path IS NULL OR TRIM(ocr_doc_path) = '' LIMIT 8"
+        ).fetchall():
+            verification_actions.append(
+                _action(
+                    action_id=f"missing-contract-text-{row['contract_id']}",
+                    category="verification",
+                    title="补充合同文本派生层",
+                    object_type="contract",
+                    object_id=row["contract_id"],
+                    reason="未关联 OCR 文本路径，条款核验需回到合同原件或补齐文本派生层。",
+                    due_date=None,
+                    owner=None,
+                    status="pending_verification",
+                    path="/contracts/detail",
+                    query={"id": str(row["contract_id"])},
+                )
+            )
+
+    if "verification_status" in _table_columns(db, "invoices"):
+        for row in db.execute(
+            "SELECT invoice_id FROM invoices "
+            "WHERE verification_status IS NULL OR TRIM(verification_status) = '' "
+            "ORDER BY invoice_date DESC LIMIT 8"
+        ).fetchall():
+            verification_actions.append(
+                _action(
+                    action_id=f"unverified-invoice-{row['invoice_id']}",
+                    category="verification",
+                    title="核验发票来源与状态",
+                    object_type="invoice",
+                    object_id=row["invoice_id"],
+                    reason="发票记录未填写核验状态，不能作为已确认财务事实使用。",
+                    due_date=None,
+                    owner=None,
+                    status="pending_verification",
+                    path="/customer-finance/invoice-detail",
+                    query={"id": str(row["invoice_id"])},
+                )
+            )
+
     # recent_contracts — table
     # ------------------------------------------------------------------
     rows = db.execute(
@@ -285,10 +513,152 @@ def get_dashboard_overview(
         "risk_distribution": risk_distribution,
         "recent_projects": recent_projects,
     }
-    db.close()
+
+    contract_as_of = _latest_data_value(
+        db, "contracts", ("updated_at", "sign_date", "created_at")
+    )
+    finance_as_of = _latest_data_value(db, "finance_records", ("import_time",))
+    invoice_as_of = _latest_data_value(db, "invoices", ("invoice_date", "created_at"))
+    project_as_of = _latest_data_value(
+        db, "projects", ("updated_at", "planned_end", "created_at")
+    )
+    finance_snapshot_count = int(
+        db.execute("SELECT COUNT(*) FROM current_finance_view").fetchone()[0]
+    )
+    invoice_count = int(db.execute("SELECT COUNT(*) FROM invoices").fetchone()[0])
+    project_count = int(db.execute("SELECT COUNT(*) FROM projects").fetchone()[0])
+
+    # Recent changes only use stored business timestamps; no synthetic activity stream.
+    recent_changes: list[dict[str, Any]] = []
+    contract_columns = _table_columns(db, "contracts")
+    contract_changed_at = (
+        "COALESCE(updated_at, sign_date, created_at)"
+        if "updated_at" in contract_columns and "created_at" in contract_columns
+        else "sign_date"
+    )
+    contract_title = (
+        "COALESCE(official_name, project_name, contract_id)"
+        if "official_name" in contract_columns
+        else "COALESCE(project_name, contract_id)"
+    )
+    for row in db.execute(
+        "SELECT contract_id, "
+        f"{contract_title} AS title, {contract_changed_at} AS changed_at FROM contracts "
+        f"ORDER BY {contract_changed_at} DESC LIMIT 6"
+    ).fetchall():
+        recent_changes.append(
+            {
+                "object_type": "contract",
+                "object_id": str(row["contract_id"]),
+                "title": row["title"] or str(row["contract_id"]),
+                "changed_at": row["changed_at"],
+                "change_type": "合同系统记录时间",
+                "target": {"path": "/contracts/detail", "query": {"id": str(row["contract_id"]) }},
+            }
+        )
+
+    project_columns = _table_columns(db, "projects")
+    project_changed_at = (
+        "COALESCE(updated_at, created_at)"
+        if "updated_at" in project_columns and "created_at" in project_columns
+        else "planned_end"
+    )
+    for row in db.execute(
+        "SELECT project_id, COALESCE(project_name, project_id) AS title, "
+        f"{project_changed_at} AS changed_at FROM projects "
+        f"ORDER BY {project_changed_at} DESC LIMIT 6"
+    ).fetchall():
+        recent_changes.append(
+            {
+                "object_type": "project",
+                "object_id": str(row["project_id"]),
+                "title": row["title"] or str(row["project_id"]),
+                "changed_at": row["changed_at"],
+                "change_type": "项目系统记录时间",
+                "target": {"path": "/projects/detail", "query": {"id": str(row["project_id"]) }},
+            }
+        )
+    recent_changes.sort(key=lambda item: item["changed_at"] or "", reverse=True)
+    recent_changes = recent_changes[:10]
+
+    generated_at = datetime.now(timezone.utc).isoformat()
+    data_contract = {
+        "generated_at": generated_at,
+        "metrics": [
+            _metric(
+                "contract_total_amount", "合同总额", "万元",
+                "合同主档 contract_amount 合计。",
+                ["contracts.contract_amount"],
+                f"当前筛选覆盖 {contract_count} 条合同系统记录。", contract_as_of,
+            ),
+            _metric(
+                "invoiced_amount", "累计开票", "万元",
+                "每个项目最新财务快照中的 invoice_total 合计。",
+                ["current_finance_view.invoice_total"],
+                f"覆盖 {finance_snapshot_count} 个财务项目快照。", finance_as_of,
+            ),
+            _metric(
+                "received_amount", "累计回款", "万元",
+                "每个项目最新财务快照中的 payment_total 合计。",
+                ["current_finance_view.payment_total"],
+                f"覆盖 {finance_snapshot_count} 个财务项目快照。", finance_as_of,
+            ),
+            _metric(
+                "unreceived_amount", "未回款", "万元",
+                "每个项目最新财务快照中的 payment_unreceived 合计。",
+                ["current_finance_view.payment_unreceived"],
+                f"覆盖 {finance_snapshot_count} 个财务项目快照。", finance_as_of,
+            ),
+            _metric(
+                "receipt_rate", "回款率", "%",
+                "累计回款除以累计开票；累计开票为零时返回 0。",
+                ["current_finance_view.payment_total", "current_finance_view.invoice_total"],
+                f"覆盖 {finance_snapshot_count} 个财务项目快照。", finance_as_of,
+            ),
+        ],
+        "sources": [
+            {
+                "key": "contract_master",
+                "label": "合同系统记录",
+                "source": ["contracts"],
+                "coverage": f"{contract_count} 条合同记录",
+                "verification_status": "pending_verification",
+                "data_as_of": contract_as_of,
+            },
+            {
+                "key": "finance_snapshot",
+                "label": "财务快照",
+                "source": ["current_finance_view", "finance_records"],
+                "coverage": f"{finance_snapshot_count} 个项目最新快照",
+                "verification_status": "pending_verification",
+                "data_as_of": finance_as_of,
+            },
+            {
+                "key": "invoice_records",
+                "label": "发票系统记录",
+                "source": ["invoices"],
+                "coverage": f"{invoice_count} 条发票记录",
+                "verification_status": "pending_verification",
+                "data_as_of": invoice_as_of,
+            },
+            {
+                "key": "project_records",
+                "label": "项目系统记录",
+                "source": ["projects"],
+                "coverage": f"{project_count} 条项目记录",
+                "verification_status": "pending_verification",
+                "data_as_of": project_as_of,
+            },
+        ],
+        "verification_summary": {
+            "status": "pending_verification",
+            "pending_action_count": len(verification_actions),
+            "description": "当前系统记录为镜像与增强层；关键金额、来源和映射仍需按对象回溯原件或运营表核验。",
+        },
+    }
 
     data = {
-        "generated_at": datetime.now(timezone.utc).isoformat(),
+        "generated_at": generated_at,
         "filters": filters,
         "summary": summary,
         "contracts_by_type": contracts_by_type,
@@ -299,6 +669,12 @@ def get_dashboard_overview(
         "top_customers": top_customers,
         "pending_tasks": pending_tasks,
         "recent_contracts": recent_contracts,
+        "recent_changes": recent_changes,
         "project_execution": project_execution,
+        "task_actions": task_actions,
+        "risk_actions": risk_actions,
+        "verification_actions": verification_actions,
+        "data_contract": data_contract,
     }
+    db.close()
     return vben_response(data)

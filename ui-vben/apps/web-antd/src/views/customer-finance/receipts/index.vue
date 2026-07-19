@@ -141,7 +141,6 @@
 
 <script lang="ts" setup>
 import { ref, reactive, onMounted } from 'vue'
-import type { ReceiptSummary } from '#/api/receipts'
 import { useRoute, useRouter } from 'vue-router'
 import { message } from 'ant-design-vue'
 import { buildDetailLocation } from '#/utils/business-navigation'
@@ -183,7 +182,7 @@ const editingId = ref<number | null>(null)
 const form = ref<Record<string, any>>({})
 
 function formatSummaryAmount(value: number | null) {
-  // ??????????????????????????
+  // Unknown summary amounts must not be rendered as zero.
   if (value == null) return '待核验'
   return (Number(value) / 10_000).toFixed(2)
 }

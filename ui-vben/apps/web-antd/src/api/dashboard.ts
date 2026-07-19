@@ -1,10 +1,8 @@
 import { requestClient } from '#/api/request'
 
 /**
- * Dashboard 聚合接口（T8 后端 `GET /api/dashboard/overview`）。
- *
- * 该端点在单次请求中返回财务仪表盘所需的全部 KPI / 图表 / 列表数据，
- * 所有金额字段单位均为「万元」（见 `DashboardSummary.currency_unit`）。
+ * 经营与任务驾驶舱聚合接口（GET /api/dashboard/overview）。
+ * 所有金额均以「万元」返回，具体口径以 data_contract 为准。
  */
 
 export interface DashboardSummary {
@@ -83,26 +81,63 @@ export interface DashboardFilters {
   project_type: string | null
 }
 
-export interface DashboardOverview {
-  generated_at: string
-  filters: DashboardFilters
-  summary: DashboardSummary
-  contracts_by_type: ContractTypeGroup[]
-  contracts_by_status: ContractStatusGroup[]
-  invoice_status_distribution: InvoiceStatusGroup[]
-  invoice_monthly: MonthlyTrend[]
-  finance_trend: FinanceTrendPoint[]
-  top_customers: TopCustomer[]
-  pending_tasks: PendingTasks
-  recent_contracts: RecentContract[]
-  project_execution: ProjectExecutionOverview
+export interface DashboardTarget {
+  path: string
+  query: Record<string, string>
 }
 
-export interface DashboardQueryParams {
-  period?: string
-  from?: string
-  to?: string
-  project_type?: string
+/** 驾驶舱中可直接下钻的任务、风险或核验缺口。 */
+export interface DashboardAction {
+  action_id: string
+  category: 'risk' | 'task' | 'verification'
+  title: string
+  object_type: string
+  object_id: string
+  reason: string
+  due_date: string | null
+  owner: string | null
+  status: string
+  target: DashboardTarget
+}
+
+export interface DashboardMetricContract {
+  key: string
+  label: string
+  unit: string
+  definition: string
+  source: string[]
+  coverage: string
+  verification_status: string
+  data_as_of: string | null
+}
+
+export interface DashboardSourceContract {
+  key: string
+  label: string
+  source: string[]
+  coverage: string
+  verification_status: string
+  data_as_of: string | null
+}
+
+export interface DashboardDataContract {
+  generated_at: string
+  metrics: DashboardMetricContract[]
+  sources: DashboardSourceContract[]
+  verification_summary: {
+    status: string
+    pending_action_count: number
+    description: string
+  }
+}
+
+export interface DashboardRecentChange {
+  object_type: 'contract' | 'project'
+  object_id: string
+  title: string
+  changed_at: string | null
+  change_type: string
+  target: DashboardTarget
 }
 
 export interface ProjectExecutionProject {
@@ -130,9 +165,34 @@ export interface ProjectExecutionOverview {
   recent_projects: ProjectExecutionProject[]
 }
 
-/** 财务仪表盘聚合数据（requestClient 自动解包 data 字段） */
+export interface DashboardOverview {
+  generated_at: string
+  filters: DashboardFilters
+  summary: DashboardSummary
+  contracts_by_type: ContractTypeGroup[]
+  contracts_by_status: ContractStatusGroup[]
+  invoice_status_distribution: InvoiceStatusGroup[]
+  invoice_monthly: MonthlyTrend[]
+  finance_trend: FinanceTrendPoint[]
+  top_customers: TopCustomer[]
+  pending_tasks: PendingTasks
+  recent_contracts: RecentContract[]
+  recent_changes: DashboardRecentChange[]
+  project_execution: ProjectExecutionOverview
+  task_actions: DashboardAction[]
+  risk_actions: DashboardAction[]
+  verification_actions: DashboardAction[]
+  data_contract: DashboardDataContract
+}
+
+export interface DashboardQueryParams {
+  period?: string
+  from?: string
+  to?: string
+  project_type?: string
+}
+
+/** requestClient 会自动解包 Vben 响应的 data 字段。 */
 export function getDashboardOverviewApi(params?: DashboardQueryParams) {
-  return requestClient.get<DashboardOverview>('/api/dashboard/overview', {
-    params,
-  })
+  return requestClient.get<DashboardOverview>('/api/dashboard/overview', { params })
 }
