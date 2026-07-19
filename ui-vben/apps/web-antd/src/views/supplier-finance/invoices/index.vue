@@ -42,10 +42,12 @@
 </template>
 <script lang="ts" setup>
 import { ref, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { message } from 'ant-design-vue'
-import { getInvoicesApi, createInvoiceApi, updateInvoiceApi, deleteInvoiceApi } from '#/api/invoices'
+import { getInvoicesApi, createInvoiceApi, updateInvoiceApi, deleteInvoiceApi, type InvoiceItem } from '#/api/invoices'
+import { buildDetailLocation } from '#/utils/business-navigation'
 
+const route = useRoute()
 const router = useRouter()
 const list = ref<any[]>([])
 const total = ref(0)
@@ -74,7 +76,18 @@ async function load() {
 }
 
 function handleChange(p: any) { page.value = p.current; load() }
-function viewDetail(r: any) { router.push({ name: 'SupplierInvoiceDetail', query: { id: r.invoice_id } }) }
+function viewDetail(row: InvoiceItem) {
+  router.push(
+    buildDetailLocation({
+      from: {
+        name: route.name,
+        query: { ...route.query, page: String(page.value), pageSize: '50' },
+      },
+      id: String(row.invoice_id),
+      name: 'SupplierInvoiceDetail',
+    }),
+  )
+}
 function openAdd() { editingId.value = null; form.value = { project_id: '', invoice_date: '', amount: null, status: '已开', direction: 'inbound', invoice_type: '供应商开票' }; modalVisible.value = true }
 function editRecord(r: any) { editingId.value = r.invoice_id; form.value = { ...r }; modalVisible.value = true }
 async function saveRecord() {

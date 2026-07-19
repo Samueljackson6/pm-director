@@ -171,6 +171,7 @@
 <script lang="ts" setup>
 import { ref, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { buildListReturnLocation } from '#/utils/business-navigation'
 import {
   getProjectDetailApi,
   getProjectStagesApi,
@@ -250,5 +251,13 @@ onMounted(async () => {
   }
 })
 
-function goBack() { router.push({ name: 'ProjectList' }) }
+function goBack() {
+  router.push(
+    buildListReturnLocation({
+      currentDetailName: 'ProjectDetail',
+      detailQuery: route.query,
+      fallbackName: 'ProjectList',
+    }),
+  )
+}
 </script>

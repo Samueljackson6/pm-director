@@ -1,0 +1,33 @@
+{
+  "status": "passed",
+  "boolean_failures": [],
+  "checks": {
+    "review_route": true,
+    "vben_shell": true,
+    "snapshot_metrics": true,
+    "vxe_grid": true,
+    "contract_rows": true,
+    "customer_supplier_split": true,
+    "row_to_detail": true,
+    "dual_identifier": true,
+    "review_issues": true,
+    "vben_drawer": true,
+    "mobile_task_switch": true,
+    "mobile_no_body_overflow": true,
+    "desktop_dark_ratio": 0.0014,
+    "mobile_dark_ratio": 0.0,
+    "desktop_dark_area_ok": true,
+    "mobile_dark_area_ok": true,
+    "console_errors": [],
+    "page_errors": [],
+    "request_failures": [],
+    "ignored_navigation_aborts": 4,
+    "http_failures": []
+  },
+  "screenshots": [
+    "docs\\audits\\assets\\phase3-vben-workbench-desktop.png",
+    "docs\\audits\\assets\\phase3-vben-contract-detail.png",
+    "docs\\audits\\assets\\phase3-vben-data-review.png",
+    "docs\\audits\\assets\\phase3-vben-mobile-task.png"
+  ]
+}

@@ -43,10 +43,16 @@
 </template>
 <script lang="ts" setup>
 import { ref, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { message } from 'ant-design-vue'
 import { requestClient } from '#/api/request'
+import { buildDetailLocation } from '#/utils/business-navigation'
 
+interface SupplierPaymentListItem {
+  payment_id: number
+}
+
+const route = useRoute()
 const router = useRouter()
 const list = ref<any[]>([])
 const total = ref(0)
@@ -73,7 +79,18 @@ async function load() {
   } catch { /* ignore */ } finally { loading.value = false }
 }
 function handleChange(p: any) { page.value = p.current; load() }
-function viewDetail(r: any) { router.push({ name: 'SupplierPaymentDetail', query: { id: r.payment_id } }) }
+function viewDetail(row: SupplierPaymentListItem) {
+  router.push(
+    buildDetailLocation({
+      from: {
+        name: route.name,
+        query: { ...route.query, page: String(page.value), pageSize: '50' },
+      },
+      id: String(row.payment_id),
+      name: 'SupplierPaymentDetail',
+    }),
+  )
+}
 function openAdd() { editingId.value = null; form.value = { project_id: '', payment_date: '', amount: null, payment_method: '银行转账', status: '已完成', notes: '' }; modalVisible.value = true }
 function editRecord(r: any) { editingId.value = r.payment_id; form.value = { ...r }; modalVisible.value = true }
 async function saveRecord() {

@@ -188,10 +188,35 @@ import {
   createInvoiceApi,
   type InvoiceItem,
 } from '#/api/invoices'
+import { buildDetailLocation } from '#/utils/business-navigation'
 import { message } from 'ant-design-vue'
+import { useRoute } from 'vue-router'
 
+const route = useRoute()
 // 当前激活的 tab
 const activeTab = ref('outbound')
+const outboundPage = ref(1)
+const outboundPageSize = ref(50)
+const inboundPage = ref(1)
+const inboundPageSize = ref(50)
+
+function invoiceDetailQuery(invoiceId: number, direction: 'inbound' | 'outbound') {
+  const page = direction === 'outbound' ? outboundPage : inboundPage
+  const pageSize = direction === 'outbound' ? outboundPageSize : inboundPageSize
+  return buildDetailLocation({
+    from: {
+      name: route.name,
+      query: {
+        ...route.query,
+        page: String(page.value),
+        pageSize: String(pageSize.value),
+        tab: direction,
+      },
+    },
+    id: String(invoiceId),
+    name: 'CustomerInvoiceDetail',
+  }).query
+}
 
 // ---- 汇总数据 ----
 const summaryLoading = ref(false)
@@ -295,7 +320,15 @@ const outboundGridOptions: VxeGridProps<InvoiceItem> = {
       slots: { default: 'outbound_type' },
     },
     { field: 'project_id', title: '项目编号', minWidth: 220, showOverflow: true,
-      cellRender: { name: 'CellRouterLink', props: { name: 'CustomerInvoiceDetail', idField: 'invoice_id', field: 'project_id' } } },
+      cellRender: {
+        name: 'CellRouterLink',
+        props: {
+          field: 'project_id',
+          name: 'CustomerInvoiceDetail',
+          variableQuery: (row: InvoiceItem) =>
+            invoiceDetailQuery(row.invoice_id, 'outbound'),
+        },
+      } },
     {
       field: 'amount',
       title: '金额(万元)',
@@ -333,6 +366,8 @@ const outboundGridOptions: VxeGridProps<InvoiceItem> = {
     response: { result: 'items', total: 'total' },
     ajax: {
       query: async ({ page }) => {
+        outboundPage.value = page.currentPage
+        outboundPageSize.value = page.pageSize
         const data = await getInvoicesApi({
           page: page.currentPage,
           size: page.pageSize,
@@ -360,7 +395,15 @@ const inboundGridOptions: VxeGridProps<InvoiceItem> = {
       showOverflow: true,
     },
     { field: 'project_id', title: '项目编号', minWidth: 220, showOverflow: true,
-      cellRender: { name: 'CellRouterLink', props: { name: 'CustomerInvoiceDetail', idField: 'invoice_id', field: 'project_id' } } },
+      cellRender: {
+        name: 'CellRouterLink',
+        props: {
+          field: 'project_id',
+          name: 'CustomerInvoiceDetail',
+          variableQuery: (row: InvoiceItem) =>
+            invoiceDetailQuery(row.invoice_id, 'inbound'),
+        },
+      } },
     {
       field: 'amount',
       title: '金额(万元)',
@@ -398,6 +441,8 @@ const inboundGridOptions: VxeGridProps<InvoiceItem> = {
     response: { result: 'items', total: 'total' },
     ajax: {
       query: async ({ page }) => {
+        inboundPage.value = page.currentPage
+        inboundPageSize.value = page.pageSize
         const data = await getInvoicesApi({
           page: page.currentPage,
           size: page.pageSize,

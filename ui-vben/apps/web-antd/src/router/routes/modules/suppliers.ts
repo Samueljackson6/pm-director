@@ -20,16 +20,6 @@ const routes: RouteRecordRaw[] = [
     name: 'LegacySuppliersRoot',
     meta: { hideInMenu: true, title: '供应商管理（旧）' },
   },
-  // Legacy: /suppliers/detail → 重定向到后端菜单定义的路由
-  {
-    path: '/suppliers/detail',
-    redirect: (to) => ({
-      path: '/suppliers/detail',
-      query: to.query,
-    }),
-    name: 'LegacySupplierDetail',
-    meta: { hideInMenu: true, title: '供应商详情（旧）' },
-  },
 ];
 
 export default routes;

@@ -81,6 +81,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { message } from 'ant-design-vue'
 import { getSupplierPaymentDetailApi } from '#/api/supplier-payments'
 import StateBlock from '#/components/state-block/index.vue'
+import { buildListReturnLocation } from '#/utils/business-navigation'
 
 const route = useRoute()
 const router = useRouter()
@@ -102,7 +103,15 @@ async function load() {
   } finally { loading.value = false }
 }
 
-function goBack() { router.push({ name: 'SupplierPayments' }) }
+function goBack() {
+  router.push(
+    buildListReturnLocation({
+      currentDetailName: 'SupplierPaymentDetail',
+      detailQuery: route.query,
+      fallbackName: 'SupplierPayments',
+    }),
+  )
+}
 function editPayment() { message.info('编辑功能开发中') }
 function fmtMoney(n: number | null | undefined): string { return n == null ? '0.00' : n.toFixed(2) }
 

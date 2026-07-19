@@ -1,5 +1,7 @@
 <template>
+  <Phase3Review v-if="isPhase3Review" />
   <StateBlock
+    v-else
     :loading="loading"
     :error="error"
     error-title="综合看板加载失败"
@@ -40,6 +42,7 @@ import ManagementView from './components/management-view.vue';
 import ProjectView from './components/project-view.vue';
 import FinanceView from './components/finance-view.vue';
 import { isValidViewKey, type ViewKey } from './dashboard-types';
+import Phase3Review from './phase3-review/index.vue';
 
 const route = useRoute();
 const router = useRouter();
@@ -47,6 +50,7 @@ const router = useRouter();
 const overview = ref<DashboardOverview | null>(null);
 const loading = ref(true);
 const error = ref('');
+const isPhase3Review = computed(() => route.query.review === 'phase3');
 
 const activeView = ref<ViewKey>(
   isValidViewKey(route.query.view) ? (route.query.view as ViewKey) : 'all',
@@ -69,7 +73,9 @@ function load() {
     });
 }
 
-onMounted(load);
+onMounted(() => {
+  if (!isPhase3Review.value) load();
+});
 
 const NAV_MAP: Record<string, string> = {
   unmatched_payments: '/customer-finance/invoices',
@@ -96,6 +102,10 @@ watch(
     }
   },
 );
+
+watch(isPhase3Review, (active) => {
+  if (!active && overview.value === null) load();
+});
 </script>
 
 <style>

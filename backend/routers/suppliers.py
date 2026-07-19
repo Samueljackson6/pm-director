@@ -461,13 +461,15 @@ def get_supplier(supplier_id: str):
             (supplier_id,),
         ).fetchall()
     ]
-    invoices = [
+    supplier_invoices = [
         dict(r)
         for r in db.execute(
             '''
             SELECT i.* FROM invoices i
             INNER JOIN supplier_contracts sc ON i.project_id = sc.project_id
-            WHERE sc.supplier_id = ? AND i.direction = 'inbound'
+            WHERE sc.supplier_id = ?
+              AND i.invoice_type = '供应商开票'
+              AND i.direction = 'inbound'
             ORDER BY i.invoice_date DESC
             ''',
             (supplier_id,),
@@ -503,10 +505,16 @@ def get_supplier(supplier_id: str):
         except Exception:
             qcc_data = None
     db.close()
+    data_states = {
+        'supplier_invoices': 'available' if supplier_invoices else 'source_not_established',
+        'supplier_payments': 'available' if payments else 'known_zero',
+    }
     return vben_response({
         'supplier': sup_dict,
         'contracts': contracts,
-        'invoices': invoices,
+        'supplier_invoices': supplier_invoices,
+        'invoices': supplier_invoices,
+        'data_states': data_states,
         'payments': payments,
         'contacts': contacts,
         'qcc_data': qcc_data,

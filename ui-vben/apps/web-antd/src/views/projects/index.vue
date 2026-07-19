@@ -53,15 +53,37 @@
 import type { VxeGridProps } from '#/adapter/vxe-table'
 import { useVbenVxeGrid } from '#/adapter/vxe-table'
 import { getProjectsApi, type ProjectItem } from '#/api/projects'
-import { useRouter } from 'vue-router'
+import { buildDetailLocation } from '#/utils/business-navigation'
+import { useRoute, useRouter } from 'vue-router'
 import { ref } from 'vue'
 
+const route = useRoute()
 const router = useRouter()
 
 // 搜索条件
 const searchText = ref('')
 const statusFilter = ref<string | undefined>()
 const typeFilter = ref<string | undefined>()
+const currentPage = ref(1)
+const currentPageSize = ref(20)
+
+function projectDetailLocation(projectId: string) {
+  return buildDetailLocation({
+    from: {
+      name: route.name,
+      query: {
+        ...route.query,
+        page: String(currentPage.value),
+        pageSize: String(currentPageSize.value),
+        search: searchText.value,
+        status: statusFilter.value,
+        type: typeFilter.value,
+      },
+    },
+    id: projectId,
+    name: 'ProjectDetail',
+  })
+}
 
 // 状态标签映射
 const statusColorMap: Record<string, string> = {
@@ -112,7 +134,21 @@ function riskLabel(r: string): string {
 const gridOptions: VxeGridProps<ProjectItem> = {
   columns: [
     { field: 'project_id', title: '项目编号', width: 200, fixed: 'left' },
-    { field: 'project_name', title: '项目名称', minWidth: 200, showOverflow: true },
+    {
+      field: 'project_name',
+      title: '项目名称',
+      minWidth: 200,
+      showOverflow: true,
+      cellRender: {
+        name: 'CellRouterLink',
+        props: {
+          field: 'project_name',
+          name: 'ProjectDetail',
+          variableQuery: (row: ProjectItem) =>
+            projectDetailLocation(row.project_id).query,
+        },
+      },
+    },
     { field: 'customer_name', title: '客户名称', width: 150, showOverflow: true },
     { field: 'project_type', title: '项目类型', width: 100 },
     {
@@ -146,6 +182,8 @@ const gridOptions: VxeGridProps<ProjectItem> = {
     response: { result: 'items', total: 'total' },
     ajax: {
       query: async ({ page }) => {
+        currentPage.value = page.currentPage
+        currentPageSize.value = page.pageSize
         const data = await getProjectsApi({
           page: page.currentPage,
           size: page.pageSize,
@@ -175,7 +213,7 @@ const [Grid, gridApi] = useVbenVxeGrid({
   gridEvents: {
     // 双击行跳转详情
     cellDblclick({ row }: { row: ProjectItem }) {
-      router.push({ name: 'ProjectDetail', query: { id: row.project_id } })
+      router.push(projectDetailLocation(row.project_id))
     },
   },
 })

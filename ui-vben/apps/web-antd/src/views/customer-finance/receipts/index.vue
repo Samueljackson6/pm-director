@@ -44,7 +44,7 @@
           :loading="loading"
           row-key="receipt_id"
           size="middle"
-          :pagination="{ pageSize: 20, total, showSizeChanger: true, showTotal: t => '共 ' + t + ' 条' }"
+          :pagination="{ current: currentPage, pageSize: pageSize, total, showSizeChanger: true, showTotal: t => '共 ' + t + ' 条' }"
           @change="handleTableChange"
         >
           <template #bodyCell="{ column, record }">
@@ -140,8 +140,9 @@
 
 <script lang="ts" setup>
 import { ref, reactive, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { message } from 'ant-design-vue'
+import { buildDetailLocation } from '#/utils/business-navigation'
 import {
   getReceiptsApi,
   createReceiptApi,
@@ -150,14 +151,20 @@ import {
   autoMatchReceiptsApi,
 } from '#/api/receipts'
 
+const route = useRoute()
 const router = useRouter()
+
+function readPositivePageQuery(value: unknown, fallback: number) {
+  const parsed = typeof value === 'string' ? Number(value) : Number.NaN
+  return Number.isSafeInteger(parsed) && parsed > 0 ? parsed : fallback
+}
 
 // 列表数据
 const receipts = ref<any[]>([])
 const total = ref(0)
 const loading = ref(false)
-const currentPage = ref(1)
-const pageSize = ref(20)
+const currentPage = ref(readPositivePageQuery(route.query.page, 1))
+const pageSize = ref(readPositivePageQuery(route.query.pageSize, 20))
 const totalAmount = ref(0)
 const matchedAmount = ref(0)
 
@@ -196,11 +203,31 @@ async function loadData() {
 function handleTableChange(pagination: any) {
   currentPage.value = pagination.current
   pageSize.value = pagination.pageSize
+  void router.replace({
+    query: {
+      ...route.query,
+      page: String(currentPage.value),
+      pageSize: String(pageSize.value),
+    },
+  })
   loadData()
 }
 
-function viewDetail(row: any) {
-  router.push({ name: 'CustomerReceiptDetail', query: { id: row.receipt_id } })
+function viewDetail(row: { receipt_id: number }) {
+  router.push(
+    buildDetailLocation({
+      from: {
+        name: route.name,
+        query: {
+          ...route.query,
+          page: String(currentPage.value),
+          pageSize: String(pageSize.value),
+        },
+      },
+      id: String(row.receipt_id),
+      name: 'CustomerReceiptDetail',
+    }),
+  )
 }
 
 function openAddReceipt() {

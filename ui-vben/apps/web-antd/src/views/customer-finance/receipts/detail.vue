@@ -106,6 +106,7 @@ import { message } from 'ant-design-vue'
 import { getReceiptDetailApi } from '#/api/receipts'
 import { requestClient } from '#/api/request'
 import StateBlock from '#/components/state-block/index.vue'
+import { buildListReturnLocation } from '#/utils/business-navigation'
 
 const route = useRoute()
 const router = useRouter()
@@ -136,7 +137,13 @@ async function load() {
 }
 
 function goBack() {
-  router.push({ name: 'CustomerReceipts' })
+  router.push(
+    buildListReturnLocation({
+      currentDetailName: 'CustomerReceiptDetail',
+      detailQuery: route.query,
+      fallbackName: 'CustomerReceipts',
+    }),
+  )
 }
 
 function editReceipt() {

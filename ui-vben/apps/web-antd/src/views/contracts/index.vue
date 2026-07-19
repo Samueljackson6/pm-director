@@ -94,11 +94,13 @@
 // ╚══════════════════════════════════════════════════════════╝
 import type { VxeGridProps } from '#/adapter/vxe-table'
 import { useVbenVxeGrid } from '#/adapter/vxe-table'
-import { getContractsApi, type ContractItem, createContractApi } from '#/api/contracts'
-import { useRouter } from 'vue-router'
+import { getContractsApi, type ContractItem, createContractApi, type ContractQueryParams } from '#/api/contracts'
+import { buildDetailLocation } from '#/utils/business-navigation'
+import { useRoute, useRouter } from 'vue-router'
 import { reactive, ref } from 'vue'
 import { message } from 'ant-design-vue'
 
+const route = useRoute()
 const router = useRouter()
 
 const filters = reactive({
@@ -108,6 +110,30 @@ const filters = reactive({
   min_amount: undefined as number | undefined,
   max_amount: undefined as number | undefined,
 })
+const currentPage = ref(1)
+const currentPageSize = ref(20)
+
+function contractDetailLocation(contractId: string) {
+  return buildDetailLocation({
+    from: {
+      name: route.name,
+      query: {
+        ...route.query,
+        contract_status: filters.contract_status,
+        max_amount:
+          filters.max_amount === undefined ? undefined : String(filters.max_amount),
+        min_amount:
+          filters.min_amount === undefined ? undefined : String(filters.min_amount),
+        page: String(currentPage.value),
+        pageSize: String(currentPageSize.value),
+        project_type: filters.project_type,
+        search: filters.search,
+      },
+    },
+    id: contractId,
+    name: 'ContractDetail',
+  })
+}
 
 const gridOptions: VxeGridProps<ContractItem> = {
   columns: [
@@ -121,9 +147,10 @@ const gridOptions: VxeGridProps<ContractItem> = {
       cellRender: {
         name: 'CellRouterLink',
         props: {
-          name: 'ContractDetail',
-          idField: 'contract_id',
           field: 'official_name',
+          name: 'ContractDetail',
+          variableQuery: (row: ContractItem) =>
+            contractDetailLocation(row.contract_id).query,
         },
       },
     },
@@ -166,8 +193,10 @@ const gridOptions: VxeGridProps<ContractItem> = {
     response: { result: 'items', total: 'total' },
     ajax: {
       query: async ({ page }) => {
+        currentPage.value = page.currentPage
+        currentPageSize.value = page.pageSize
         const f = filters
-        const params: Record<string, any> = {
+        const params: ContractQueryParams = {
           page: page.currentPage,
           size: page.pageSize,
         }
@@ -197,10 +226,9 @@ const gridOptions: VxeGridProps<ContractItem> = {
 const [Grid, gridApi] = useVbenVxeGrid({
   gridOptions,
   gridEvents: {
-    cellClick({ row }: any) {
-      console.log('cellClick fired', row?.contract_id)
-      if (row?.contract_id) {
-        router.push({ name: 'ContractDetail', query: { id: row.contract_id } })
+    cellClick({ row }: { row: ContractItem }) {
+      if (row.contract_id) {
+        router.push(contractDetailLocation(row.contract_id))
       }
     },
   },
