@@ -1,7 +1,12 @@
 <template>
-  <div class="p-4">
+  <div class="pm-workbench-page min-h-screen p-4 sm:p-6">
+    <header class="pm-page-header">
+      <p class="pm-section-kicker">履约执行</p>
+      <h1>项目台账</h1>
+      <p class="pm-section-note">优先关注进度、风险与负责人缺失的履约任务。</p>
+    </header>
     <!-- 搜索栏 -->
-    <a-card class="mb-4" :bordered="false">
+    <a-card class="pm-table-surface mb-4" :bordered="false">
       <a-row :gutter="16" align="middle">
         <a-col :span="6">
           <a-input v-model:value="searchText" placeholder="搜索项目名称/编号" allow-clear />
@@ -31,7 +36,7 @@
       </a-row>
     </a-card>
 
-    <Grid>
+    <section class="pm-table-surface"><Grid>
       <template #statusSlot="{ row }">
         <a-tag :color="statusColor(row.project_status)">
           {{ statusLabel(row.project_status) }}
@@ -45,7 +50,7 @@
       <template #progressSlot="{ row }">
         <a-progress :percent="row.overall_progress ?? 0" size="small" />
       </template>
-    </Grid>
+    </Grid></section>
   </div>
 </template>
 

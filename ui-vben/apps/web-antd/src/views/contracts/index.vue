@@ -1,6 +1,11 @@
 <template>
-  <div class="p-4">
-    <a-form :model="filters" layout="inline" class="mb-2 flex flex-wrap gap-2">
+  <div class="pm-workbench-page min-h-screen p-4 sm:p-6">
+    <header class="pm-page-header">
+      <p class="pm-section-kicker">合同履约</p>
+      <h1>合同台账</h1>
+      <p class="pm-section-note">从合同签订、履约状态与金额缺口进入履约跟进。</p>
+    </header>
+    <section class="pm-table-surface mb-4 p-4"><a-form :model="filters" layout="inline" class="flex flex-wrap gap-2">
       <a-form-item label="搜索">
         <a-input v-model:value="filters.search" placeholder="合同编号/项目名称" allow-clear style="width:200px" />
       </a-form-item>

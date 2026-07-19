@@ -1,14 +1,14 @@
 <template>
   <div class="space-y-4">
-    <div class="grid grid-cols-2 gap-3 md:grid-cols-4">
-      <div class="rounded-lg border border-gray-200 bg-white p-4 text-center">
+    <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+      <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
         <div class="mb-1 text-xs text-gray-400">发票金额（含税）</div>
         <div class="text-2xl font-bold text-gray-900">
           {{ fmtMoney(invoice.amount) }}
         </div>
         <div class="mt-0.5 text-xs text-gray-400">元</div>
       </div>
-      <div class="rounded-lg border border-gray-200 bg-white p-4 text-center">
+      <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
         <div class="mb-1 text-xs text-gray-400">税率</div>
         <div class="text-2xl font-bold text-blue-600">
           {{
@@ -19,14 +19,14 @@
         </div>
         <div class="mt-0.5 text-xs text-gray-400">百分比</div>
       </div>
-      <div class="rounded-lg border border-gray-200 bg-white p-4 text-center">
+      <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
         <div class="mb-1 text-xs text-gray-400">税额</div>
         <div class="text-2xl font-bold text-orange-600">
           {{ fmtMoney(calculatedTaxAmount) }}
         </div>
         <div class="mt-0.5 text-xs text-gray-400">元</div>
       </div>
-      <div class="rounded-lg border border-gray-200 bg-white p-4 text-center">
+      <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
         <div class="mb-1 text-xs text-gray-400">价税合计</div>
         <div class="text-2xl font-bold text-green-600">
           {{ fmtMoney(total_with_tax) }}
@@ -36,7 +36,7 @@
     </div>
     <a-alert
       v-if="isCustomerInvoiceDomainConflict(invoice)"
-      class="border-amber-300 bg-amber-50"
+      class="border-amber-200 bg-amber-50/80"
       message="领域冲突：该记录不属于客户销项发票"
       type="warning"
       show-icon
@@ -49,7 +49,7 @@
     </a-alert>
     <section
       id="project"
-      class="scroll-mt-16 rounded-lg border border-gray-200 bg-white"
+      class="scroll-mt-16 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm"
     >
       <header class="section-title">
         <span class="bg-blue-500"></span>项目信息
@@ -82,7 +82,7 @@
     </section>
     <section
       id="invoice"
-      class="scroll-mt-16 rounded-lg border border-gray-200 bg-white"
+      class="scroll-mt-16 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm"
     >
       <header class="section-title">
         <span class="bg-teal-500"></span>发票信息
@@ -122,7 +122,7 @@
     </section>
     <section
       id="amount"
-      class="scroll-mt-16 rounded-lg border border-gray-200 bg-white"
+      class="scroll-mt-16 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm"
     >
       <header class="section-title">
         <span class="bg-amber-500"></span>金额信息
@@ -156,7 +156,7 @@
     </section>
     <section
       id="system"
-      class="scroll-mt-16 rounded-lg border border-gray-200 bg-white"
+      class="scroll-mt-16 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm"
     >
       <header class="section-title">
         <span class="bg-slate-400"></span>系统信息
@@ -175,10 +175,10 @@
           <p>{{ invoice.updated_at || invoice.import_time || '待核验' }}</p>
         </div>
       </div>
-      <div v-if="parsedNotes" class="mx-5 mb-4 border-t border-gray-100 pt-4">
+      <div v-if="parsedNotes" class="mx-5 mb-5 border-t border-slate-100 pt-4">
         <label class="mb-2">结构化数据（自动解析）</label>
         <div
-          class="grid grid-cols-2 gap-2 rounded-lg bg-gray-50 p-3 text-sm md:grid-cols-3"
+          class="grid grid-cols-2 gap-2 rounded-lg bg-slate-50 p-3 text-sm md:grid-cols-3"
         >
           <div>
             <span class="text-gray-500">合同编号：</span
@@ -212,7 +212,7 @@
       </div>
       <div
         v-else-if="invoice.notes"
-        class="mx-5 mb-4 border-t border-gray-100 pt-4"
+        class="mx-5 mb-5 border-t border-slate-100 pt-4"
       >
         <label>备注</label>
         <p class="whitespace-pre-wrap text-sm text-gray-600">

@@ -1,15 +1,15 @@
 <template>
-  <div class="flex items-center justify-between">
+  <div class="flex flex-col gap-4 rounded-xl border border-slate-200 bg-white p-4 shadow-sm lg:flex-row lg:items-center lg:justify-between">
     <div class="flex items-center gap-4">
       <a-button
         type="text"
-        class="flex h-9 w-9 items-center justify-center rounded-lg border border-gray-200"
+        class="flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 text-slate-600"
         @click="goBack"
         ><span class="text-lg">←</span></a-button
       >
       <div>
-        <h2 class="text-xl font-semibold text-gray-800">发票详情</h2>
-        <div class="mt-0.5 text-sm text-gray-500">
+        <h2 class="truncate text-xl font-semibold text-slate-900">发票详情</h2>
+        <div class="mt-1 truncate text-sm text-slate-500">
           {{
             props.invoice?.invoice_no ||
             (props.invoice ? '发票 #' + props.invoice.invoice_id : '')
@@ -17,7 +17,7 @@
         </div>
       </div>
     </div>
-    <div class="flex items-center gap-3">
+    <div class="flex flex-wrap items-center gap-2 lg:justify-end">
       <a-tag
         v-if="props.invoice?.status"
         :color="props.statusColor(props.invoice.status)"

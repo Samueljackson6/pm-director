@@ -1,5 +1,13 @@
 <template>
-  <div class="p-4">
+  <div class="pm-workbench-page p-4 sm:p-6">
+    <header class="pm-page-header">
+      <div>
+        <p class="pm-section-kicker">供应链协作</p>
+        <h1>供应商台账</h1>
+        <p class="pm-section-note">按合作规模、付款缺口和履约关系定位需要跟进的供应商。</p>
+      </div>
+    </header>
+    <section class="pm-table-surface" aria-label="供应商台账列表">
     <Grid>
       <template #status="{ row }">
         <a-tag v-if="row" :color="row.status === 'active' ? 'green' : 'default'">
@@ -7,6 +15,7 @@
         </a-tag>
       </template>
     </Grid>
+    </section>
   </div>
 </template>
 

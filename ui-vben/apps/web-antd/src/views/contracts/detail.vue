@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen space-y-4 bg-gradient-to-b from-gray-50 to-gray-100 p-6">
+  <div class="pm-workbench-page min-h-screen space-y-5 p-4 sm:p-6">
     <ContractHeaderEvidence
       :contract="contract"
       :contract-id="contractId"

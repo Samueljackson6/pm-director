@@ -1,18 +1,18 @@
 <template>
-  <div class="p-6 bg-gradient-to-b from-gray-50 to-gray-100 min-h-screen">
+  <div class="min-h-screen overflow-x-hidden bg-slate-50 px-4 py-4 md:px-6">
     <!-- 标题栏 -->
-    <div class="flex items-center justify-between mb-4">
-      <div class="flex items-center gap-4">
+    <div class="mb-4 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+      <div class="flex flex-wrap items-center gap-2">
         <a-button
           type="text"
-          class="flex items-center justify-center w-9 h-9 rounded-lg border border-gray-200 hover:bg-gray-100"
+          class="flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-100"
           @click="goBack"
         >
           <span class="text-lg">←</span>
         </a-button>
         <div>
-          <h2 class="text-xl font-semibold text-gray-800">回款详情</h2>
-          <div v-if="receipt" class="text-sm text-gray-500 mt-0.5">
+          <h2 class="text-xl font-semibold text-slate-900">回款详情</h2>
+          <div v-if="receipt" class="mt-1 text-sm text-slate-500">
             {{ receipt.receipt_no || '回款 #' + receipt.receipt_id }}
           </div>
         </div>
@@ -23,20 +23,20 @@
     <!-- 三态 -->
     <state-block :loading="loading" :error="error" error-title="回款详情加载失败" @retry="load">
       <!-- KPI 指标 -->
-      <div v-if="receipt" class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
-        <div class="bg-white rounded-lg border border-gray-200 p-4 text-center">
+      <div v-if="receipt" class="grid grid-cols-1 gap-3 mb-4 sm:grid-cols-2 xl:grid-cols-4">
+        <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
           <div class="text-xs text-gray-400 mb-1">回款金额（元）</div>
           <div class="text-2xl font-bold text-green-600">{{ fmtMoney(receipt.amount) }}</div>
         </div>
-        <div class="bg-white rounded-lg border border-gray-200 p-4 text-center">
+        <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
           <div class="text-xs text-gray-400 mb-1">已匹配金额</div>
           <div class="text-2xl font-bold text-blue-600">{{ fmtMoney(matchedAmount) }}</div>
         </div>
-        <div class="bg-white rounded-lg border border-gray-200 p-4 text-center">
+        <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
           <div class="text-xs text-gray-400 mb-1">未匹配金额</div>
           <div class="text-2xl font-bold text-orange-600">{{ fmtMoney(receipt.amount - matchedAmount) }}</div>
         </div>
-        <div class="bg-white rounded-lg border border-gray-200 p-4 text-center">
+        <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
           <div class="text-xs text-gray-400 mb-1">匹配状态</div>
           <div class="text-lg font-bold">
             <a-tag v-if="matchedAmount >= receipt.amount" color="success" class="rounded-full">完全匹配</a-tag>
@@ -47,7 +47,7 @@
       </div>
 
       <!-- 基本信息 -->
-      <a-card v-if="receipt" title="基本信息" class="rounded-lg mb-4" size="small">
+      <a-card v-if="receipt" title="基本信息" class="overflow-hidden rounded-xl border border-slate-200 shadow-sm mb-4" size="small">
         <a-descriptions :column="2" size="small" bordered>
           <a-descriptions-item label="回款单号">{{ receipt.receipt_no || '-' }}</a-descriptions-item>
           <a-descriptions-item label="回款日期">{{ receipt.receipt_date || '-' }}</a-descriptions-item>
@@ -67,7 +67,7 @@
       </a-card>
 
       <!-- 关联发票 -->
-      <a-card title="关联发票" class="rounded-lg" size="small">
+      <a-card title="关联发票" class="overflow-hidden rounded-xl border border-slate-200 shadow-sm" size="small">
         <template #extra>
           <a-button type="link" size="small" @click="showLinkInvoice = true">+ 关联发票</a-button>
         </template>
@@ -76,14 +76,14 @@
             <div
               v-for="inv in linkedInvoices"
               :key="inv.invoice_id"
-              class="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-blue-50/50 cursor-pointer"
+              class="flex cursor-pointer flex-col gap-3 rounded-lg border border-slate-200 bg-slate-50 p-3 transition-colors hover:border-blue-200 hover:bg-blue-50/60 sm:flex-row sm:items-center sm:justify-between"
               @click="router.push({ name: 'CustomerInvoiceDetail', query: { id: inv.invoice_id } })"
             >
               <div class="flex items-center gap-3">
                 <span class="text-2xl">📄</span>
                 <div>
                   <div class="font-medium text-sm">{{ inv.invoice_no || '发票 #' + inv.invoice_id }}</div>
-                  <div class="text-xs text-gray-400">{{ inv.invoice_date }} · {{ inv.project_id }}</div>
+                  <div class="mt-1 text-xs text-slate-500">{{ inv.invoice_date }} · {{ inv.project_id }}</div>
                 </div>
               </div>
               <div class="text-right">

@@ -1,36 +1,36 @@
 <template>
   <section
     id="receipts"
-    class="scroll-mt-16 overflow-hidden rounded-lg border border-gray-200 bg-white"
+    class="scroll-mt-16 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm"
   >
     <header
-      class="flex items-center gap-2 border-b border-gray-100 bg-gray-50/50 px-5 py-3"
+      class="flex flex-wrap items-center gap-2 border-b border-slate-100 bg-slate-50/80 px-4 py-3 sm:px-5"
     >
-      <span class="h-4 w-1 rounded-full bg-green-500"></span
-      ><span class="text-sm font-semibold text-gray-700">关联回款</span
-      ><span class="ml-auto text-xs text-gray-400"
+      <span class="h-4 w-1 rounded-full bg-emerald-500"></span
+      ><span class="text-sm font-semibold text-slate-700">关联回款</span
+      ><span class="ml-auto text-xs text-slate-400"
         >已匹配 {{ fmtMoney(matchedAmount) }} 元</span
       >
     </header>
-    <div class="px-5 py-4">
+    <div class="px-4 py-4 sm:px-5">
       <template v-if="linkedReceipts.length"
         ><div class="space-y-2">
           <div
             v-for="receipt in linkedReceipts"
             :key="receipt.receipt_id"
-            class="flex cursor-pointer items-center justify-between rounded-lg bg-gray-50 p-3 transition-colors hover:bg-green-50/50"
+            class="flex cursor-pointer flex-col gap-3 rounded-lg border border-slate-200 bg-slate-50 p-3 transition-colors hover:border-emerald-200 hover:bg-emerald-50/60 sm:flex-row sm:items-center sm:justify-between"
             @click="openReceipt(receipt.receipt_id)"
           >
             <div>
-              <div class="text-sm font-medium text-gray-900">
+              <div class="truncate text-sm font-medium text-slate-900">
                 {{ receipt.receipt_no || '回款 #' + receipt.receipt_id }}
               </div>
-              <div class="text-xs text-gray-400">
+              <div class="mt-1 text-xs text-slate-500">
                 {{ receipt.receipt_date }} · {{ receipt.receipt_method || '-' }}
               </div>
             </div>
             <div class="flex items-center gap-2">
-              <span class="text-sm font-semibold text-green-600"
+              <span class="text-sm font-semibold text-emerald-600"
                 >{{ fmtMoney(receipt.link_amount ?? receipt.amount) }} 元</span
               ><a-button
                 type="link"
@@ -42,7 +42,7 @@
             </div>
           </div>
         </div>
-        <div class="mt-3 border-t border-gray-100 pt-3 text-sm">
+        <div class="mt-3 border-t border-slate-100 pt-3 text-sm text-slate-600">
           <span class="text-gray-500">匹配状态：</span
           ><a-tag
             v-if="

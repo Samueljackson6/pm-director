@@ -1,6 +1,6 @@
 <template>
   <div
-    class="min-h-screen space-y-4 bg-gradient-to-b from-gray-50 to-gray-100 p-6"
+    class="min-h-screen space-y-4 overflow-x-hidden bg-slate-50 px-4 py-4 md:px-6"
   >
     <InvoiceActions
       :invoice="invoice"
@@ -16,9 +16,9 @@
     >
       <template v-if="invoice">
         <div
-          class="sticky top-0 z-20 -mx-6 border-y border-gray-200 bg-white/85 px-6 backdrop-blur-sm"
+          class="sticky top-0 z-20 rounded-xl border border-slate-200 bg-white/90 px-4 shadow-sm backdrop-blur"
         >
-          <div class="flex gap-1 overflow-x-auto py-2">
+          <div class="flex gap-2 overflow-x-auto py-3">
             <button
               v-for="anchor in anchors"
               :key="anchor.id"

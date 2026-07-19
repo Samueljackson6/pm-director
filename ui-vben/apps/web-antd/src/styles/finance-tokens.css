@@ -1,12 +1,10 @@
 /**
- * 财务语义配色 token —— 全站单一来源。
+ * 财务语义配色 token 与浅色工作台视觉基础 —— 全站单一来源。
  *
- * 设计原则（ardot-design-core：配色单一来源）：
- * 所有财务/状态语义色集中在此，禁止在业务组件里散落硬编码 hex。
- * 取值与 Vben 设计系统预设语义色对齐，保证跨页一致：
- *   --finance-invoiced   ↔ text-blue   (#1677ff)
- *   --finance-received   ↔ text-green  (#52c41a)
- *   --finance-unreceived ↔ text-orange (#fa8c16)
+ * 设计原则：
+ * 1. 财务与状态语义色集中在此，禁止在业务组件里散落硬编码 hex。
+ * 2. 页面级白底、边框、层次、聚焦态统一在此定义，避免各页面各画一套。
+ * 3. 仅提供可复用的浅色工作台类，供供应链等业务页直接挂载。
  */
 :root {
   /* 财务流向语义色 */
@@ -17,8 +15,135 @@
   --finance-unpaid: #fa8c16;     /* 未付款 */
   --finance-overdue: #f5222d;    /* 逾期 */
 
-  /* 阶段/通用状态色（与甘特图 JS 色板保持一致） */
+  /* 阶段与通用状态色（与甘特图 JS 色板保持一致） */
   --status-completed: #52c41a;
   --status-in-progress: #1677ff;
   --status-pending: #d9d9d9;
+
+  /* 电网白图：浅色工作台基础 token */
+  --pm-workbench-bg: #f5f7fb;
+  --pm-workbench-surface: #ffffff;
+  --pm-workbench-surface-weak: #f8fafc;
+  --pm-workbench-surface-hover: #f3f7fd;
+  --pm-workbench-border: #dbe3ef;
+  --pm-workbench-border-strong: #c7d2e1;
+  --pm-workbench-text: #172b4d;
+  --pm-workbench-text-muted: #5b6b84;
+  --pm-workbench-accent: #1d4ed8;
+  --pm-workbench-note-bg: #f8fbff;
+  --pm-workbench-note-border: #c7d7f5;
+  --pm-workbench-note-text: #35507a;
+  --pm-workbench-shadow: 0 8px 24px rgb(15 23 42 / 6%);
+  --pm-workbench-shadow-strong: 0 12px 30px rgb(15 23 42 / 10%);
+  --pm-workbench-focus-ring: 0 0 0 3px rgb(29 78 216 / 18%);
+}
+
+/* 仅在浅色模式下启用工作台视觉类，避免暗色模式被误伤。 */
+body:not([data-theme='dark']) .pm-workbench-page {
+  min-height: 100%;
+  color: var(--pm-workbench-text);
+  background: var(--pm-workbench-bg);
+}
+
+body:not([data-theme='dark']) .pm-workbench-page :where(.ant-layout, .ant-layout-content, .vben-layout-content) {
+  background: transparent;
+}
+
+body:not([data-theme='dark']) .pm-workbench-page :where(a, button, [role='button'], input, select, textarea, .ant-btn, .ant-input, .ant-input-affix-wrapper, .ant-select-selector, .ant-picker, .ant-checkbox-inner, .ant-radio-inner, .ant-switch) {
+  transition: box-shadow 0.16s ease, border-color 0.16s ease, background-color 0.16s ease;
+}
+
+body:not([data-theme='dark']) .pm-workbench-page :where(a, button, [role='button'], input, select, textarea, .ant-btn, .ant-input, .ant-input-affix-wrapper, .ant-select-selector, .ant-picker, .ant-checkbox-inner, .ant-radio-inner, .ant-switch):focus-visible {
+  outline: none;
+  box-shadow: var(--pm-workbench-focus-ring) !important;
+}
+
+body:not([data-theme='dark']) .pm-page-header {
+  margin-bottom: 16px;
+  padding: 16px 20px;
+  color: var(--pm-workbench-text);
+  background: var(--pm-workbench-surface);
+  border: 1px solid var(--pm-workbench-border);
+  border-radius: 14px;
+  box-shadow: var(--pm-workbench-shadow);
+}
+
+body:not([data-theme='dark']) .pm-page-header :where(h1, h2, h3, h4, p) {
+  margin: 0;
+}
+
+body:not([data-theme='dark']) .pm-page-header :where(.pm-page-header__title, .pm-page-header__subtitle) {
+  color: var(--pm-workbench-text);
+}
+
+body:not([data-theme='dark']) .pm-page-header .pm-page-header__subtitle {
+  margin-top: 6px;
+  color: var(--pm-workbench-text-muted);
+}
+
+body:not([data-theme='dark']) .pm-section-kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  color: var(--pm-workbench-accent);
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.4;
+  letter-spacing: 0.04em;
+  background: rgb(29 78 216 / 8%);
+  border: 1px solid rgb(29 78 216 / 16%);
+  border-radius: 999px;
+}
+
+body:not([data-theme='dark']) .pm-table-surface {
+  overflow: hidden;
+  color: var(--pm-workbench-text);
+  background: var(--pm-workbench-surface);
+  border: 1px solid var(--pm-workbench-border);
+  border-radius: 12px;
+  box-shadow: 0 1px 2px rgb(15 23 42 / 4%);
+}
+
+body:not([data-theme='dark']) .pm-table-surface :where(.ant-table-wrapper, .ant-table, .ant-spin-nested-loading) {
+  background: transparent;
+}
+
+body:not([data-theme='dark']) .pm-table-surface :where(.ant-table-thead > tr > th) {
+  color: var(--pm-workbench-text);
+  background: var(--pm-workbench-surface-weak);
+  border-bottom-color: var(--pm-workbench-border) !important;
+  font-weight: 600;
+}
+
+body:not([data-theme='dark']) .pm-table-surface :where(.ant-table-tbody > tr > td) {
+  border-bottom-color: var(--pm-workbench-border) !important;
+}
+
+body:not([data-theme='dark']) .pm-table-surface :where(.ant-table-tbody > tr:hover > td) {
+  background: var(--pm-workbench-surface-hover) !important;
+}
+
+body:not([data-theme='dark']) .pm-table-surface :where(.ant-table-footer, .ant-table-summary) {
+  background: var(--pm-workbench-surface-weak);
+  border-top: 1px solid var(--pm-workbench-border);
+}
+
+body:not([data-theme='dark']) .pm-section-note {
+  padding: 12px 14px;
+  color: var(--pm-workbench-note-text);
+  line-height: 1.6;
+  background: var(--pm-workbench-note-bg);
+  border: 1px solid var(--pm-workbench-note-border);
+  border-left: 4px solid var(--pm-workbench-accent);
+  border-radius: 12px;
+  box-shadow: none;
+}
+
+body:not([data-theme='dark']) .pm-section-note :where(p, ul, ol) {
+  margin: 0;
+}
+
+body:not([data-theme='dark']) .pm-section-note + .pm-section-note {
+  margin-top: 12px;
 }

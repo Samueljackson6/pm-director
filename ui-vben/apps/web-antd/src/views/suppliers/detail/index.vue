@@ -204,15 +204,15 @@ onBeforeUnmount(() => anchorObserver?.disconnect());
 </script>
 
 <template>
-  <div class="min-h-screen space-y-4 bg-gradient-to-b from-gray-50 to-gray-100 p-6">
-    <div class="flex items-center justify-between gap-4">
+  <div class="pm-workbench-page min-h-screen space-y-5 p-4 sm:p-6">
+    <div class="pm-page-header flex items-center justify-between gap-4">
       <div class="flex items-center gap-4"><a-button type="text" class="flex h-9 w-9 items-center justify-center rounded-lg border border-gray-200" @click="goBack">←</a-button><div><h2 class="text-xl font-semibold text-gray-800">供应商详情</h2><div class="mt-0.5 text-sm text-gray-500">{{ basicInfo?.企业名称 || '加载中…' }}</div></div></div>
       <div class="flex items-center gap-3"><a-tag v-if="basicInfo?.登记状态" class="rounded-full px-3 py-0.5 text-xs">{{ basicInfo.登记状态 }}</a-tag><a-tag :color="riskLevelColor" class="rounded-full px-3 py-0.5 text-xs">风险：{{ riskLevel }}</a-tag></div>
     </div>
     <StateBlock :loading="loading" :error="error" error-title="供应商数据加载失败" @retry="loadData">
       <template v-if="basicInfo">
         <SupplierOverview :basic-info="basicInfo" :profile="profile" :company-age="companyAge" :qcc-data-available="qccDataAvailable" :software-count="softwareList.length" :investment-count="investmentList.length" />
-        <div class="sticky top-0 z-20 -mx-6 border-y border-gray-200 bg-white/85 px-6 backdrop-blur-sm"><div class="flex gap-1 overflow-x-auto py-2"><button v-for="anchor in anchors" :key="anchor.id" :class="['whitespace-nowrap rounded-md px-3 py-1.5 text-sm transition-colors', activeAnchor === anchor.id ? 'bg-blue-50 font-medium text-blue-600' : 'text-gray-500 hover:bg-gray-100']" @click="scrollToAnchor(anchor.id)">{{ anchor.label }}</button></div></div>
+        <div class="sticky top-0 z-20 -mx-4 border-y border-slate-200 bg-white/95 px-4 shadow-sm backdrop-blur-sm sm:-mx-6 sm:px-6"><div class="flex gap-1 overflow-x-auto py-2"><button v-for="anchor in anchors" :key="anchor.id" :class="['whitespace-nowrap rounded-md px-3 py-1.5 text-sm transition-colors', activeAnchor === anchor.id ? 'bg-blue-50 font-medium text-blue-600' : 'text-gray-500 hover:bg-gray-100']" @click="scrollToAnchor(anchor.id)">{{ anchor.label }}</button></div></div>
         <SupplierBusinessProfileRisk :qcc-data-available="qccDataAvailable" :risk-scan="riskScan" :risk-level="riskLevel" :risk-level-text-class="riskLevelTextClass" :software-list="softwareList" :investment-list="investmentList" />
         <SupplierCollaborationFinance :contracts="contracts" :supplier-invoices="supplierInvoices" :payments="payments" :contacts="contacts" :data-states="dataStates" :rating="rating" />
       </template>
