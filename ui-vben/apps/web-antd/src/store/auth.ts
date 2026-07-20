@@ -34,12 +34,10 @@ export const useAuthStore = defineStore('auth', () => {
    * Asynchronously handle the login process
    * @param type 登录类型
    * @param params 登录表单数据
-   * @param onSuccess 登录成功后的回调函数
    */
   async function authLogin(
     type: 'mobile' | 'register' | 'social' | 'username',
     params: Recordable<any>,
-    onSuccess?: () => Promise<void> | void,
   ) {
     // 异步处理用户登录操作并获取 accessToken
     let userInfo: null | UserInfo = null;

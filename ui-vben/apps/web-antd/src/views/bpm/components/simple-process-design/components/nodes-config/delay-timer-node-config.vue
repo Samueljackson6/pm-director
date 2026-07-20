@@ -46,6 +46,7 @@ const currentNode = useWatchNode(props);
 // 节点名称
 const { nodeName, showInput, clickIcon, changeNodeName, inputRef } =
   useNodeName(BpmNodeTypeEnum.DELAY_TIMER_NODE);
+void inputRef;
 // 抄送人表单配置
 const formRef = ref(); // 表单 Ref
 

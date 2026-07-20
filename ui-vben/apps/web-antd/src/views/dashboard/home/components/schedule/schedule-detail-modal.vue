@@ -16,17 +16,14 @@ const getTitle = computed(() => {
 });
 
 // 获取只读的表单 schema
-const readonlySchema = computed(() => {
-  const schema = useFormSchema();
-  return schema.map((item) => ({
-    ...item,
-    componentProps: {
-      ...item.componentProps,
-      disabled: true,
-      readonly: true,
-    },
-  }));
-});
+const readonlySchema = useFormSchema().map((item) => ({
+  ...item,
+  componentProps: {
+    ...item.componentProps,
+    disabled: true,
+    readonly: true,
+  },
+}));
 
 const [Form, formApi] = useVbenForm({
   commonConfig: {

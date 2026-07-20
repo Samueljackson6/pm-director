@@ -21,7 +21,6 @@ const imageListRef = ref<any>(); // image 列表 ref
 const dall3Ref = ref<any>(); // dall3(openai) ref
 const midjourneyRef = ref<any>(); // midjourney ref
 const stableDiffusionRef = ref<any>(); // stable diffusion ref
-const commonRef = ref<any>(); // stable diffusion ref
 
 const selectPlatform = ref('common'); // 选中的平台
 const platformOptions = [
@@ -99,7 +98,6 @@ onMounted(async () => {
         <div class="mt-8 h-full overflow-y-auto">
           <Common
             v-if="selectPlatform === 'common'"
-            ref="commonRef"
             :models="models"
             @on-draw-complete="handleDrawComplete"
           />

@@ -31,7 +31,7 @@ function buildOption(): ECOption {
           value: d.amount,
         })),
       },
-    ],
+    ] as any[],
   };
 }
 

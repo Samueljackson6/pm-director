@@ -17,18 +17,6 @@ import { router } from '#/router';
 
 import { useGridColumns, useGridFormSchema } from './data';
 
-// 扩展 Task 接口以包含 assigneeUser 属性
-interface ExtendedTask extends BpmProcessInstanceApi.Task {
-  assigneeUser?: { nickname: string };
-}
-
-// 扩展 ProcessInstance 接口以包含 summary 属性
-interface ExtendedProcessInstance
-  extends BpmProcessInstanceApi.ProcessInstance {
-  summary?: Array<{ key: string; value: string }>;
-  tasks?: ExtendedTask[];
-}
-
 defineOptions({ name: 'BpmProcessInstanceMy' });
 
 /** 刷新表格 */
@@ -37,7 +25,7 @@ function handleRefresh() {
 }
 
 /** 查看流程实例 */
-function handleDetail(row: ExtendedProcessInstance) {
+function handleDetail(row: BpmProcessInstanceApi.ProcessInstance) {
   router.push({
     name: 'BpmProcessInstanceDetail',
     query: { id: row.id.toString(), isTodo: 'false' },
@@ -45,7 +33,7 @@ function handleDetail(row: ExtendedProcessInstance) {
 }
 
 /** 撤回流程实例 */
-function handleCancel(row: ExtendedProcessInstance) {
+function handleCancel(row: BpmProcessInstanceApi.ProcessInstance) {
   prompt({
     async beforeClose(scope) {
       if (scope.isConfirm) {
@@ -111,7 +99,7 @@ const [Grid, gridApi] = useVbenVxeGrid({
     cellConfig: {
       height: 64,
     },
-  } as VxeTableGridOptions<ExtendedProcessInstance>,
+  } as VxeTableGridOptions<BpmProcessInstanceApi.ProcessInstance>,
 });
 </script>
 

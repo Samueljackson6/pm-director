@@ -91,9 +91,9 @@ async function loadLayout() {
     }));
 
     // 如果有布局数据，尝试从第一个布局项中恢复全局配置
-    if (layoutItems.length > 0 && layoutItems[0].config) {
+    if (layoutItems.length > 0 && layoutItems[0]?.config) {
       try {
-        const firstConfig = JSON.parse(layoutItems[0].config);
+        const firstConfig = JSON.parse(layoutItems[0]!.config!);
         if (firstConfig._globalMargin !== undefined) {
           globalConfig.value.margin = firstConfig._globalMargin;
         }
@@ -276,10 +276,7 @@ onMounted(() => {
 
 <template>
   <Page
-    :content-class="{
-      'p-0!': true,
-      'm-0!': true,
-    }"
+    content-class="p-0! m-0!"
     :content-style="{ height: 'calc(100vh - 64px)', padding: '0', margin: '0' }"
   >
     <!-- 顶部工具栏 -->

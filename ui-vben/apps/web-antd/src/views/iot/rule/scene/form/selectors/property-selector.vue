@@ -43,6 +43,15 @@ const emit = defineEmits<{
 
 // TODO 芋艿
 /** 属性选择器内部使用的统一数据结构 */
+interface ThingModelParam {
+  dataSpecs?: unknown;
+  dataSpecsList?: unknown[];
+  dataType?: string;
+  desc?: string;
+  identifier?: string;
+  name?: string;
+}
+
 interface PropertySelectorItem {
   identifier: string;
   name: string;
@@ -65,8 +74,8 @@ interface PropertySelectorItem {
 const localValue = useVModel(props, 'modelValue', emit);
 
 const loading = ref(false); // 加载状态
-const propertyList = ref<ThingModelApi.Property[]>([]); // 属性列表
-const thingModelTSL = ref<null | ThingModelApi.ThingModel>(null); // 物模型TSL数据
+const propertyList = ref<PropertySelectorItem[]>([]);
+const thingModelTSL = ref<ThingModelApi.ThingModel[]>([]);
 
 // 计算属性：属性分组
 const propertyGroups = computed(() => {
@@ -126,22 +135,15 @@ function handleChange(value: any) {
  */
 async function getThingModelTSL() {
   if (!props.productId) {
-    thingModelTSL.value = null;
+    thingModelTSL.value = [];
     propertyList.value = [];
     return;
   }
 
   loading.value = true;
   try {
-    const tslData = await getThingModelListByProductId(props.productId);
-
-    if (tslData) {
-      thingModelTSL.value = tslData;
-      parseThingModelData();
-    } else {
-      console.error('获取物模型TSL失败: 返回数据为空');
-      propertyList.value = [];
-    }
+    thingModelTSL.value = await getThingModelListByProductId(props.productId);
+    parseThingModelData();
   } catch (error) {
     console.error('获取物模型TSL失败:', error);
     propertyList.value = [];
@@ -150,68 +152,57 @@ async function getThingModelTSL() {
   }
 }
 
-/** 解析物模型 TSL 数据 */
+/** 解析平铺的物模型列表。 */
 function parseThingModelData() {
-  const tsl = thingModelTSL.value;
-  const properties: PropertySelectorItem[] = [];
+  propertyList.value = thingModelTSL.value.flatMap((thingModel): PropertySelectorItem[] => {
+    const type = Number(thingModel.type);
 
-  if (!tsl) {
-    propertyList.value = properties;
-    return;
-  }
-  // 解析属性
-  if (tsl.properties && Array.isArray(tsl.properties)) {
-    tsl.properties.forEach((prop) => {
-      properties.push({
-        identifier: prop.identifier,
-        name: prop.name,
-        description: prop.description,
-        dataType: prop.dataType,
-        type: IoTThingModelTypeEnum.PROPERTY,
-        accessMode: prop.accessMode,
-        required: prop.required,
-        unit: getPropertyUnit(prop),
-        range: getPropertyRange(prop),
-        property: prop,
-      });
-    });
-  }
+    if (type === IoTThingModelTypeEnum.PROPERTY && thingModel.property) {
+      const property = thingModel.property;
+      return [{
+        identifier: property.identifier ?? thingModel.identifier,
+        name: property.name ?? thingModel.name,
+        description: property.desc ?? thingModel.desc,
+        dataType: property.dataType ?? 'struct',
+        type,
+        accessMode: property.accessMode,
+        unit: getPropertyUnit(property),
+        range: getPropertyRange(property),
+        property,
+      }];
+    }
 
-  // 解析事件
-  if (tsl.events && Array.isArray(tsl.events)) {
-    tsl.events.forEach((event) => {
-      properties.push({
-        identifier: event.identifier,
-        name: event.name,
-        description: event.description,
+    if (type === IoTThingModelTypeEnum.EVENT && thingModel.event) {
+      const event = thingModel.event;
+      return [{
+        identifier: event.identifier ?? thingModel.identifier,
+        name: event.name ?? thingModel.name,
+        description: event.desc ?? thingModel.desc,
         dataType: 'struct',
-        type: IoTThingModelTypeEnum.EVENT,
+        type,
         eventType: event.type,
-        required: event.required,
-        outputParams: event.outputParams,
+        outputParams: event.outputData,
         event,
-      });
-    });
-  }
+      }];
+    }
 
-  // 解析服务
-  if (tsl.services && Array.isArray(tsl.services)) {
-    tsl.services.forEach((service) => {
-      properties.push({
-        identifier: service.identifier,
-        name: service.name,
-        description: service.description,
+    if (type === IoTThingModelTypeEnum.SERVICE && thingModel.service) {
+      const service = thingModel.service;
+      return [{
+        identifier: service.identifier ?? thingModel.identifier,
+        name: service.name ?? thingModel.name,
+        description: service.desc ?? thingModel.desc,
         dataType: 'struct',
-        type: IoTThingModelTypeEnum.SERVICE,
+        type,
         callType: service.callType,
-        required: service.required,
-        inputParams: service.inputParams,
-        outputParams: service.outputParams,
+        inputParams: service.inputData,
+        outputParams: service.outputData,
         service,
-      });
-    });
-  }
-  propertyList.value = properties;
+      }];
+    }
+
+    return [];
+  });
 }
 
 /**

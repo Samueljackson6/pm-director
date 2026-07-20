@@ -38,7 +38,6 @@ const scheduleDates = ref<string[]>([]); // 有日程的日期列表
 const selectedDateSchedules = ref<SystemScheduleApi.Schedule[]>([]); // 选中日期的日程列表
 const showFloatingList = ref(false); // 是否显示浮动列表
 const floatingListExpanded = ref(true); // 浮动列表是否展开
-const calendarRef = ref<HTMLElement>(); // 日历容器引用
 
 // 详情弹窗
 const [DetailModal, detailModalApi] = useVbenModal({
@@ -182,7 +181,7 @@ onMounted(async () => {
     </div>
 
     <!-- 日历 -->
-    <div ref="calendarRef" class="schedule-calendar px-4 pb-4">
+    <div class="schedule-calendar px-4 pb-4">
       <Calendar
         v-model:value="selectedDate"
         @select="handleDateSelect"

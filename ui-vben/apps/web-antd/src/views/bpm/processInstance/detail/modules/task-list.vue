@@ -106,7 +106,7 @@ const [Grid, gridApi] = useVbenVxeGrid({
     cellConfig: {
       height: 60,
     },
-  } as VxeTableGridOptions<BpmTaskApi.Task>,
+  } as VxeTableGridOptions<BpmTaskApi.TaskManager>,
 });
 
 /**

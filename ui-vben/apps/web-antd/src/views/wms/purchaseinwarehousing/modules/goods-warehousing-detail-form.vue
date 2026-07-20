@@ -1,5 +1,4 @@
 <script lang="ts" setup>
-import type { OnActionClickParams } from '#/adapter/vxe-table';
 import type { PurchaseInWarehousingApi } from '#/api/wms/purchaseinwarehousing';
 
 import { h, nextTick, watch } from 'vue';
@@ -19,22 +18,9 @@ const props = defineProps<{
   purchaseOrderId?: number; // 采购订单id（主表的关联字段）
 }>();
 
-/** 表格操作按钮的回调函数 */
-function onActionClick({
-  code,
-  row,
-}: OnActionClickParams<PurchaseInWarehousingApi.GoodsWarehousingDetail>) {
-  switch (code) {
-    case 'delete': {
-      onDelete(row);
-      break;
-    }
-  }
-}
-
 const [Grid, gridApi] = useVbenVxeGrid({
   gridOptions: {
-    columns: useGoodsWarehousingDetailGridEditColumns(onActionClick),
+    columns: useGoodsWarehousingDetailGridEditColumns(),
     border: true,
     showOverflow: true,
     autoResize: true,
@@ -51,22 +37,12 @@ const [Grid, gridApi] = useVbenVxeGrid({
   },
 });
 
-/** 添加采购入库、领用、退库、归还、借用、调拨明细 */
-const onAdd = async () => {
-  await gridApi.grid.insertAt(
-    {} as PurchaseInWarehousingApi.GoodsWarehousingDetail,
-    -1,
-  );
-};
-
-/** 删除采购入库、领用、退库、归还、借用、调拨明细 */
-const onDelete = async (
-  row: PurchaseInWarehousingApi.GoodsWarehousingDetail,
-) => {
-  await gridApi.grid.remove(row);
-};
-
 /** 提供获取表格数据的方法供父组件调用 */
+/** 新增明细 */
+const onAdd = async () => {
+  await gridApi.grid.insertAt({} as PurchaseInWarehousingApi.GoodsWarehousingDetail, -1);
+};
+
 defineExpose({
   getData: (): PurchaseInWarehousingApi.GoodsWarehousingDetail[] => {
     const data =

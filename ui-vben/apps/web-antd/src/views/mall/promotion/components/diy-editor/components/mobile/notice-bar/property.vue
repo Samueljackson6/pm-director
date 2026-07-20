@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import type { FormProps } from 'ant-design-vue';
+
 import type { NoticeBarProperty } from './config';
 
 import { useVModel } from '@vueuse/core';
@@ -21,7 +23,7 @@ const props = defineProps<{ modelValue: NoticeBarProperty }>();
 const emit = defineEmits(['update:modelValue']);
 
 const formData = useVModel(props, 'modelValue', emit);
-const rules = {
+const rules: FormProps['rules'] = {
   content: [{ required: true, message: '请输入公告', trigger: 'blur' }],
 }; // 表单校验
 </script>

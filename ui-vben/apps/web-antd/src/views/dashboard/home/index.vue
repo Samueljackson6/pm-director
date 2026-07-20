@@ -49,10 +49,7 @@ onMounted(() => {
 
 <template>
   <Page
-    :content-class="{
-      'p-0!': true,
-      'm-0!': true,
-    }"
+    content-class="p-0! m-0!"
     :content-style="{ height: 'calc(100vh - 64px)', padding: '0', margin: '0' }"
   >
     <Spin :spinning="loading" tip="加载首页配置...">

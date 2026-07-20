@@ -5,6 +5,7 @@ import { requestClient } from '#/api/request';
 export namespace ErpSaleOutApi {
   /** 销售出库信息 */
   export interface SaleOut {
+    receiptPrice?: number;
     id?: number; // 销售出库编号
     no?: string; // 销售出库号
     customerId?: number; // 客户编号
@@ -26,6 +27,7 @@ export namespace ErpSaleOutApi {
 
   /** 销售出库项 */
   export interface SaleOutItem {
+    seq?: number;
     count?: number;
     id?: number;
     orderItemId?: number;

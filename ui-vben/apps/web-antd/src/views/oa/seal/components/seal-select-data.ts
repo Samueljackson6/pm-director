@@ -1,7 +1,5 @@
 import type { VbenFormSchema } from '#/adapter/form';
 import type { VxeGridProps } from '#/adapter/vxe-table';
-import type { SealApi } from '#/api/oa/seal/sealinfo';
-
 import { handleTree } from '@vben/utils';
 
 import { getCompanyList } from '#/api/system/dept';

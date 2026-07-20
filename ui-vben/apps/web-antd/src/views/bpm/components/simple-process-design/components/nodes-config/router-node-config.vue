@@ -42,6 +42,7 @@ const currentNode = useWatchNode(props);
 /** 节点名称 */
 const { nodeName, showInput, clickIcon, changeNodeName, inputRef } =
   useNodeName(BpmNodeTypeEnum.ROUTER_BRANCH_NODE);
+void inputRef;
 const routerGroups = ref<RouterSetting[]>([]);
 const nodeOptions = ref<any[]>([]);
 const conditionRef = ref<any[]>([]);

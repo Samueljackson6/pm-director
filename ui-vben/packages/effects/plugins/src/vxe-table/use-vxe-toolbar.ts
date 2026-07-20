@@ -14,6 +14,16 @@ export function useTableToolbar() {
   const tableRef = ref<VxeTableInstance>();
   const isBound = ref<boolean>(false);
 
+  function setTableToolbarRef(instance: unknown) {
+    tableToolbarRef.value = instance
+      ? (instance as InstanceType<typeof VbenVxeTableToolbar>)
+      : undefined;
+  }
+
+  function setTableRef(instance: unknown) {
+    tableRef.value = instance ? (instance as VxeTableInstance) : undefined;
+  }
+
   /** 挂载 toolbar 工具栏 */
   async function bindTableToolbar() {
     const table = tableRef.value;
@@ -42,6 +52,8 @@ export function useTableToolbar() {
 
   return {
     hiddenSearchBar,
+    setTableRef,
+    setTableToolbarRef,
     tableToolbarRef,
     tableRef,
   };

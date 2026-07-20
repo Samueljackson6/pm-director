@@ -69,10 +69,10 @@ const [Grid, gridApi] = useVbenVxeGrid({
             ...formValues,
           });
           // 将 thumbUrl 转成 picUrl，保证 wx-news 组件可以预览封面
-          res.list.forEach((record: any) => {
+          res.list.forEach((record) => {
             const newsList = record.content?.newsItem;
             if (newsList) {
-              newsList.forEach((item: any) => {
+              newsList.forEach((item) => {
                 item.picUrl = item.thumbUrl || item.picUrl;
               });
             }
@@ -92,7 +92,7 @@ const [Grid, gridApi] = useVbenVxeGrid({
       refresh: true,
       search: true,
     },
-  } as VxeTableGridOptions<FreePublish.FreePublish>,
+  } as VxeTableGridOptions<MpFreePublishApi.FreePublish>,
 });
 </script>
 
@@ -130,7 +130,7 @@ const [Grid, gridApi] = useVbenVxeGrid({
             :key="index"
             class="flex h-36 items-center justify-center"
           >
-            <Typography.Link :href="(item as any).url" target="_blank">
+            <Typography.Link :href="item.url" target="_blank">
               {{ item.title }}
             </Typography.Link>
           </div>

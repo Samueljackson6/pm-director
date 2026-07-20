@@ -136,8 +136,8 @@ function autoSearch(queryValue: string) {
 }
 
 /** 处理地址选择 */
-function handleAddressSelect(value: string) {
-  if (value) {
+function handleAddressSelect(value: unknown) {
+  if (typeof value === 'string' && value) {
     regeoCode(value);
   }
 }

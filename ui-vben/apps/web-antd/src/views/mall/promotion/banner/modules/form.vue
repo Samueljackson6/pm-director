@@ -1,7 +1,5 @@
 <script lang="ts" setup>
 import type { MallBannerApi } from '#/api/mall/promotion/banner';
-import type { SystemUserApi } from '#/api/system/user';
-
 import { computed, ref } from 'vue';
 
 import { useVbenModal } from '@vben/common-ui';
@@ -19,7 +17,7 @@ import { $t } from '#/locales';
 import { useFormSchema } from '../data';
 
 const emit = defineEmits(['success']);
-const formData = ref<SystemUserApi.User>();
+const formData = ref<MallBannerApi.Banner>();
 const getTitle = computed(() => {
   return formData.value?.id
     ? $t('ui.actionTitle.edit', ['Banner'])
@@ -70,9 +68,10 @@ const [Modal, modalApi] = useVbenModal({
     }
     modalApi.lock();
     try {
-      formData.value = await getBanner(data.id);
+      const banner = await getBanner(data.id);
+      formData.value = banner;
       // 设置到 values
-      await formApi.setValues(formData.value);
+      await formApi.setValues(banner);
     } finally {
       modalApi.unlock();
     }

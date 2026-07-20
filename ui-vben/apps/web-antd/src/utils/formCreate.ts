@@ -10,7 +10,6 @@
  */
 // TODO @芋艿：后续这些 form-create 的优化；另外需要使用 form-create-helper 会好点
 import { isRef } from 'vue';
-import { BpmProcessInstanceStatus } from '@vben/constants';
 
 import formCreate from '@form-create/ant-design-vue';
 // 编码表单 Conf

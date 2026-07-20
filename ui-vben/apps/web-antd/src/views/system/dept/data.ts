@@ -8,6 +8,8 @@ import { getDictOptions } from '@vben/hooks';
 import { handleTree } from '@vben/utils';
 
 import { z } from '#/adapter/form';
+
+const DEPT_ORG_TYPE_DICT = 'system_dept_org_type';
 import { getDeptList } from '#/api/system/dept';
 import { getSimpleUserList } from '#/api/system/user';
 
@@ -37,7 +39,7 @@ export function useFormSchema(): VbenFormSchema[] {
           data.unshift({
             id: 0,
             name: '顶级组织',
-          });
+          } as SystemDeptApi.Dept);
           return handleTree(data);
         },
         labelField: 'name',
@@ -62,7 +64,7 @@ export function useFormSchema(): VbenFormSchema[] {
       label: '组织类型',
       component: 'Select',
       componentProps: {
-        options: getDictOptions(DICT_TYPE.SYSTEM_DEPT_ORG_TYPE, 'string'),
+        options: getDictOptions(DEPT_ORG_TYPE_DICT, 'string'),
         placeholder: '请选择组织类型',
       },
       rules: 'required',
@@ -140,7 +142,7 @@ export function useGridColumns(): VxeTableGridOptions<SystemDeptApi.Dept>['colum
       title: '组织类型',
       cellRender: {
         name: 'CellDict',
-        props: { type: DICT_TYPE.SYSTEM_DEPT_ORG_TYPE },
+        props: { type: DEPT_ORG_TYPE_DICT },
       },
     },
     {

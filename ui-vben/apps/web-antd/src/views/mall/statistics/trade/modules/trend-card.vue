@@ -88,9 +88,10 @@ async function loadTradeTrendData() {
 
 /** 查询交易状况数据统计 */
 async function loadTradeStatisticsAnalyse() {
-  trendSummary.value = await getTradeStatisticsAnalyse({
+  const params = {
     times: searchTimes.value.length > 0 ? searchTimes.value : undefined,
-  });
+  } as unknown as MallTradeStatisticsApi.TradeTrendReqVO;
+  trendSummary.value = await getTradeStatisticsAnalyse(params);
 }
 
 /** 查询交易状况数据列表 */

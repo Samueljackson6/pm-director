@@ -69,7 +69,7 @@ export function useGridColumns(): VxeTableGridOptions['columns'] {
       },
       cellRender: {
         name: 'VxeTag',
-        props: ({ row }) => {
+        props: ({ row }: { row: { readStatus: number } }) => {
           const isRead = row.readStatus === 1;
           return {
             type: isRead ? 'success' : 'warning',

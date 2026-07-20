@@ -8,7 +8,7 @@
 <script lang="ts" setup>
 import type { CategoryApi } from '#/api/asset/category';
 
-import { ref, watch } from 'vue';
+import { watch } from 'vue';
 
 import { useVbenForm } from '#/adapter/form';
 
@@ -21,9 +21,6 @@ interface Props {
 
 const props = defineProps<Props>();
 
-// const activeTab = ref('bill');
-const formRef = ref();
-
 // 创建表单实例
 const [Form, formApi] = useVbenForm({
   commonConfig: {
@@ -35,13 +32,12 @@ const [Form, formApi] = useVbenForm({
     disabled: props.disabled,
   },
   layout: 'horizontal',
-  schema: useFormSchema(null), // 先传入 null，后续更新
+  schema: useFormSchema(), // 先传入 null，后续更新
   showDefaultActions: false,
   wrapperClass: 'grid-cols-4', // 设置为4列布局
 });
 
 // 更新 schema 以传入 formApi
-formApi.setState({ schema: useFormSchema(formApi) });
 
 // 监听表单数据变化
 watch(
@@ -75,7 +71,7 @@ defineExpose({
 <template>
   <div class="form-content flex h-full flex-col bg-white">
     <div class="h-full overflow-auto pb-6">
-      <Form ref="formRef" />
+      <Form />
     </div>
   </div>
 </template>

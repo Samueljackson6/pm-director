@@ -23,8 +23,6 @@ const props = defineProps({
 });
 
 const emit = defineEmits(['update:modelValue']);
-const formRef = ref(); // 表单引用
-const uploadRef = ref(); // 上传组件引用
 const parent = inject('parent', null); // 获取父组件实例
 const { uploadUrl, httpRequest } = useUpload(); // 使用上传组件的钩子
 const fileList = ref<UploadProps['fileList']>([]); // 文件列表
@@ -186,14 +184,13 @@ onMounted(() => {
 </script>
 
 <template>
-  <Form ref="formRef" :model="modelData" label-width="0" class="mt-5">
+  <Form :model="modelData" label-width="0" class="mt-5">
     <Form.Item class="mb-5">
       <div class="w-full">
         <div
           class="w-full rounded-md border-2 border-dashed border-gray-200 p-5 text-center hover:border-blue-500"
         >
           <UploadDragger
-            ref="uploadRef"
             class="upload-demo"
             :action="uploadUrl"
             v-model:file-list="fileList"
@@ -240,7 +237,7 @@ onMounted(() => {
               danger
               type="text"
               link
-              @click="removeFile(index)"
+              @click="removeFile(Number(index))"
               class="ml-2"
             >
               <IconifyIcon icon="lucide:trash-2" />

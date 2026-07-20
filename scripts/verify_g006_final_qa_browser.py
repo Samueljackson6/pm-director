@@ -88,10 +88,14 @@ def attach_network_audit(page: Page, result: dict[str, Any]) -> None:
 
 def first_detail(page: Page) -> bool:
     target = page.locator('.vxe-body--row [title]').first
-    if target.count() == 0:
+    try:
+        target.wait_for(state='visible', timeout=5_000)
+    except Exception:
         target = page.get_by_role('button', name=cn(0x8BE6, 0x60C5)).first
-    if target.count() == 0:
-        return False
+        try:
+            target.wait_for(state='visible', timeout=5_000)
+        except Exception:
+            return False
     target.click()
     page.wait_for_timeout(650)
     return 'id=' in page.url

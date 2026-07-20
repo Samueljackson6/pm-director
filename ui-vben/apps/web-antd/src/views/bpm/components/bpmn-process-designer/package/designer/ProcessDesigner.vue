@@ -133,6 +133,7 @@ const emit = defineEmits([
 ]);
 
 const bpmnCanvas = ref();
+void bpmnCanvas;
 const refFile = ref();
 
 /**

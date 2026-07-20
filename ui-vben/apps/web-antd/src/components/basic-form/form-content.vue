@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import type { VbenFormSchema } from '#/adapter/form';
 
-import { ref, watch } from 'vue';
+import { watch } from 'vue';
 
 import { useVbenForm } from '#/adapter/form';
 
@@ -12,8 +12,6 @@ interface Props {
 }
 
 const props = defineProps<Props>();
-
-const formRef = ref();
 
 // 创建表单实例
 const [Form, formApi] = useVbenForm({
@@ -80,7 +78,7 @@ defineExpose({
 <template>
   <div class="form-content flex flex-col bg-white">
     <div class="pb-6">
-      <Form ref="formRef" />
+      <Form />
     </div>
     <!-- 扩展插槽，用于明细表格等 -->
     <slot name="extension"></slot>

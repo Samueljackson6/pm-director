@@ -22,7 +22,6 @@ const getTitle = computed(() => {
 
 
   /** 子表的表单 */
-  const subTabsName = ref('purchaseOrderDetail')
       const purchaseOrderDetailFormRef = ref<InstanceType<typeof PurchaseOrderDetailForm>>()
 
 const [Form, formApi] = useVbenForm({

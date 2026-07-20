@@ -66,6 +66,7 @@ const currentNode = useWatchNode(props);
 /** 节点名称配置 */
 const { nodeName, showInput, clickIcon, changeNodeName, inputRef } =
   useNodeName(BpmNodeTypeEnum.CHILD_PROCESS_NODE);
+void inputRef;
 // 激活的 Tab 标签页
 const activeTabName = ref('child');
 // 子流程表单配置

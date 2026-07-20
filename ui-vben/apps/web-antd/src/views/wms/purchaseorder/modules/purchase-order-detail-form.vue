@@ -1,5 +1,4 @@
 <script lang="ts" setup>
-import type { OnActionClickParams } from '#/adapter/vxe-table';
 import type { PurchaseOrderApi } from '#/api/wms/purchaseorder';
 
 import { h, nextTick, watch } from 'vue';
@@ -18,22 +17,9 @@ const props = defineProps<{
   purchaseOrderId?: number; // 采购订单id（主表的关联字段）
 }>();
 
-/** 表格操作按钮的回调函数 */
-function onActionClick({
-  code,
-  row,
-}: OnActionClickParams<PurchaseOrderApi.PurchaseOrderDetail>) {
-  switch (code) {
-    case 'delete': {
-      onDelete(row);
-      break;
-    }
-  }
-}
-
 const [Grid, gridApi] = useVbenVxeGrid({
   gridOptions: {
-    columns: usePurchaseOrderDetailGridEditColumns(onActionClick),
+    columns: usePurchaseOrderDetailGridEditColumns(),
     border: true,
     showOverflow: true,
     autoResize: true,
@@ -53,11 +39,6 @@ const [Grid, gridApi] = useVbenVxeGrid({
 /** 添加采购订单明细 */
 const onAdd = async () => {
   await gridApi.grid.insertAt({} as PurchaseOrderApi.PurchaseOrderDetail, -1);
-};
-
-/** 删除采购订单明细 */
-const onDelete = async (row: PurchaseOrderApi.PurchaseOrderDetail) => {
-  await gridApi.grid.remove(row);
 };
 
 /** 提供获取表格数据的方法供父组件调用 */

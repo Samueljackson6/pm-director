@@ -1,7 +1,7 @@
 import type { VbenFormSchema } from '#/adapter/form';
 import type { VxeTableGridOptions } from '#/adapter/vxe-table';
 
-import { computed, h, ref } from 'vue';
+import { h, ref } from 'vue';
 
 import { CommonStatusEnum, DICT_TYPE } from '@vben/constants';
 import { getDictOptions } from '@vben/hooks';
@@ -39,10 +39,10 @@ export function useFormSchema(): VbenFormSchema[] {
       component: 'Select',
       fieldName: 'categoryId',
       label: '组件分类',
-      componentProps: computed(() => ({
+      componentProps: {
         options: categoryOptions.value,
         placeholder: '请选择组件分类',
-      })),
+      },
       rules: 'required',
     },
     {
@@ -153,11 +153,11 @@ export function useGridFormSchema(): VbenFormSchema[] {
       fieldName: 'categoryId',
       label: '组件分类',
       component: 'Select',
-      componentProps: computed(() => ({
+      componentProps: {
         options: categoryOptions.value,
         placeholder: '请选择组件分类',
         allowClear: true,
-      })),
+      },
     },
     {
       fieldName: 'status',
@@ -196,12 +196,14 @@ export function useGridColumns(): VxeTableGridOptions['columns'] {
       title: '组件分类',
       minWidth: 120,
       cellRender: {
-        name: 'CellRender',
-        content: ({ row }) => {
-          const category = categoryOptions.value.find(
-            (c) => c.value === row.categoryId,
-          );
-          return h(Tag, { color: 'blue' }, () => category?.label || '-');
+        name: 'VxeCellRender',
+        props: {
+          render: ({ row }: any) => {
+            const category = categoryOptions.value.find(
+              (item) => item.value === row.categoryId,
+            );
+            return h(Tag, { color: 'blue' }, () => category?.label || '-');
+          },
         },
       },
     },

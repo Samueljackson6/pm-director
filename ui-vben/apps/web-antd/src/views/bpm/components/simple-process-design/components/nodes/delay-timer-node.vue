@@ -33,6 +33,7 @@ const { showInput, changeNodeName, clickTitle, inputRef } = useNodeName2(
   currentNode,
   BpmNodeTypeEnum.DELAY_TIMER_NODE,
 );
+void inputRef;
 
 const nodeSetting = ref();
 // 打开节点配置

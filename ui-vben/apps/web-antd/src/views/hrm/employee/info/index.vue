@@ -506,7 +506,7 @@ async function handleSave() {
       // 新增成功后，如果有返回ID，更新路由并加载数据
       if (result && typeof result === 'number') {
         formData.value.id = result;
-        await loadData(result);
+        await loadData(String(result));
       }
     }
   } catch (error) {
@@ -518,8 +518,8 @@ async function handleSave() {
 }
 
 /** 关闭 */
-function handleClose() {
-  closeCurrentTab();
+async function handleClose() {
+  await closeCurrentTab();
   router.go(-1);
 }
 

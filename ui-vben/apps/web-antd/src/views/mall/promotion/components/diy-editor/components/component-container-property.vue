@@ -29,6 +29,18 @@ const props = defineProps<{ modelValue: ComponentStyle }>();
 const emit = defineEmits(['update:modelValue']);
 const formData = useVModel(props, 'modelValue', emit);
 
+type SpacingStyleKey =
+  | 'margin'
+  | 'marginBottom'
+  | 'marginLeft'
+  | 'marginRight'
+  | 'marginTop'
+  | 'padding'
+  | 'paddingBottom'
+  | 'paddingLeft'
+  | 'paddingRight'
+  | 'paddingTop';
+
 const treeData: any[] = [
   {
     label: '外部边距',
@@ -183,7 +195,7 @@ function handleSliderChange(prop: string) {
                   <Col :span="19">
                     <Slider
                       v-model:value="
-                        formData[dataRef.prop as keyof ComponentStyle]
+                        formData[dataRef.prop as SpacingStyleKey]
                       "
                       :max="100"
                       :min="0"
@@ -197,7 +209,7 @@ function handleSliderChange(prop: string) {
                       :max="100"
                       :min="0"
                       v-model:value="
-                        formData[dataRef.prop as keyof ComponentStyle]
+                        formData[dataRef.prop as SpacingStyleKey]
                       "
                     />
                   </Col>

@@ -20,6 +20,7 @@ export namespace ErpStockCheckApi {
 
   /** 库存盘点项 */
   export interface StockCheckItem {
+    seq?: number;
     id?: number; // 编号
     warehouseId?: number; // 仓库编号
     productId?: number; // 产品编号

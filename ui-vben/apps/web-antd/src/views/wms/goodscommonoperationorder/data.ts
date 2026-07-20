@@ -2,11 +2,7 @@ import type { VbenFormSchema } from '#/adapter/form';
 import type { VxeTableGridOptions } from '#/adapter/vxe-table';
 import type { GoodsCommonOperationOrderApi } from '#/api/wms/goodscommonoperationorder';
 
-import { z } from '#/adapter/form';
-import {
-    getDictOptions,
-    getRangePickerDefaultProps,
-} from '#/utils';
+import { getRangePickerDefaultProps } from '#/utils';
 
 /** 新增/修改的表单 */
 export function useFormSchema(): VbenFormSchema[] {
@@ -323,6 +319,7 @@ export function useGridFormSchema(): VbenFormSchema[] {
     {
       fieldName: 'commonOperationFile',
       label: '领用、退库、归还、借用附件',
+      component: 'Input',
     },
     {
       fieldName: 'stockReturnTotalData',
@@ -974,4 +971,4 @@ export function useGridColumns(): VxeTableGridOptions<GoodsCommonOperationOrderA
             },
         ];
     }
-
+

@@ -103,6 +103,7 @@ const nodeTypeName = ref('审批'); // 节点类型名称
 const reasonRequire = ref();
 const approveFormRef = ref<FormInstance>();
 const approveSignFormRef = ref();
+void approveSignFormRef;
 const nextAssigneesActivityNode = ref<BpmProcessInstanceApi.ApprovalNodeInfo[]>(
   [],
 ); // 下一个审批节点信息

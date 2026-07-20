@@ -4,7 +4,7 @@ import { onMounted, ref, watch } from 'vue';
 
 import { Cascader } from 'ant-design-vue';
 
-import { getAreaTree } from '#/api/system/area';
+import { getAreaTree, type SystemAreaApi } from '#/api/system/area';
 
 defineOptions({ name: 'AreaSelect' });
 
@@ -25,15 +25,9 @@ const emit = defineEmits<{
 }>();
 
 // 地区数据接口
-interface AreaVO {
-  id: number;
-  name: string;
-  code: string;
-  parentId?: number;
-  sort?: number;
-  status?: number;
+type AreaVO = SystemAreaApi.Area & {
   children?: AreaVO[];
-}
+};
 
 // 接受父组件参数
 interface Props {
@@ -58,7 +52,7 @@ const fieldNames = {
 // 地区树形数据
 const areaTree = ref<AreaVO[]>([]);
 // 当前选中值
-const selectedValue = ref<number[] | undefined>();
+const selectedValue = ref<Array<number | string> | undefined>();
 // 加载状态
 const loading = ref(false);
 
@@ -98,15 +92,16 @@ function filterTreeByLevel(tree: AreaVO[], maxLevel: number): AreaVO[] {
 }
 
 // 处理选中值变化
-function handleChange(value: number[] | undefined): void {
-  if (value === undefined || value === null) {
+function handleChange(value: unknown): void {
+  if (!Array.isArray(value)) {
     emit('update:modelValue', undefined);
     emit('update:value', undefined);
     return;
   }
 
-  emit('update:modelValue', value);
-  emit('update:value', value);
+  const selected = value as number[] | string[];
+  emit('update:modelValue', selected);
+  emit('update:value', selected);
 }
 
 // 同步 modelValue 或 value 到内部选中值
@@ -120,8 +115,8 @@ function syncSelectedValue(): void {
 
   // 确保是数组格式
   selectedValue.value = Array.isArray(newValue)
-    ? (newValue as number[])
-    : [newValue as number];
+    ? (newValue as Array<number | string>)
+    : [newValue as number | string];
 }
 
 // 监听 modelValue 和 value 变化

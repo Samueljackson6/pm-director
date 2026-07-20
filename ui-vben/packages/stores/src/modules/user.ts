@@ -26,15 +26,15 @@ interface BasicUserInfo {
   /**
    * 部门名称
    */
-  deptName: string;
+  deptName?: string;
   /**
    * 公司id
    */
-  companyId: number;
+  companyId?: number;
   /**
    * 公司名称
    */
-  companyName: string;
+  companyName?: string;
 }
 
 interface AccessState {

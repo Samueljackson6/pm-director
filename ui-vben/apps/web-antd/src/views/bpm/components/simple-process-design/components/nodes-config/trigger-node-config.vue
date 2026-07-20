@@ -73,6 +73,7 @@ const currentNode = useWatchNode(props);
 // 节点名称
 const { nodeName, showInput, clickIcon, changeNodeName, inputRef } =
   useNodeName(BpmNodeTypeEnum.TRIGGER_NODE);
+void inputRef;
 // 触发器表单配置
 const formRef = ref(); // 表单 Ref
 

@@ -41,6 +41,7 @@ const { showInput, changeNodeName, clickTitle, inputRef } = useNodeName2(
   currentNode,
   BpmNodeTypeEnum.START_USER_NODE,
 );
+void inputRef;
 
 const nodeSetting = ref();
 

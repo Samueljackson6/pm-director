@@ -23,7 +23,7 @@ export function useFormSchema(): VbenFormSchema[] {
       fieldName: 'companyId',
       label: '所属公司',
       component: 'ApiTreeSelect',
-      componentProps: (values, formApi) => ({
+      componentProps: (_values, formApi) => ({
         allowClear: true,
         api: async () => {
           const data = await getCompanyList();

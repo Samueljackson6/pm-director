@@ -2,7 +2,7 @@
 import type { GoodsCommonOperationOrderApi } from '#/api/wms/goodscommonoperationorder';
 
 import { useVbenModal } from '@vben/common-ui';
-import { message, Tabs, Checkbox, Input, Textarea, Select,RadioGroup,CheckboxGroup, DatePicker } from 'ant-design-vue';
+import { message, Tabs } from 'ant-design-vue';
   import GoodsWarehousingDetailForm from './goods-warehousing-detail-form.vue'
 
 import { computed, ref } from 'vue';
@@ -49,7 +49,7 @@ const [Modal, modalApi] = useVbenModal({
     // 提交表单
     const data = (await formApi.getValues()) as GoodsCommonOperationOrderApi.GoodsCommonOperationOrder;
             // 拼接子表的数据
-            data.goodsWarehousingDetails = goodsWarehousingDetailFormRef.value?.getData();
+            data.goodswarehousingdetails = goodsWarehousingDetailFormRef.value?.getData();
     try {
       await (formData.value?.id ? updateGoodsCommonOperationOrder(data) : createGoodsCommonOperationOrder(data));
       // 关闭并提示
@@ -95,4 +95,4 @@ const [Modal, modalApi] = useVbenModal({
           </Tabs.TabPane>
       </Tabs>
   </Modal>
-</template>
+</template>
