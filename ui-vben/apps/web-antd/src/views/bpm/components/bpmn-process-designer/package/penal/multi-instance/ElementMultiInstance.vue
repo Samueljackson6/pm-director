@@ -114,6 +114,9 @@ const getElementLoop = (businessObject: any): void => {
   }
 };
 
+// 保留多实例配置与 BPMN 扩展元素的同步逻辑。
+void getElementLoop;
+
 const changeLoopCharacteristicsType = (type: any): void => {
   // this.loopInstanceForm = { ...this.defaultLoopInstanceForm }; // 切换类型取消原表单配置
   // 取消多实例配置

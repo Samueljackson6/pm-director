@@ -27,6 +27,7 @@ export namespace ErpSaleOrderApi {
 
   /** 销售订单项 */
   export interface SaleOrderItem {
+    seq?: number;
     id?: number; // 订单项编号
     orderId?: number; // 采购订单编号
     productId?: number; // 产品编号

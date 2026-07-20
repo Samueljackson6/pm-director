@@ -58,8 +58,8 @@ describe('getRawRoute', () => {
       path: '/dashboard/analytics',
     });
     // heavy fields must NOT be present
-    expect((raw.matched?.[0] as Record<string, unknown>).components).toBeUndefined();
-    expect((raw.matched?.[0] as Record<string, unknown>).instances).toBeUndefined();
+    expect((raw.matched?.[0] as unknown as Record<string, unknown>).components).toBeUndefined();
+    expect((raw.matched?.[0] as unknown as Record<string, unknown>).instances).toBeUndefined();
   });
 
   it('preserves an undefined matched array', () => {

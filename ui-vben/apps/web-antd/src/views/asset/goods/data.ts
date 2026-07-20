@@ -86,7 +86,7 @@ export function useFormSchema(): VbenFormSchema[] {
       label: '计量单位',
       component: 'Select',
       componentProps: {
-        options: getDictOptions(DICT_TYPE.ASSET_GOODS_UNIT, 'number'),
+        options: getDictOptions('asset_goods_unit', 'number'),
         placeholder: '请输入计量单位',
       },
     },
@@ -150,7 +150,7 @@ export function useFormSchema(): VbenFormSchema[] {
       component: 'Select',
       rules: 'required',
       componentProps: {
-        options: getDictOptions(DICT_TYPE.COMMON_YES_NO, 'number'),
+        options: getDictOptions('common_yes_no', 'number'),
         placeholder: '请选择是否在资产列表显示',
       },
     },

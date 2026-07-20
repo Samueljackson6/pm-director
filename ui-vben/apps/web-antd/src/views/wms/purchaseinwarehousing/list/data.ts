@@ -194,6 +194,7 @@ export function useGridFormSchema(): VbenFormSchema[] {
     {
       fieldName: 'inWarehousingFile',
       label: '附件',
+      component: 'Input',
     },
     {
       fieldName: 'inWarehousingTotalData',

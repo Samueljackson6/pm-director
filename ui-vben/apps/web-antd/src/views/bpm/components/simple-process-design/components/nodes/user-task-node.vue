@@ -41,6 +41,7 @@ const { showInput, changeNodeName, clickTitle, inputRef } = useNodeName2(
   currentNode,
   BpmNodeTypeEnum.USER_TASK_NODE,
 );
+void inputRef;
 const nodeSetting = ref();
 
 const [Modal, modalApi] = useVbenModal({

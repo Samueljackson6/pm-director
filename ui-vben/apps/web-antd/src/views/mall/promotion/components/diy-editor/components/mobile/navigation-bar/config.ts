@@ -22,6 +22,8 @@ export interface NavigationBarCellProperty {
   height: number; // 高度
   top: number; // 顶部位置
   left: number; // 左侧位置
+  right: number; // right position
+  bottom: number; // bottom position
   text: string; // 文字内容
   textColor: string; // 文字颜色
   imgUrl: string; // 图片地址

@@ -35,6 +35,7 @@ const { showInput, changeNodeName, clickTitle, inputRef } = useNodeName2(
   currentNode,
   BpmNodeTypeEnum.COPY_TASK_NODE,
 );
+void inputRef;
 
 const nodeSetting = ref();
 // 打开节点配置

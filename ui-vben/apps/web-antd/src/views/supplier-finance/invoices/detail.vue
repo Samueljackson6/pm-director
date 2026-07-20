@@ -80,6 +80,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { message } from 'ant-design-vue'
 import { getInvoiceDetailApi, updateInvoiceApi, deleteInvoiceApi } from '#/api/invoices'
 import StateBlock from '#/components/state-block/index.vue'
+import { buildListReturnLocation } from '#/utils/business-navigation'
 
 const route = useRoute()
 const router = useRouter()
@@ -149,11 +150,19 @@ async function deleteInvoice() {
   if (!inv.value) return
   try {
     await deleteInvoiceApi(inv.value.invoice_id)
-    message.success('发票已删除'); router.push({ name: 'SupplierInvoices' })
+    message.success('发票已删除'); goBack()
   } catch (e: any) { message.error('删除失败: ' + (e?.message || '未知错误')) }
 }
 
-function goBack() { router.push({ name: 'SupplierInvoices' }) }
+function goBack() {
+  router.push(
+    buildListReturnLocation({
+      currentDetailName: 'SupplierInvoiceDetail',
+      detailQuery: route.query,
+      fallbackName: 'SupplierInvoices',
+    }),
+  )
+}
 function fmtMoney(n: number | null | undefined): string { return n == null ? '0.00' : n.toFixed(2) }
 function statusColor(status: string): string {
   const map: Record<string, string> = { '已付款': 'green', '已开': 'blue' }

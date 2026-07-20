@@ -19,6 +19,7 @@ export namespace ErpStockOutApi {
 
   /** 其它出库单产品信息 */
   export interface StockOutItem {
+    seq?: number;
     id?: number; // 编号
     warehouseId?: number; // 仓库编号
     productId?: number; // 产品编号

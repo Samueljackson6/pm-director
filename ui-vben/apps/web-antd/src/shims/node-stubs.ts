@@ -32,7 +32,7 @@ export const networkInterfaces = () => ({});
 // node:url
 export function pathToFileURL(p: string): URL { return new URL('file://' + p); }
 export function fileURLToPath(u: string | URL): string { return String(u); }
-export function format(): string { return ''; }
+export function format(value?: unknown, ..._args: any[]): string { return typeof value === 'string' ? value : ''; }
 export const URL = globalThis.URL;
 
 // node:path
@@ -41,14 +41,14 @@ export function join(...args: string[]): string { return args.join('/'); }
 export function dirname(p: string): string { return p.split('/').slice(0, -1).join('/') || '.'; }
 export function basename(p: string): string { return p.split('/').pop() || ''; }
 export function extname(p: string): string { const i = p.lastIndexOf('.'); return i >= 0 ? p.slice(i) : ''; }
-export function relative(from: string, to: string): string { return to; }
+export function relative(_from: string, to: string): string { return to; }
 export function isAbsolute(p: string): boolean { return p.startsWith('/'); }
 export function normalize(p: string): string { return p; }
 export const sep = '/';
 export const delimiter = ':';
 
 // node:fs (minimal — only sync methods jiti might reference)
-export function existsSync(p: string): boolean { return false; }
+export function existsSync(_p: string): boolean { return false; }
 export function readFileSync(): string { return ''; }
 export function statSync() { return { isFile: () => false, isDirectory: () => false, size: 0 }; }
 export function realpathSync(p: string): string { return p; }
@@ -82,7 +82,6 @@ export function fail(msg?: string) { throw new Error(msg || 'failed'); }
 // node:util
 export function inherits() {}
 export function promisify(fn: Function) { return fn; }
-export function format(f: string, ...args: any[]): string { return f; }
 export function deprecate(fn: Function) { return fn; }
 export function types() { return {}; }
 export const inspect = (x: any) => String(x);

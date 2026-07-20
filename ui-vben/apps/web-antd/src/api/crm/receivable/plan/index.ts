@@ -3,6 +3,12 @@ import type { PageParam, PageResult } from '@vben/request';
 import { requestClient } from '#/api/request';
 
 export namespace CrmReceivablePlanApi {
+  /** Receivable plan list query parameters. */
+  export interface PlanPageParam extends PageParam {
+    contractId?: number;
+    customerId?: number;
+  }
+
   /** 回款计划信息 */
   export interface Plan {
     id: number;

@@ -35,6 +35,7 @@ const { showInput, changeNodeName, clickTitle, inputRef } = useNodeName2(
   currentNode,
   BpmNodeTypeEnum.CHILD_PROCESS_NODE,
 );
+void inputRef;
 
 // 节点配置 Ref
 const nodeConfigRef = ref();

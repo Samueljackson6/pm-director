@@ -145,47 +145,49 @@ Playwright摘要：...
 
 ---
 
-## 🎨 UI 设计规范（2026-07-09 新增）
+## 🎨 UI 设计规范（2026-07-15 更新）
 
 **违反后果**：UI 效果差，用户体验差，组件使用不一致
 
-**参考文档**：`docs/UI设计规范.md`（完整版，含组件示例）
+**参考文档**：`docs/UI设计规范.md`（2.0 完整版）
 
 ### 核心原则
 
-1. **必须使用 Vben Admin 5 组件库** — 优先使用 Vben 封装的组件，禁止自定义未定义样式的类
-2. **充分利用动画/图形效果** — 页面切换动画、数据加载骨架屏、图表组件、进度条动画
-3. **结构化数据展示** — 使用 `a-descriptions` / `a-table` / `a-timeline` / `a-statistic` 等组件
-4. **视觉层次清晰** — 重要数据大字号+颜色强调，次要数据小字号+灰色，状态标签用 `a-tag` 颜色区分
+1. **只保留一套全局导航** — 桌面端使用 `sidebar-nav`，顶栏只保留工具，关闭全局页面标签栏
+2. **任务导向的信息架构** — 驾驶舱、合同履约、客户应收、供应商履约四个任务域
+3. **优先使用 Vben Admin 5 组件** — 页面使用 `Page`，列表使用 `useVbenVxeGrid`，状态使用 `StateBlock`
+4. **颜色和状态集中管理** — 业务组件禁止新增十六进制颜色，普通文字必须满足 WCAG AA
+5. **数据表达必须诚实** — 金额、状态、风险、评分和未知值必须有统一口径与核验时间
+6. **动效保持克制** — 只用于状态变化和操作反馈，必须支持 `prefers-reduced-motion`
 
 ### 组件使用规范
 
-- ✅ 使用：`a-card` / `a-descriptions` / `a-table` / `a-timeline` / `a-tag` / `a-progress` / `a-statistic`
-- ✅ 使用：Vben 自带的 `VbenCard` / `VbenDescriptions` 等封装组件
-- ❌ 禁止：自定义 `.panel` 类（已废弃，改用 `a-card`）
-- ❌ 禁止：未定义 CSS token（如 `var(--border)` 等，除非已在全局定义）
-- ❌ 禁止：硬编码颜色值（应使用 Vben 的主题色变量）
+- ✅ 使用：`Page` / `useVbenVxeGrid` / `Vben Form` / `StateBlock` / `EchartsUI`
+- ✅ 使用：`a-descriptions` / `a-timeline` / `a-tag` / `a-badge` / `a-tabs`
+- ❌ 禁止：为了统一把所有内容放入 `a-card`
+- ❌ 禁止：业务组件新增十六进制颜色或未定义 CSS Token
+- ❌ 禁止：可点击 `div`、只有双击才能进入详情、没有行为的占位按钮
 
-### 动画/图形效果规范
+### 动效与图形规范
 
-- **页面切换**：使用 `transition` 或 `animate.css`
-- **数据加载**：使用 `a-skeleton` 骨架屏
-- **图表展示**：使用 `echarts` 或 `v-charts`
-- **进度展示**：使用 `a-progress` 或自定义 CSS 动画
-- **甘特图/时间线**：使用专业组件（如 `v-gantt-chart` 或自定义 SVG）
+- **页面切换**：120ms 至 180ms 的单一淡入或位移
+- **数据加载**：使用 `StateBlock` 或与实际布局一致的骨架屏
+- **图表展示**：使用 `EchartsUI` + `useEcharts`，按当前视图懒加载
+- **进度展示**：只显示有业务依据的进度，不生成伪百分比
+- **减少动效**：遵守 `prefers-reduced-motion`，禁止持续脉冲、自动轮播和背景粒子
 
 ### 数据展示规范
 
-- **基本信息**：使用 `a-descriptions`（bordered 模式）
-- **列表数据**：使用 `a-table`（带分页、排序、筛选）
-- **时间线**：使用 `a-timeline`（带状态颜色）
-- **统计卡片**：使用 `a-statistic` + 图标
-- **状态标签**：使用 `a-tag` 颜色区分（green=已完成, blue=进行中, gray=待处理, red=异常）
+- **基本信息**：使用 `a-descriptions` 或语义清晰的字段组
+- **列表数据**：使用 `useVbenVxeGrid`，筛选、分页和排序写入 URL Query
+- **时间关系**：使用 `a-timeline` 或阶段 3“履约链”
+- **状态标签**：使用统一状态字典，颜色不能是唯一信息
+- **未知数据**：区分“待补充”“待核验”“不适用”和真实的 0
 
 ### 响应式设计
 
-- 使用 `grid grid-cols-1 lg:grid-cols-N` 响应式布局
-- 移动端适配（Vben Admin 5 已内置）
+- 使用 Vben/Ant Design Vue 栅格和 Tailwind 响应式布局
+- 验证 1440px、1024px、768px 和移动端无横向溢出
 
 ---
 

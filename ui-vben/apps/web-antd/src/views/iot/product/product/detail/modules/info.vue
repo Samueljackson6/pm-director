@@ -74,9 +74,8 @@ async function copyToClipboard(text: string) {
       </Descriptions.Item>
       <Descriptions.Item
         v-if="
-          [DeviceTypeEnum.DEVICE, DeviceTypeEnum.GATEWAY].includes(
-            product.deviceType!,
-          )
+          product.deviceType === DeviceTypeEnum.DEVICE ||
+          product.deviceType === DeviceTypeEnum.GATEWAY
         "
         label="联网方式"
       >

@@ -1,5 +1,4 @@
 import type { PageParam, PageResult } from '@vben/request';
-import type { Dayjs } from 'dayjs';
 
 import { requestClient } from '#/api/request';
 
@@ -63,4 +62,4 @@ export function exportGoods(params: any) {
   return requestClient.download('/asset/goods/export-excel', params);
 }
 
-
+

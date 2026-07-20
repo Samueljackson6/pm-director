@@ -18,6 +18,7 @@ import {
   IoTDataSpecsDataTypeEnum,
   IotRuleSceneActionTypeEnum,
   IoTThingModelAccessModeEnum,
+  IoTThingModelTypeEnum,
 } from '#/views/iot/utils/constants';
 
 import JsonParamsInput from '../inputs/json-params-input.vue';
@@ -37,10 +38,18 @@ const emit = defineEmits<{
 
 const action = useVModel(props, 'modelValue', emit);
 
+type ServiceWithParams = ThingModelService & {
+  inputParams?: Array<{
+    dataSpecs?: any;
+    dataType?: string;
+    identifier?: string;
+  }>;
+};
+
 const thingModelProperties = ref<ThingModelProperty[]>([]); // 物模型属性列表
 const loadingThingModel = ref(false); // 物模型加载状态
-const selectedService = ref<null | ThingModelService>(null); // 选中的服务对象
-const serviceList = ref<ThingModelService[]>([]); // 服务列表
+const selectedService = ref<null | ServiceWithParams>(null); // 选中的服务对象
+const serviceList = ref<ServiceWithParams[]>([]); // 服务列表
 const loadingServices = ref(false); // 服务加载状态
 
 // 参数值的计算属性，用于双向绑定
@@ -125,35 +134,18 @@ function handleServiceChange(serviceIdentifier?: any) {
 
   // 如果选择了服务且有输入参数，生成默认参数结构
   if (service && service.inputParams && service.inputParams.length > 0) {
-    const defaultParams = {};
+    const defaultParams: Record<string, unknown> = {};
     service.inputParams.forEach((param) => {
-      defaultParams[param.identifier] = getDefaultValueForParam(param);
+      if (param.identifier) {
+        defaultParams[param.identifier] = getDefaultValueForParam(param);
+      }
     });
     // 将默认参数转换为 JSON 字符串保存
     action.value.params = JSON.stringify(defaultParams, null, 2);
   }
 }
 
-/**
- * 获取物模型TSL数据
- * @param productId 产品ID
- * @returns 物模型TSL数据
- */
-async function getThingModelTSL(productId: number) {
-  if (!productId) return null;
-
-  try {
-    return await getThingModelListByProductId(productId);
-  } catch (error) {
-    console.error('获取物模型TSL数据失败:', error);
-    return null;
-  }
-}
-
-/**
- * 加载物模型属性（可写属性）
- * @param productId 产品ID
- */
+/** Load writable thing model properties. */
 async function loadThingModelProperties(productId: number) {
   if (!productId) {
     thingModelProperties.value = [];
@@ -162,32 +154,32 @@ async function loadThingModelProperties(productId: number) {
 
   try {
     loadingThingModel.value = true;
-    const tslData = await getThingModelTSL(productId);
-
-    if (!tslData?.properties) {
-      thingModelProperties.value = [];
-      return;
-    }
-
-    // 过滤出可写的属性（accessMode 包含 'w'）
-    thingModelProperties.value = tslData.properties.filter(
-      (property: ThingModelProperty) =>
-        property.accessMode &&
-        (property.accessMode === IoTThingModelAccessModeEnum.READ_WRITE.value ||
-          property.accessMode === IoTThingModelAccessModeEnum.WRITE_ONLY.value),
+    const thingModels = await getThingModelListByProductId(productId);
+    thingModelProperties.value = thingModels
+      .filter(
+        (thingModel) =>
+          Number(thingModel.type) === IoTThingModelTypeEnum.PROPERTY &&
+          thingModel.property !== undefined,
+      )
+      .map((thingModel) => ({
+        ...thingModel.property,
+        identifier: thingModel.property?.identifier ?? thingModel.identifier,
+        name: thingModel.property?.name ?? thingModel.name,
+      })) as ThingModelProperty[];
+    thingModelProperties.value = thingModelProperties.value.filter(
+      (property) =>
+        property.accessMode === IoTThingModelAccessModeEnum.READ_WRITE.value ||
+        property.accessMode === IoTThingModelAccessModeEnum.WRITE_ONLY.value,
     );
   } catch (error) {
-    console.error('加载物模型属性失败:', error);
+    console.error('Failed to load thing model properties:', error);
     thingModelProperties.value = [];
   } finally {
     loadingThingModel.value = false;
   }
 }
 
-/**
- * 加载服务列表
- * @param productId 产品ID
- */
+/** Load thing model services. */
 async function loadServiceList(productId: number) {
   if (!productId) {
     serviceList.value = [];
@@ -196,16 +188,20 @@ async function loadServiceList(productId: number) {
 
   try {
     loadingServices.value = true;
-    const tslData = await getThingModelTSL(productId);
-
-    if (!tslData?.services) {
-      serviceList.value = [];
-      return;
-    }
-
-    serviceList.value = tslData.services;
+    const thingModels = await getThingModelListByProductId(productId);
+    serviceList.value = thingModels
+      .filter(
+        (thingModel) =>
+          Number(thingModel.type) === IoTThingModelTypeEnum.SERVICE &&
+          thingModel.service !== undefined,
+      )
+      .map((thingModel) => ({
+        ...(thingModel.service as ServiceWithParams),
+        identifier: thingModel.service?.identifier ?? thingModel.identifier,
+        name: thingModel.service?.name ?? thingModel.name,
+      }));
   } catch (error) {
-    console.error('加载服务列表失败:', error);
+    console.error('Failed to load thing model services:', error);
     serviceList.value = [];
   } finally {
     loadingServices.value = false;

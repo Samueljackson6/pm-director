@@ -1,5 +1,5 @@
 <template>
-  <div class="p-4">
+  <div class="pm-workbench-page p-4">
     <Grid>
       <template #status="{ row }">
         <a-tag v-if="row" :color="row.status === 'active' ? 'green' : 'default'">

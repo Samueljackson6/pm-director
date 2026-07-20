@@ -94,7 +94,7 @@ const [Grid] = useVbenVxeGrid({
     </template>
     <template #contractNo="{ row }">
       <Button type="link" @click="handleContractDetail(row)">
-        {{ row.contractNo }}
+        {{ row.contract?.no }}
       </Button>
     </template>
     <template #actions="{ row }">

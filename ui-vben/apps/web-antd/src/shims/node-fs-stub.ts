@@ -1,4 +1,4 @@
-export function existsSync(p: string): boolean { return false; }
+export function existsSync(_p: string): boolean { return false; }
 export function readFileSync(): string { return ''; }
 export function statSync() { return { isFile: () => false, isDirectory: () => false, size: 0, mtime: new Date() }; }
 export function realpathSync(p: string): string { return p; }

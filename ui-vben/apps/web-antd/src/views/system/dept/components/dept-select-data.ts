@@ -19,7 +19,7 @@ export async function loadTreeData() {
   try {
     const data = await getDeptList();
     flatDeptList.value = data || [];
-    treeData.value = handleTree(data, 'id', 'parentId') || [];
+    treeData.value = (handleTree(data, 'id', 'parentId') || []) as unknown as (SystemDeptApi.Dept & { children?: SystemDeptApi.Dept[] })[];
   } catch (error) {
     console.error('加载部门数据失败', error);
     treeData.value = [];

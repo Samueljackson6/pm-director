@@ -19,7 +19,7 @@ import {
   Tag,
 } from 'ant-design-vue';
 
-import { getOtaTaskPage } from '#/api/iot/ota/task';
+import { cancelOtaTask, getOtaTaskPage } from '#/api/iot/ota/task';
 import { IoTOtaTaskStatusEnum } from '#/views/iot/utils/constants';
 
 import OtaTaskDetail from './ota-task-detail.vue';
@@ -89,7 +89,7 @@ async function handleCancelTask(id: number) {
     content: '确认要取消该升级任务吗？',
     async onOk() {
       try {
-        await IoTOtaTaskApi.cancelOtaTask(id);
+        await cancelOtaTask(id);
         message.success('取消成功');
         await refresh();
       } catch (error) {

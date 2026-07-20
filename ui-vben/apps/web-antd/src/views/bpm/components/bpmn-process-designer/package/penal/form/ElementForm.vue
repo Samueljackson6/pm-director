@@ -262,6 +262,17 @@ const _removeField = (field: any, index: any) => {
   updateElementExtensions();
 };
 
+// 保留已移除字段编辑界面的辅助引用。
+void [
+  _changeFieldTypeType,
+  _openFieldForm,
+  _openFieldOptionForm,
+  _saveFieldOption,
+  _saveField,
+  _removeFieldOptionItem,
+  _removeField,
+];
+
 const updateElementExtensions = () => {
   // 更新回扩展元素
   const newElExtensionElements = bpmnInstances().moddle.create(

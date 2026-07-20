@@ -1,5 +1,13 @@
 <template>
-  <div class="p-4">
+  <div class="pm-workbench-page p-4 sm:p-6">
+    <header class="pm-page-header">
+      <div>
+        <p class="pm-section-kicker">供应链协作</p>
+        <h1>供应商台账</h1>
+        <p class="pm-section-note">按合作规模、付款缺口和履约关系定位需要跟进的供应商。</p>
+      </div>
+    </header>
+    <section class="pm-table-surface" aria-label="供应商台账列表">
     <Grid>
       <template #status="{ row }">
         <a-tag v-if="row" :color="row.status === 'active' ? 'green' : 'default'">
@@ -7,6 +15,7 @@
         </a-tag>
       </template>
     </Grid>
+    </section>
   </div>
 </template>
 
@@ -14,11 +23,41 @@
 import type { VxeGridProps } from '#/adapter/vxe-table'
 import { useVbenVxeGrid } from '#/adapter/vxe-table'
 import { getSuppliersApi, type SupplierItem } from '#/api/suppliers'
+import { buildDetailLocation } from '#/utils/business-navigation'
+import { ref } from 'vue'
+import { useRoute } from 'vue-router'
+
+const route = useRoute()
+const currentPage = ref(1)
+const currentPageSize = ref(20)
+
+function supplierDetailLocation(supplierId: string) {
+  return buildDetailLocation({
+    from: {
+      name: route.name,
+      query: {
+        ...route.query,
+        page: String(currentPage.value),
+        pageSize: String(currentPageSize.value),
+      },
+    },
+    id: supplierId,
+    name: 'SupplierDetail',
+  })
+}
 
 const gridOptions: VxeGridProps<SupplierItem> = {
   columns: [
     { field: 'supplier_name', title: '供应商名称', minWidth: 250, showOverflow: true, fixed: 'left',
-      cellRender: { name: 'CellRouterLink', props: { name: 'SupplierDetail', idField: 'supplier_id', field: 'supplier_name' } } },
+      cellRender: {
+        name: 'CellRouterLink',
+        props: {
+          field: 'supplier_name',
+          name: 'SupplierDetail',
+          variableQuery: (row: SupplierItem) =>
+            supplierDetailLocation(row.supplier_id).query,
+        },
+      } },
     { field: 'short_name', title: '简称', width: 120 },
     { field: 'category', title: '类别', width: 100 },
     {
@@ -61,7 +100,9 @@ const gridOptions: VxeGridProps<SupplierItem> = {
   proxyConfig: {
     response: { result: 'items', total: 'total' },
     ajax: {
-      query: async () => {
+      query: async ({ page }) => {
+        currentPage.value = page.currentPage
+        currentPageSize.value = page.pageSize
         const data = await getSuppliersApi()
         return { items: data.items ?? [], total: (data.items ?? []).length }
       },

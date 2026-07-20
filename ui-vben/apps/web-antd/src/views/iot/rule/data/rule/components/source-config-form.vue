@@ -4,6 +4,8 @@ import { computed, onMounted, reactive, ref } from 'vue';
 import { IotDeviceMessageMethodEnum } from '@vben/constants';
 import { IconifyIcon } from '@vben/icons';
 
+import type { TableColumnsType } from 'ant-design-vue';
+
 import { Button, Form, Select, Table } from 'ant-design-vue';
 
 import { getSimpleDeviceList } from '#/api/iot/device/device';
@@ -166,7 +168,7 @@ onMounted(async () => {
   await Promise.all([loadProductList(), loadDeviceList()]);
 });
 
-const columns = [
+const columns: TableColumnsType = [
   {
     title: '产品',
     dataIndex: 'productId',

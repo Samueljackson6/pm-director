@@ -10,7 +10,6 @@ defineProps<IFrameProps>();
 
 const loading = ref(true);
 const height = ref('');
-const frameRef = ref<HTMLElement | null>(null);
 
 function init() {
   height.value = `${document.documentElement.clientHeight - 94.5}px`;
@@ -27,7 +26,6 @@ onMounted(() => {
 <template>
   <div v-loading="loading" :style="`height:${height}`">
     <iframe
-      ref="frameRef"
       :src="src"
       class="h-full w-full"
       frameborder="no"

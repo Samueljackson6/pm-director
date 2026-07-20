@@ -28,7 +28,7 @@ function onPaste(e: any) {
   e.preventDefault();
 }
 function helpClick() {
-  if (bind.value?.readonly) {
+  if (bind?.value?.readonly) {
     return;
   }
   bind?.value?.onClick?.();

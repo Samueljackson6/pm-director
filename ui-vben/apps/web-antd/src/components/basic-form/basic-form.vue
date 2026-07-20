@@ -75,7 +75,6 @@ const { footerLeft } = useFooterLeft();
 // 表单实例
 let formApi: null | ReturnType<typeof useVbenForm>[1] = null;
 let FormComponent: null | ReturnType<typeof useVbenForm>[0] = null;
-const formRef = ref<InstanceType<ReturnType<typeof useVbenForm>[0]>>();
 
 // 创建表单实例（当有formSchema时）
 function initForm() {
@@ -298,7 +297,7 @@ defineExpose({
               <!-- 基本信息 -->
               <CardContainer :title="$t('common.baseInfo')">
                 <!-- 如果有formSchema则渲染内置表单 -->
-                <component v-if="formApi" :is="FormComponent" ref="formRef" />
+                <component v-if="formApi" :is="FormComponent" />
                 <!-- 否则使用插槽 -->
                 <slot v-else name="base-form"></slot>
               </CardContainer>

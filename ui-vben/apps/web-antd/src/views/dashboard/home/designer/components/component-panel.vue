@@ -43,7 +43,7 @@ async function loadComponents() {
 
     // 默认展开第一个分类
     if (categories.value.length > 0) {
-      activeKeys.value = [categories.value[0].id!];
+      activeKeys.value = [categories.value[0]!.id!];
     }
   } finally {
     loading.value = false;

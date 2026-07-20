@@ -6,10 +6,9 @@ def vben_response(data):
     return {'code': 0, 'data': data, 'message': 'success'}
 
 
-def vben_list(page: int, size: int, total: int, items: list):
-    """Paginated list in Vben format."""
-    return {
-        'code': 0,
-        'data': {'total': total, 'page': page, 'size': size, 'items': items},
-        'message': 'success',
-    }
+def vben_list(page: int, size: int, total: int, items: list, data_state: str | None = None):
+    """Paginated list in Vben format; data_state keeps zero, missing and pending data distinct."""
+    data = {'total': total, 'page': page, 'size': size, 'items': items}
+    if data_state is not None:
+        data['data_state'] = data_state
+    return {'code': 0, 'data': data, 'message': 'success'}

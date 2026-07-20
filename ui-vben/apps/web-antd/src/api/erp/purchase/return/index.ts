@@ -5,6 +5,7 @@ import { requestClient } from '#/api/request';
 export namespace ErpPurchaseReturnApi {
   /** 采购退货信息 */
   export interface PurchaseReturn {
+    refundPrice?: number;
     id?: number; // 采购退货编号
     no?: string; // 采购退货号
     supplierId?: number; // 供应商编号
@@ -22,6 +23,7 @@ export namespace ErpPurchaseReturnApi {
 
   /** 采购退货项 */
   export interface PurchaseReturnItem {
+    seq?: number;
     count?: number;
     id?: number;
     orderItemId?: number;

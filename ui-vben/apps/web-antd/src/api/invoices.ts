@@ -40,6 +40,7 @@ export async function getInvoicesApi(params?: {
   size?: number
   project_id?: string
   direction?: 'outbound' | 'inbound'
+  invoice_type?: string
 }) {
   return requestClient.get('/api/invoices', { params })
 }

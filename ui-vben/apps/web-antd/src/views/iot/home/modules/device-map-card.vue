@@ -118,7 +118,7 @@ function initMap() {
           if (link) {
             link.addEventListener('click', (e) => {
               e.preventDefault();
-              const deviceId = e.target as HTMLElement.dataset.id;
+              const deviceId = (e.target as HTMLElement).dataset.id;
               if (deviceId) {
                 router.push({
                   name: 'IoTDeviceDetail',

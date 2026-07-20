@@ -1,20 +1,22 @@
 <template>
-  <div class="p-6 bg-gradient-to-b from-gray-50 to-gray-100 min-h-screen">
-    <div class="flex items-center justify-between mb-6">
+  <div class="pm-workbench-page min-h-screen p-4 sm:p-6">
+    <header class="pm-page-header flex items-start justify-between gap-4">
       <div>
-        <h1 class="text-2xl font-bold text-gray-800">供应商发票</h1>
-        <p class="text-sm text-gray-500 mt-1">供应商向我们开具的发票</p>
+        <p class="pm-section-kicker">供应链资金</p>
+        <h1>供应商收票</h1>
+        <p class="pm-section-note">核对供应商已开票、待核验金额和项目归属；客户回款不纳入此口径。</p>
       </div>
       <a-button type="primary" size="large" @click="openAdd">+ 新增发票</a-button>
-    </div>
-    <a-card class="rounded-lg" :body-style="{ padding: 0 }">
-      <div class="p-4 border-b border-gray-100"><h3 class="text-base font-semibold">发票列表</h3></div>
+    </header>
+    <a-card class="pm-table-surface" :body-style="{ padding: 0 }" aria-label="供应商收票列表">
+      <div class="p-4 border-b border-gray-100"><h3 class="text-base font-semibold">发票列表</h3><p class="mt-1 text-xs text-gray-500">仅展示资金方向为 inbound 且类型为供应商开票的收票记录；客户回款不计入本列表。</p></div>
       <div class="p-4">
+        <a-alert v-if="dataState !== 'available'" class="mb-4" :type="dataState === 'pending_verification' ? 'warning' : 'info'" show-icon :message="dataStateText" />
         <a-table :data-source="list" :columns="columns" :loading="loading" row-key="invoice_id" size="middle"
-          :pagination="{ pageSize: 50, total, showSizeChanger: true, showTotal: t => '共 ' + t + ' 条' }"
+          :pagination="{ pageSize: 50, total, showSizeChanger: true, showTotal: (t: number) => '共 ' + t + ' 条' }"
           @change="handleChange">
           <template #bodyCell="{ column, record }">
-            <template v-if="column.key === 'amount'"><span class="font-mono">{{ (record.amount || 0).toFixed(2) }}</span></template>
+            <template v-if="column.key === 'amount'"><span class="font-mono">{{ formatAmount(record.amount) }}</span></template>
             <template v-if="column.key === 'status'"><a-tag :color="record.status === '已开' ? 'blue' : 'default'">{{ record.status }}</a-tag></template>
             <template v-if="column.key === 'action'">
               <a-button type="link" size="small" @click="viewDetail(record)">详情</a-button>
@@ -41,16 +43,25 @@
   </div>
 </template>
 <script lang="ts" setup>
-import { ref, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
+import { computed, ref, onMounted } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { message } from 'ant-design-vue'
-import { getInvoicesApi, createInvoiceApi, updateInvoiceApi, deleteInvoiceApi } from '#/api/invoices'
+import { getInvoicesApi, createInvoiceApi, updateInvoiceApi, deleteInvoiceApi, type InvoiceItem } from '#/api/invoices'
+import { buildDetailLocation } from '#/utils/business-navigation'
 
+const route = useRoute()
 const router = useRouter()
 const list = ref<any[]>([])
 const total = ref(0)
 const loading = ref(false)
 const page = ref(1)
+const dataState = ref<'available' | 'known_zero' | 'pending_verification' | 'source_not_established'>('known_zero')
+const dataStateText = computed(() => ({
+  source_not_established: '收票数据源尚未建立，当前无法确认是否存在供应商收票。',
+  known_zero: '当前筛选范围内已知没有供应商收票。',
+  pending_verification: '存在金额缺失或异常的供应商收票，请人工核验。',
+  available: '',
+})[dataState.value])
 const modalVisible = ref(false)
 const saving = ref(false)
 const editingId = ref<number | null>(null)
@@ -67,14 +78,27 @@ const columns = [
 async function load() {
   loading.value = true
   try {
-    const data = await getInvoicesApi({ page: page.value, size: 50, direction: 'inbound' })
+    const data = await getInvoicesApi({ page: page.value, size: 50, direction: 'inbound', invoice_type: '供应商开票' })
     list.value = data.items ?? []
     total.value = data.total ?? 0
+    dataState.value = data.data_state ?? (list.value.length ? 'available' : 'known_zero')
   } catch { /* ignore */ } finally { loading.value = false }
 }
 
+function formatAmount(value: number | null | undefined) { return value == null ? '待核验' : Number(value).toFixed(2) }
 function handleChange(p: any) { page.value = p.current; load() }
-function viewDetail(r: any) { router.push({ name: 'SupplierInvoiceDetail', query: { id: r.invoice_id } }) }
+function viewDetail(row: InvoiceItem) {
+  router.push(
+    buildDetailLocation({
+      from: {
+        name: route.name,
+        query: { ...route.query, page: String(page.value), pageSize: '50' },
+      },
+      id: String(row.invoice_id),
+      name: 'SupplierInvoiceDetail',
+    }),
+  )
+}
 function openAdd() { editingId.value = null; form.value = { project_id: '', invoice_date: '', amount: null, status: '已开', direction: 'inbound', invoice_type: '供应商开票' }; modalVisible.value = true }
 function editRecord(r: any) { editingId.value = r.invoice_id; form.value = { ...r }; modalVisible.value = true }
 async function saveRecord() {

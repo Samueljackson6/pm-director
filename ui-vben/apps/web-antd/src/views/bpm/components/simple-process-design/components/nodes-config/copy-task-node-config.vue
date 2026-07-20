@@ -76,6 +76,7 @@ const currentNode = useWatchNode(props);
 // 节点名称
 const { nodeName, showInput, clickIcon, changeNodeName, inputRef } =
   useNodeName(BpmNodeTypeEnum.COPY_TASK_NODE);
+void inputRef;
 
 // 激活的 Tab 标签页
 const activeTabName = ref('user');

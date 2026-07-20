@@ -1,82 +1,79 @@
-import { beforeEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { loadScript } from '../resources';
 
-const testJsPath =
-  'https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js';
+const testJsPath = 'https://example.test/test.js';
 
+// 通过拦截 append 防止 happy-dom 真实加载外部脚本，仅验证 loadScript 的事件与去重约定。
 describe('loadScript', () => {
   beforeEach(() => {
-    // 每个测试前清空 head，保证环境干净
-    document.head.innerHTML = '';
+    vi.restoreAllMocks();
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
   });
 
   it('should resolve when the script loads successfully', async () => {
+    const append = vi
+      .spyOn(document.head, 'append')
+      .mockImplementation(() => {});
     const promise = loadScript(testJsPath);
+    const script = append.mock.calls[0]?.[0] as HTMLScriptElement;
 
-    // 此时脚本元素已被创建并插入
-    const script = document.querySelector(
-      `script[src="${testJsPath}"]`,
-    ) as HTMLScriptElement;
     expect(script).toBeTruthy();
-
-    // 模拟加载成功
     script.dispatchEvent(new Event('load'));
 
-    // 等待 promise resolve
     await expect(promise).resolves.toBeUndefined();
   });
 
   it('should not insert duplicate script and resolve immediately if already loaded', async () => {
-    // 先手动插入一个相同 src 的 script
     const existing = document.createElement('script');
-    existing.src = 'bar.js';
-    document.head.append(existing);
+    existing.src = testJsPath;
+    const append = vi
+      .spyOn(document.head, 'append')
+      .mockImplementation(() => {});
+    vi.spyOn(document, 'querySelector').mockReturnValue(existing);
 
-    // 再次调用
-    const promise = loadScript('bar.js');
-
-    // 立即 resolve
-    await expect(promise).resolves.toBeUndefined();
-
-    // head 中只保留一个
-    const scripts = document.head.querySelectorAll('script[src="bar.js"]');
-    expect(scripts).toHaveLength(1);
+    await expect(loadScript(testJsPath)).resolves.toBeUndefined();
+    expect(append).not.toHaveBeenCalled();
   });
 
   it('should reject when the script fails to load', async () => {
-    const promise = loadScript('error.js');
+    const append = vi
+      .spyOn(document.head, 'append')
+      .mockImplementation(() => {});
+    const promise = loadScript(testJsPath);
+    const script = append.mock.calls[0]?.[0] as HTMLScriptElement;
 
-    const script = document.querySelector(
-      'script[src="error.js"]',
-    ) as HTMLScriptElement;
     expect(script).toBeTruthy();
-
-    // 模拟加载失败
     script.dispatchEvent(new Event('error'));
 
-    await expect(promise).rejects.toThrow('Failed to load script: error.js');
+    await expect(promise).rejects.toThrow(
+      `Failed to load script: ${testJsPath}`,
+    );
   });
 
   it('should handle multiple concurrent calls and only insert one script tag', async () => {
+    const append = vi
+      .spyOn(document.head, 'append')
+      .mockImplementation(() => {});
+    let firstScript: HTMLScriptElement | null = null;
+    vi.spyOn(document, 'querySelector').mockImplementation(() => {
+      if (firstScript) {
+        return firstScript;
+      }
+      return null;
+    });
+
     const p1 = loadScript(testJsPath);
+    firstScript = append.mock.calls[0]?.[0] as HTMLScriptElement;
     const p2 = loadScript(testJsPath);
 
-    const script = document.querySelector(
-      `script[src="${testJsPath}"]`,
-    ) as HTMLScriptElement;
-    expect(script).toBeTruthy();
-
-    // 触发一次 load，两个 promise 都应该 resolve
-    script.dispatchEvent(new Event('load'));
+    expect(append).toHaveBeenCalledTimes(1);
+    firstScript.dispatchEvent(new Event('load'));
 
     await expect(p1).resolves.toBeUndefined();
     await expect(p2).resolves.toBeUndefined();
-
-    // 只插入一次
-    const scripts = document.head.querySelectorAll(
-      `script[src="${testJsPath}"]`,
-    );
-    expect(scripts).toHaveLength(1);
   });
 });

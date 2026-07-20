@@ -77,7 +77,7 @@ export function useFormSchema(): VbenFormSchema[] {
       component: 'Select',
       rules: 'selectRequired',
       componentProps: (_values, formApi) => ({
-        options: getDictOptions(DICT_TYPE.WMS_CATEGORY_CODE, 'string'),
+        options: getDictOptions('wms_category_code', 'string'),
         placeholder: '请选择仓库类型',
         onChange: (value: any, option: any) => {
           if (value && option) {
@@ -198,7 +198,7 @@ export function useGridFormSchema(): VbenFormSchema[] {
       component: 'Select',
       componentProps: {
         allowClear: true,
-        options: getDictOptions(DICT_TYPE.WMS_CATEGORY_CODE, 'string'),
+        options: getDictOptions('wms_category_code', 'string'),
         placeholder: '请选择仓库类型',
       },
     },

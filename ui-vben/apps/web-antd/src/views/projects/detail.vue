@@ -1,5 +1,5 @@
 <template>
-  <div class="p-4 max-w-7xl mx-auto">
+  <div class="pm-workbench-page mx-auto min-h-screen max-w-7xl p-4 sm:p-6">
     <!-- 面包屑 -->
     <div class="flex items-center gap-2 mb-4 text-sm text-gray-500">
       <a-button type="link" size="small" @click="goBack">← 项目列表</a-button>
@@ -171,6 +171,7 @@
 <script lang="ts" setup>
 import { ref, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { buildListReturnLocation } from '#/utils/business-navigation'
 import {
   getProjectDetailApi,
   getProjectStagesApi,
@@ -250,5 +251,13 @@ onMounted(async () => {
   }
 })
 
-function goBack() { router.push({ name: 'ProjectList' }) }
+function goBack() {
+  router.push(
+    buildListReturnLocation({
+      currentDetailName: 'ProjectDetail',
+      detailQuery: route.query,
+      fallbackName: 'ProjectList',
+    }),
+  )
+}
 </script>

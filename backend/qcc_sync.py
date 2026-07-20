@@ -3,7 +3,7 @@
 import json
 from datetime import datetime
 from typing import Optional, Dict, Any, List
-from backend.database import get_db
+from backend.database import get_db, get_readonly_db
 from backend.qcc_mcp_client import get_qcc_client
 
 
@@ -285,10 +285,16 @@ def get_local_qcc_data(credit_code: str) -> Optional[Dict[str, Any]]:
     Returns:
         企查查数据字典
     """
-    init_qcc_tables()
-    db = get_db()
+    db = get_readonly_db()
 
     try:
+        # 详情 GET 只读取既有缓存；数据库尚未迁移时不允许借读取路径自动建表。
+        basic_table = db.execute(
+            "SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = 'qcc_basic_info'"
+        ).fetchone()
+        if not basic_table:
+            return None
+
         # 获取工商信息
         basic_row = db.execute(
             'SELECT * FROM qcc_basic_info WHERE credit_code = ?',
@@ -300,18 +306,27 @@ def get_local_qcc_data(credit_code: str) -> Optional[Dict[str, Any]]:
 
         basic = dict(basic_row)
 
+        # 分表迁移尚未完成时，缺失的可选缓存按无数据处理。
+        existing_tables = {
+            row['name']
+            for row in db.execute(
+                "SELECT name FROM sqlite_master WHERE type = 'table' AND name IN "
+                "('qcc_company_profile', 'qcc_risk_scan', 'qcc_software_copyrights', 'qcc_external_investments')"
+            ).fetchall()
+        }
+
         # 获取企业简介
         profile_row = db.execute(
             'SELECT * FROM qcc_company_profile WHERE credit_code = ?',
             (credit_code,)
-        ).fetchone()
+        ).fetchone() if 'qcc_company_profile' in existing_tables else None
         profile = dict(profile_row) if profile_row else None
 
         # 获取风险扫描
         risk_row = db.execute(
             'SELECT * FROM qcc_risk_scan WHERE credit_code = ?',
             (credit_code,)
-        ).fetchone()
+        ).fetchone() if 'qcc_risk_scan' in existing_tables else None
         risk = dict(risk_row) if risk_row else None
         if risk and risk.get('risk_factors_json'):
             risk['风险因子扫描'] = json.loads(risk['risk_factors_json'])
@@ -320,14 +335,14 @@ def get_local_qcc_data(credit_code: str) -> Optional[Dict[str, Any]]:
         copyright_rows = db.execute(
             'SELECT * FROM qcc_software_copyrights WHERE credit_code = ? ORDER BY registration_date DESC',
             (credit_code,)
-        ).fetchall()
+        ).fetchall() if 'qcc_software_copyrights' in existing_tables else []
         copyrights = [dict(r) for r in copyright_rows]
 
         # 获取对外投资
         investment_rows = db.execute(
             'SELECT * FROM qcc_external_investments WHERE credit_code = ?',
             (credit_code,)
-        ).fetchall()
+        ).fetchall() if 'qcc_external_investments' in existing_tables else []
         investments = [dict(r) for r in investment_rows]
 
         return {

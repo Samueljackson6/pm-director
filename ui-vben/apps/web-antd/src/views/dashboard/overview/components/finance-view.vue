@@ -45,23 +45,13 @@
       />
     </div>
 
-    <!-- 异常区 -->
-    <div class="rounded-lg border bg-card p-4 shadow-sm">
-      <div class="mb-3 font-medium text-card-foreground">异常区</div>
-      <div v-if="anomalies.length" class="space-y-2">
-        <div
-          v-for="(item, idx) in anomalies"
-          :key="idx"
-          class="flex items-center justify-between rounded-lg border border-border p-3"
-          :class="`dash-bg-${item.tone}`"
-        >
-          <span class="text-sm" :class="`dash-text-${item.tone}`">{{ item.text }}</span>
-        </div>
-      </div>
-      <div v-else class="py-4 text-center text-sm text-muted-foreground">
-        未检测到明显异常
-      </div>
-    </div>
+    <!-- 财务异常由后端动作契约提供对象 ID、原因和真实下钻目标。 -->
+    <DashboardActionQueue
+      :actions="financeActions"
+      empty-text="当前未识别到可下钻的财务核对事项；这不代表财务数据已完成核验。"
+      kicker="财务核对"
+      title="需核对的回款、发票与付款条件"
+    />
 
     <!-- 客户回款排行 -->
     <div class="rounded-lg border bg-card p-4 shadow-sm">
@@ -78,12 +68,13 @@
 
 <script lang="ts" setup>
 import { computed } from 'vue';
-import type { DashboardOverview, RecentContract } from '#/api/dashboard';
+import type { DashboardOverview } from '#/api/dashboard';
 import TrendChart from '#/views/dashboard/components/trend-chart.vue';
 import TopCustomersBar from '#/views/dashboard/components/top-customers-bar.vue';
+import DashboardActionQueue from './DashboardActionQueue.vue';
 import MetricCard from './metric-card.vue';
 import FinanceFunnel from './finance-funnel.vue';
-import { FINANCE_SERIES } from '../dashboard-types';
+import { DASH_COLORS, FINANCE_SERIES } from '../dashboard-types';
 
 const props = defineProps<{ overview: DashboardOverview }>();
 
@@ -97,29 +88,12 @@ const diffData = computed(() =>
   })),
 );
 
-const diffSeries = [{ name: '差额', valueField: 'diff', color: '#D98E04' }];
+const diffSeries = [{ name: '差额', valueField: 'diff', color: DASH_COLORS.warning }];
 
-const anomalies = computed(() => {
-  const list: Array<{ tone: 'danger' | 'warning'; text: string }> = [];
-  const rows = props.overview.recent_contracts ?? [];
-  for (const r of rows as RecentContract[]) {
-    if (r.invoice_total > r.contract_amount) {
-      list.push({
-        tone: 'warning',
-        text: `开票率>100%：${r.contract_id} ${r.project_name}`,
-      });
-    }
-    if (r.payment_total > r.invoice_total) {
-      list.push({
-        tone: 'danger',
-        text: `回款>开票：${r.contract_id} ${r.project_name}`,
-      });
-    }
-  }
-  const up = props.overview.pending_tasks?.unmatched_payments;
-  if (up && up > 0) {
-    list.push({ tone: 'danger', text: `未匹配回款 ${up} 笔，需业务核对` });
-  }
-  return list;
-});
+const financeActions = computed(() =>
+  [...(props.overview.risk_actions ?? []), ...(props.overview.task_actions ?? [])].filter(
+    (action) => ['invoice', 'payment'].includes(action.object_type),
+  ),
+);
+
 </script>

@@ -36,7 +36,7 @@ function buildOption(): ECOption {
           itemStyle: { color: COLORS[d.status] ?? '#c0c4cc' },
         })),
       },
-    ],
+    ] as any[],
   };
 }
 

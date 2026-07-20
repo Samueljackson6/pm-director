@@ -1,14 +1,14 @@
 <template>
-  <div class="p-6 bg-gradient-to-b from-gray-50 to-gray-100 min-h-screen">
+  <div class="pm-workbench-page min-h-screen overflow-x-hidden bg-slate-50 px-4 py-4 md:px-6">
     <!-- 页面标题 -->
-    <div class="flex items-center justify-between mb-6">
+    <div class="mb-4 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
       <div>
         <h1 class="text-2xl font-bold text-gray-800">客户回款</h1>
         <p class="text-sm text-gray-500 mt-1">管理客户的付款记录</p>
       </div>
-      <div class="flex gap-3">
+      <div class="flex flex-wrap gap-2">
         <a-button size="large" @click="autoMatch">
-          <template #icon><span>🔗</span></template>自动匹配
+          <template #icon><span>⚠</span></template>自动匹配（写入关联）
         </a-button>
         <a-button type="primary" size="large" @click="openAddReceipt">
           <template #icon><span>+</span></template>新增回款
@@ -17,34 +17,35 @@
     </div>
 
     <!-- 统计卡片 -->
-    <div class="grid grid-cols-3 gap-4 mb-6">
-      <div class="bg-white rounded-lg border border-gray-200 p-4">
-        <div class="text-xs text-gray-400">累计回款（万元）</div>
-        <div class="text-2xl font-bold text-green-600 mt-1">{{ (totalAmount / 10000).toFixed(2) }}</div>
+    <div class="grid grid-cols-1 gap-3 sm:grid-cols-3">
+      <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+        <div class="text-xs text-gray-600">累计回款（万元）</div>
+        <div class="text-2xl font-bold text-green-800 mt-1">{{ formatSummaryAmount(receiptSummary.receipt_total) }}</div>
       </div>
-      <div class="bg-white rounded-lg border border-gray-200 p-4">
-        <div class="text-xs text-gray-400">已匹配（万元）</div>
-        <div class="text-2xl font-bold text-blue-600 mt-1">{{ matchedAmount.toFixed(2) }}</div>
+      <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+        <div class="text-xs text-gray-600">已匹配（万元）</div>
+        <div class="text-2xl font-bold text-blue-600 mt-1">{{ formatSummaryAmount(receiptSummary.matched_total) }}</div>
       </div>
-      <div class="bg-white rounded-lg border border-gray-200 p-4">
-        <div class="text-xs text-gray-400">未匹配（万元）</div>
-        <div class="text-2xl font-bold text-orange-600 mt-1">{{ (totalAmount - matchedAmount * 10000) / 10000 > 0 ? ((totalAmount - matchedAmount * 10000) / 10000).toFixed(2) : '0.00' }}</div>
+      <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+        <div class="text-xs text-gray-600">未匹配（万元）</div>
+        <div class="text-2xl font-bold text-orange-800 mt-1">{{ formatSummaryAmount(receiptSummary.unmatched_total) }}</div>
       </div>
     </div>
 
     <!-- 回款列表 -->
-    <a-card class="rounded-lg" :body-style="{ padding: '0' }">
-      <div class="p-4 border-b border-gray-100">
+    <a-card class="overflow-hidden rounded-xl border border-slate-200 shadow-sm" :body-style="{ padding: '0' }">
+      <div class="flex flex-col gap-2 border-b border-slate-100 px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-5">
         <h3 class="text-base font-semibold text-gray-800">回款记录</h3>
       </div>
-      <div class="p-4">
+      <div class="overflow-x-auto">
         <a-table
           :data-source="receipts"
           :columns="columns"
           :loading="loading"
           row-key="receipt_id"
           size="middle"
-          :pagination="{ pageSize: 20, total, showSizeChanger: true, showTotal: t => '共 ' + t + ' 条' }"
+          :scroll="{ x: 1100 }"
+          :pagination="{ current: currentPage, pageSize: pageSize, total, showSizeChanger: true, showTotal: (t: number) => '共 ' + t + ' 条' }"
           @change="handleTableChange"
         >
           <template #bodyCell="{ column, record }">
@@ -58,7 +59,7 @@
               <span class="font-mono">{{ (record.amount || 0).toFixed(2) }}</span>
             </template>
             <template v-else-if="column.key === 'action'">
-              <div class="space-x-2">
+              <div class="flex flex-wrap gap-2">
                 <a-button type="link" size="small" @click="viewDetail(record)">详情</a-button>
                 <a-button type="link" size="small" @click="openEditReceipt(record)">编辑</a-button>
                 <a-popconfirm title="确定删除此回款记录？" @confirm="deleteReceipt(record)">
@@ -139,33 +140,52 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, reactive, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
+import { ref, onMounted } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { message } from 'ant-design-vue'
+import { buildDetailLocation } from '#/utils/business-navigation'
 import {
   getReceiptsApi,
   createReceiptApi,
   updateReceiptApi,
   deleteReceiptApi,
   autoMatchReceiptsApi,
+  type ReceiptSummary,
 } from '#/api/receipts'
 
+const route = useRoute()
 const router = useRouter()
+
+function readPositivePageQuery(value: unknown, fallback: number) {
+  const parsed = typeof value === 'string' ? Number(value) : Number.NaN
+  return Number.isSafeInteger(parsed) && parsed > 0 ? parsed : fallback
+}
 
 // 列表数据
 const receipts = ref<any[]>([])
 const total = ref(0)
 const loading = ref(false)
-const currentPage = ref(1)
-const pageSize = ref(20)
-const totalAmount = ref(0)
-const matchedAmount = ref(0)
+const currentPage = ref(readPositivePageQuery(route.query.page, 1))
+const pageSize = ref(readPositivePageQuery(route.query.pageSize, 20))
+const receiptSummary = ref<ReceiptSummary>({
+  currency_unit: '元',
+  status: 'pending_verification',
+  receipt_total: null,
+  matched_total: null,
+  unmatched_total: null,
+})
 
 // 弹窗
 const modalVisible = ref(false)
 const saving = ref(false)
 const editingId = ref<number | null>(null)
 const form = ref<Record<string, any>>({})
+
+function formatSummaryAmount(value: number | null) {
+  // Unknown summary amounts must not be rendered as zero.
+  if (value == null) return '待核验'
+  return (Number(value) / 10_000).toFixed(2)
+}
 
 const columns = [
   { title: '回款日期', dataIndex: 'receipt_date', key: 'receipt_date', width: 110, sorter: true },
@@ -185,7 +205,7 @@ async function loadData() {
     const items = data.items ?? []
     receipts.value = items
     total.value = data.total ?? 0
-    totalAmount.value = items.reduce((s: number, r: any) => s + (r.amount || 0), 0)
+    receiptSummary.value = data.summary
   } catch (e: any) {
     message.error('加载失败: ' + (e?.message || '未知错误'))
   } finally {
@@ -196,11 +216,31 @@ async function loadData() {
 function handleTableChange(pagination: any) {
   currentPage.value = pagination.current
   pageSize.value = pagination.pageSize
+  void router.replace({
+    query: {
+      ...route.query,
+      page: String(currentPage.value),
+      pageSize: String(pageSize.value),
+    },
+  })
   loadData()
 }
 
-function viewDetail(row: any) {
-  router.push({ name: 'CustomerReceiptDetail', query: { id: row.receipt_id } })
+function viewDetail(row: { receipt_id: number }) {
+  router.push(
+    buildDetailLocation({
+      from: {
+        name: route.name,
+        query: {
+          ...route.query,
+          page: String(currentPage.value),
+          pageSize: String(pageSize.value),
+        },
+      },
+      id: String(row.receipt_id),
+      name: 'CustomerReceiptDetail',
+    }),
+  )
 }
 
 function openAddReceipt() {

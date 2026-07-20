@@ -1,5 +1,5 @@
 <template>
-  <div class="p-6 bg-gradient-to-b from-gray-50 to-gray-100 min-h-screen">
+  <div class="pm-workbench-page min-h-screen overflow-x-hidden bg-slate-50 px-4 py-4 md:px-6">
     <!-- 页面标题和操作按钮 -->
     <div class="flex items-center justify-between mb-6">
       <div>
@@ -13,50 +13,50 @@
     </div>
 
     <!-- 财务汇总卡片 -->
-    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-      <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5 hover:shadow-md transition-shadow">
+    <div class="grid grid-cols-1 gap-3 mb-4 sm:grid-cols-2 xl:grid-cols-4">
+      <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
         <div class="flex items-center justify-between">
           <div>
-            <div class="text-xs text-gray-400 mb-1">累计开票</div>
+            <div class="text-xs text-gray-600 mb-1">累计开票</div>
             <div class="text-2xl font-bold text-gray-900">{{ summary.totalInvoiced.toFixed(2) }}</div>
-            <div class="text-xs text-gray-400 mt-1">万元</div>
+            <div class="text-xs text-gray-600 mt-1">万元</div>
           </div>
-          <div class="w-12 h-12 rounded-full bg-blue-50 flex items-center justify-center">
+          <div class="flex h-10 w-10 items-center justify-center rounded-full bg-blue-50">
             <span class="text-2xl">📄</span>
           </div>
         </div>
       </div>
-      <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5 hover:shadow-md transition-shadow">
+      <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
         <div class="flex items-center justify-between">
           <div>
-            <div class="text-xs text-gray-400 mb-1">累计回款</div>
-            <div class="text-2xl font-bold text-green-600">{{ summary.totalReceived.toFixed(2) }}</div>
-            <div class="text-xs text-gray-400 mt-1">万元</div>
+            <div class="text-xs text-gray-600 mb-1">累计回款</div>
+            <div class="text-2xl font-bold text-green-800">{{ summary.totalReceived.toFixed(2) }}</div>
+            <div class="text-xs text-gray-600 mt-1">万元</div>
           </div>
-          <div class="w-12 h-12 rounded-full bg-green-50 flex items-center justify-center">
+          <div class="flex h-10 w-10 items-center justify-center rounded-full bg-green-50">
             <span class="text-2xl">💰</span>
           </div>
         </div>
       </div>
-      <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5 hover:shadow-md transition-shadow">
+      <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
         <div class="flex items-center justify-between">
           <div>
-            <div class="text-xs text-gray-400 mb-1">回款率</div>
+            <div class="text-xs text-gray-600 mb-1">回款率</div>
             <div class="text-2xl font-bold" :class="summary.receiptRateClass">{{ summary.receiptRate }}</div>
           </div>
-          <div class="w-12 h-12 rounded-full bg-purple-50 flex items-center justify-center">
+          <div class="flex h-10 w-10 items-center justify-center rounded-full bg-purple-50">
             <span class="text-2xl">📊</span>
           </div>
         </div>
       </div>
-      <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5 hover:shadow-md transition-shadow">
+      <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
         <div class="flex items-center justify-between">
           <div>
-            <div class="text-xs text-gray-400 mb-1">未开票金额</div>
-            <div class="text-2xl font-bold text-orange-600">{{ summary.pendingAmount.toFixed(2) }}</div>
-            <div class="text-xs text-gray-400 mt-1">万元</div>
+            <div class="text-xs text-gray-600 mb-1">未开票金额</div>
+            <div class="text-2xl font-bold text-orange-800">{{ summary.pendingAmount.toFixed(2) }}</div>
+            <div class="text-xs text-gray-600 mt-1">万元</div>
           </div>
-          <div class="w-12 h-12 rounded-full bg-orange-50 flex items-center justify-center">
+          <div class="flex h-10 w-10 items-center justify-center rounded-full bg-orange-50">
             <span class="text-2xl">⏳</span>
           </div>
         </div>
@@ -64,7 +64,7 @@
     </div>
 
     <!-- 发票列表卡片 -->
-    <a-card class="rounded-xl shadow-sm" :body-style="{ padding: '0' }">
+    <a-card class="overflow-hidden rounded-xl border border-slate-200 shadow-sm" :body-style="{ padding: '0' }">
       <a-tabs v-model:activeKey="activeTab" class="invoice-tabs">
         <a-tab-pane key="outbound">
           <template #tab>
@@ -179,7 +179,7 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, reactive, onMounted, computed } from 'vue'
+import { ref, reactive, onMounted } from 'vue'
 import type { VxeGridProps } from '#/adapter/vxe-table'
 import { useVbenVxeGrid } from '#/adapter/vxe-table'
 import {
@@ -188,10 +188,35 @@ import {
   createInvoiceApi,
   type InvoiceItem,
 } from '#/api/invoices'
+import { buildDetailLocation } from '#/utils/business-navigation'
 import { message } from 'ant-design-vue'
+import { useRoute } from 'vue-router'
 
+const route = useRoute()
 // 当前激活的 tab
 const activeTab = ref('outbound')
+const outboundPage = ref(1)
+const outboundPageSize = ref(50)
+const inboundPage = ref(1)
+const inboundPageSize = ref(50)
+
+function invoiceDetailQuery(invoiceId: number, direction: 'inbound' | 'outbound') {
+  const page = direction === 'outbound' ? outboundPage : inboundPage
+  const pageSize = direction === 'outbound' ? outboundPageSize : inboundPageSize
+  return buildDetailLocation({
+    from: {
+      name: route.name,
+      query: {
+        ...route.query,
+        page: String(page.value),
+        pageSize: String(pageSize.value),
+        tab: direction,
+      },
+    },
+    id: String(invoiceId),
+    name: 'CustomerInvoiceDetail',
+  }).query
+}
 
 // ---- 汇总数据 ----
 const summaryLoading = ref(false)
@@ -226,7 +251,7 @@ async function loadSummary() {
     summary.totalReceived = totalReceived
     summary.receiptRate = rate.toFixed(1) + '%'
     summary.receiptRateClass =
-      rate >= 80 ? 'text-green-600' : rate >= 50 ? 'text-orange-600' : 'text-red-600'
+      rate >= 80 ? 'text-green-800' : rate >= 50 ? 'text-orange-800' : 'text-red-800'
     summary.pendingAmount = totalPending
   } finally {
     summaryLoading.value = false
@@ -295,7 +320,15 @@ const outboundGridOptions: VxeGridProps<InvoiceItem> = {
       slots: { default: 'outbound_type' },
     },
     { field: 'project_id', title: '项目编号', minWidth: 220, showOverflow: true,
-      cellRender: { name: 'CellRouterLink', props: { name: 'CustomerInvoiceDetail', idField: 'invoice_id', field: 'project_id' } } },
+      cellRender: {
+        name: 'CellRouterLink',
+        props: {
+          field: 'project_id',
+          name: 'CustomerInvoiceDetail',
+          variableQuery: (row: InvoiceItem) =>
+            invoiceDetailQuery(row.invoice_id, 'outbound'),
+        },
+      } },
     {
       field: 'amount',
       title: '金额(万元)',
@@ -333,6 +366,8 @@ const outboundGridOptions: VxeGridProps<InvoiceItem> = {
     response: { result: 'items', total: 'total' },
     ajax: {
       query: async ({ page }) => {
+        outboundPage.value = page.currentPage
+        outboundPageSize.value = page.pageSize
         const data = await getInvoicesApi({
           page: page.currentPage,
           size: page.pageSize,
@@ -360,7 +395,15 @@ const inboundGridOptions: VxeGridProps<InvoiceItem> = {
       showOverflow: true,
     },
     { field: 'project_id', title: '项目编号', minWidth: 220, showOverflow: true,
-      cellRender: { name: 'CellRouterLink', props: { name: 'CustomerInvoiceDetail', idField: 'invoice_id', field: 'project_id' } } },
+      cellRender: {
+        name: 'CellRouterLink',
+        props: {
+          field: 'project_id',
+          name: 'CustomerInvoiceDetail',
+          variableQuery: (row: InvoiceItem) =>
+            invoiceDetailQuery(row.invoice_id, 'inbound'),
+        },
+      } },
     {
       field: 'amount',
       title: '金额(万元)',
@@ -398,6 +441,8 @@ const inboundGridOptions: VxeGridProps<InvoiceItem> = {
     response: { result: 'items', total: 'total' },
     ajax: {
       query: async ({ page }) => {
+        inboundPage.value = page.currentPage
+        inboundPageSize.value = page.pageSize
         const data = await getInvoicesApi({
           page: page.currentPage,
           size: page.pageSize,
@@ -426,16 +471,21 @@ const [InboundGrid] = useVbenVxeGrid({ gridOptions: inboundGridOptions })
 .invoice-tabs :deep(.ant-tabs-nav) {
   margin: 0;
   padding: 0 24px;
-  background: #fafafa;
+  background: #fff;
 }
 
 .invoice-tabs :deep(.ant-tabs-tab) {
-  padding: 16px 0;
+  padding: 14px 0;
   font-size: 15px;
   font-weight: 500;
 }
 
+/* 非激活标签也保持 WCAG 2.1 AA 的文字对比度。 */
+.invoice-tabs :deep(.ant-tabs-tab:not(.ant-tabs-tab-active) .ant-tabs-tab-btn) {
+  color: #595959 !important;
+}
+
 .invoice-tabs :deep(.ant-tabs-content) {
-  padding: 16px 24px 24px;
+  padding: 14px 20px 20px;
 }
 </style>

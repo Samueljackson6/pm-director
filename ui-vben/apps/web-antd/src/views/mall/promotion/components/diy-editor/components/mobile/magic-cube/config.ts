@@ -17,6 +17,8 @@ export interface MagicCubeItemProperty {
   height: number; // 高
   top: number; // 上
   left: number; // 左
+  right: number; // ?
+  bottom: number; // ?
 }
 
 /** 定义组件 */

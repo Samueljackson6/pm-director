@@ -56,7 +56,7 @@ const [Modal, modalApi] = useVbenModal({
     const data =
       (await formApi.getValues()) as PurchaseInWarehousingApi.PurchaseInWarehousing;
     // 拼接子表的数据
-    data.goodsWarehousingDetails =
+    data.goodswarehousingdetails =
       goodsWarehousingDetailFormRef.value?.getData();
     try {
       await (formData.value?.id

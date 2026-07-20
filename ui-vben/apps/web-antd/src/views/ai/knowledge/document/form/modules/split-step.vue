@@ -225,7 +225,7 @@ onMounted(async () => {
               <Menu.Item
                 v-for="(file, index) in modelData.list"
                 :key="index"
-                @click="selectFile(index)"
+                @click="selectFile(Number(index))"
               >
                 {{ file.name }}
                 <span v-if="file.segments" class="ml-1 text-sm text-gray-500">
@@ -256,7 +256,7 @@ onMounted(async () => {
             class="mb-2.5"
           >
             <div class="mb-1 text-sm text-gray-500">
-              分片-{{ index + 1 }} · {{ segment.contentLength || 0 }} 字符数 ·
+              分片-{{ Number(index) + 1 }} · {{ segment.contentLength || 0 }} 字符数 ·
               {{ segment.tokens || 0 }} Token
             </div>
             <div class="bg-card rounded-md p-2">

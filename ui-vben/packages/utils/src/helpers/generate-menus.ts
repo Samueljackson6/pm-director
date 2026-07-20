@@ -153,7 +153,8 @@ function convertServerMenuToRouteRecordStringComponent(
     }
 
     // path
-    if (parent) {
+    // 绝对子路由由 Vue Router 自行解析，不能再拼接父级路径。
+    if (parent && !menu.path.startsWith('/')) {
       menu.path = `${parent}/${menu.path}`;
     }
 

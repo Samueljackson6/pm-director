@@ -224,7 +224,7 @@ const handleAppLinkChange = (appLink: AppLink) => {
           class="ctrl-dot absolute z-[11] h-2 w-2 rounded-full bg-white"
           v-for="(dot, dotIndex) in CONTROL_DOT_LIST"
           :key="dotIndex"
-          :style="{ ...dot.style, border: 'inherit' }"
+          :style="[dot.style, { border: 'inherit' }]"
           @mousedown="handleResize(item, dot, $event)"
         ></span>
       </div>

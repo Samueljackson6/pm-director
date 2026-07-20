@@ -71,6 +71,7 @@ const postOptions = ref<SystemPostApi.Post[]>([]); // 岗位列表
 const userOptions = ref<SystemUserApi.User[]>([]); // 用户列表
 const userGroupOptions = ref<BpmUserGroupApi.UserGroup[]>([]); // 用户组列表
 const treeRef = ref<any>();
+void treeRef;
 
 const { formFieldOptions } = useFormFieldsPermission(FieldPermissionType.READ);
 

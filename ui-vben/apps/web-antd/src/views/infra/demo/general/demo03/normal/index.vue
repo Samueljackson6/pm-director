@@ -153,7 +153,7 @@ async function handleExport() {
 }
 
 /** 初始化 */
-const { hiddenSearchBar, tableToolbarRef, tableRef } = useTableToolbar();
+const { hiddenSearchBar, setTableRef, setTableToolbarRef } = useTableToolbar();
 onMounted(() => {
   getList();
 });
@@ -214,7 +214,7 @@ onMounted(() => {
     <ContentWrap title="学生">
       <template #extra>
         <VbenVxeTableToolbar
-          ref="tableToolbarRef"
+          :ref="setTableToolbarRef"
           v-model:hidden-search="hiddenSearchBar"
         >
           <Button
@@ -250,7 +250,7 @@ onMounted(() => {
         </VbenVxeTableToolbar>
       </template>
       <VxeTable
-        ref="tableRef"
+        :ref="setTableRef"
         :data="list"
         show-overflow
         :loading="loading"

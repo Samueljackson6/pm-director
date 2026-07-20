@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="light dark" />
+    <title>PM Director · 阶段3 UI Demo</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <a class="skip-link" href="#main-content">跳到主要内容</a>
+
+    <svg class="svg-sprite" aria-hidden="true">
+      <defs>
+        <symbol id="i-dashboard" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/></symbol>
+        <symbol id="i-file" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M8 13h8M8 17h5"/></symbol>
+        <symbol id="i-wallet" viewBox="0 0 24 24"><path d="M20 7V5a2 2 0 0 0-2-2H5a3 3 0 0 0 0 6h15v10a2 2 0 0 1-2 2H5a3 3 0 0 1-3-3V6"/><path d="M16 13h.01"/></symbol>
+        <symbol id="i-building" viewBox="0 0 24 24"><path d="M3 21h18M6 21V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v17M14 8h3a1 1 0 0 1 1 1v12M9 7h2M9 11h2M9 15h2"/></symbol>
+        <symbol id="i-project" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M8 2v4M16 2v4M3 10h18M8 14h3M8 17h6"/></symbol>
+        <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></symbol>
+        <symbol id="i-bell" viewBox="0 0 24 24"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/></symbol>
+        <symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.42 1.42M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.42-1.42M17.66 6.34l1.41-1.41"/></symbol>
+        <symbol id="i-moon" viewBox="0 0 24 24"><path d="M21 12.8A9 9 0 1 1 11.2 3 7 7 0 0 0 21 12.8z"/></symbol>
+        <symbol id="i-menu" viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"/></symbol>
+        <symbol id="i-close" viewBox="0 0 24 24"><path d="m18 6-12 12M6 6l12 12"/></symbol>
+        <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></symbol>
+        <symbol id="i-back" viewBox="0 0 24 24"><path d="M19 12H5M11 18l-6-6 6-6"/></symbol>
+        <symbol id="i-chevron" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></symbol>
+        <symbol id="i-check" viewBox="0 0 24 24"><path d="m20 6-11 11-5-5"/></symbol>
+        <symbol id="i-alert" viewBox="0 0 24 24"><path d="M10.3 3.6 2.7 17a2 2 0 0 0 1.7 3h15.2a2 2 0 0 0 1.7-3L13.7 3.6a2 2 0 0 0-3.4 0zM12 9v4M12 17h.01"/></symbol>
+        <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></symbol>
+        <symbol id="i-filter" viewBox="0 0 24 24"><path d="M4 5h16M7 12h10M10 19h4"/></symbol>
+        <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+        <symbol id="i-download" viewBox="0 0 24 24"><path d="M12 3v12M7 10l5 5 5-5M5 21h14"/></symbol>
+        <symbol id="i-link" viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.5.5l2-2a5 5 0 0 0-7-7l-1.1 1.1M14 11a5 5 0 0 0-7.5-.5l-2 2a5 5 0 0 0 7 7l1.1-1.1"/></symbol>
+        <symbol id="i-refresh" viewBox="0 0 24 24"><path d="M20 11a8 8 0 0 0-14.9-4M4 4v5h5M4 13a8 8 0 0 0 14.9 4M20 20v-5h-5"/></symbol>
+        <symbol id="i-more" viewBox="0 0 24 24"><circle cx="5" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/></symbol>
+      </defs>
+    </svg>
+
+    <div class="app-shell">
+      <div class="mobile-scrim" data-action="close-menu"></div>
+
+      <aside class="sidebar" aria-label="主导航">
+        <div class="brand">
+          <div class="brand-mark" aria-hidden="true"><span></span><span></span><span></span></div>
+          <div><strong>PM DIRECTOR</strong><small>履约经营中枢</small></div>
+          <button class="icon-button sidebar-close" data-action="close-menu" aria-label="关闭导航"><svg class="icon"><use href="#i-close"/></svg></button>
+        </div>
+        <div class="system-status"><span class="live-dot"></span><span>经营数据已连接</span><small>09:42</small></div>
+        <nav class="nav-list">
+          <button class="nav-item is-active" data-route="dashboard" data-testid="nav-dashboard"><svg class="icon"><use href="#i-dashboard"/></svg><span>驾驶舱</span></button>
+          <div class="nav-group is-open" data-group="fulfillment">
+            <button class="nav-item nav-parent" data-action="toggle-group" aria-expanded="true"><svg class="icon"><use href="#i-file"/></svg><span>合同履约</span><svg class="icon chevron"><use href="#i-chevron"/></svg></button>
+            <div class="nav-children">
+              <button class="nav-child" data-route="contracts" data-testid="nav-contracts">合同台账</button>
+              <button class="nav-child" data-route="projects" data-testid="nav-projects">项目执行</button>
+            </div>
+          </div>
+          <div class="nav-group is-open" data-group="receivables">
+            <button class="nav-item nav-parent" data-action="toggle-group" aria-expanded="true"><svg class="icon"><use href="#i-wallet"/></svg><span>客户应收</span><svg class="icon chevron"><use href="#i-chevron"/></svg></button>
+            <div class="nav-children">
+              <button class="nav-child" data-route="receivables" data-tab="invoice" data-testid="nav-receivables">发票台账</button>
+              <button class="nav-child" data-route="receivables" data-tab="payment">回款记录</button>
+            </div>
+          </div>
+          <div class="nav-group is-open" data-group="suppliers">
+            <button class="nav-item nav-parent" data-action="toggle-group" aria-expanded="true"><svg class="icon"><use href="#i-building"/></svg><span>供应商履约</span><svg class="icon chevron"><use href="#i-chevron"/></svg></button>
+            <div class="nav-children">
+              <button class="nav-child" data-route="suppliers" data-testid="nav-suppliers">供应商档案</button>
+              <button class="nav-child" data-route="supplier-detail" data-tab="invoice">供应商发票</button>
+              <button class="nav-child" data-route="supplier-detail" data-tab="payment">付款记录</button>
+            </div>
+          </div>
+        </nav>
+        <div class="sidebar-foot">
+          <div class="data-freshness"><span>DATA FRESHNESS</span><strong>实时 · 2 分钟前</strong><div class="freshness-bar"><i></i></div></div>
+          <div class="profile"><span class="avatar">PM</span><div><strong>项目总监</strong><small>管理员</small></div><button class="icon-button" aria-label="更多个人选项"><svg class="icon"><use href="#i-more"/></svg></button></div>
+        </div>
+      </aside>
+
+      <section class="workspace">
+        <header class="topbar">
+          <button class="icon-button mobile-menu" data-action="open-menu" aria-label="打开导航"><svg class="icon"><use href="#i-menu"/></svg></button>
+          <div class="breadcrumb" id="breadcrumb" aria-label="面包屑"></div>
+          <div class="topbar-tools">
+            <label class="review-mode"><span>评审状态</span><select id="review-state" aria-label="切换页面状态"><option value="normal">正常数据</option><option value="loading">加载中</option><option value="empty">空数据</option><option value="error">加载失败</option></select></label>
+            <button class="search-trigger" data-action="focus-search"><svg class="icon"><use href="#i-search"/></svg><span>搜索合同、项目、供应商</span><kbd>Ctrl K</kbd></button>
+            <button class="icon-button notification" data-action="show-notice" aria-label="查看通知"><svg class="icon"><use href="#i-bell"/></svg><i></i></button>
+            <button class="icon-button" data-action="toggle-theme" aria-label="切换明暗主题"><svg class="icon theme-icon"><use href="#i-moon"/></svg></button>
+          </div>
+        </header>
+        <main id="main-content" tabindex="-1"></main>
+      </section>
+    </div>
+
+    <div class="command-panel" role="dialog" aria-modal="true" aria-labelledby="command-title" hidden>
+      <div class="command-card">
+        <div class="command-input"><svg class="icon"><use href="#i-search"/></svg><input id="global-search" type="search" placeholder="搜索合同、项目、供应商…" autocomplete="off" /><kbd>ESC</kbd></div>
+        <h2 id="command-title">快速前往</h2>
+        <button data-route="contract-detail"><span><b>HT-2026-018</b> 城市管廊智能监测平台</span><small>合同</small></button>
+        <button data-route="project-detail"><span><b>XM-2026-042</b> 北区智慧隧道一期</span><small>项目</small></button>
+        <button data-route="supplier-detail"><span><b>GY-0098</b> 华云智联科技</span><small>供应商</small></button>
+      </div>
+    </div>
+
+    <div class="toast-region" aria-live="polite" aria-atomic="true"></div>
+    <script src="./app.js"></script>
+  </body>
+</html>

@@ -2,7 +2,7 @@
 import type { LifeTimeApi } from '#/api/asset/lifetime';
 
 import { useVbenModal } from '@vben/common-ui';
-import { message, Tabs, Checkbox, Input, Textarea, Select,RadioGroup,CheckboxGroup, DatePicker } from 'ant-design-vue';
+import { message } from 'ant-design-vue';
 
 import { computed, ref } from 'vue';
 import { $t } from '#/locales';
@@ -81,4 +81,4 @@ const [Modal, modalApi] = useVbenModal({
   <Modal :title="getTitle">
     <Form class="mx-4" />
       </Modal>
-</template>
+</template>

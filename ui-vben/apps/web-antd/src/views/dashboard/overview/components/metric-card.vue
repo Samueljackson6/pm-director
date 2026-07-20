@@ -1,54 +1,54 @@
 <template>
   <div
-    class="rounded-lg border bg-card p-4 shadow-sm transition-colors"
-    :class="{ 'cursor-pointer hover:bg-accent': clickable }"
+    :class="[
+      `dashboard-metric-card--${tone}`,
+      { 'dashboard-metric-card--clickable': clickable },
+    ]"
+    class="dashboard-metric-card"
+    role="group"
     @click="handleClick"
   >
-    <div class="text-sm text-muted-foreground">{{ label }}</div>
-    <div class="mt-1 text-2xl font-bold" :class="valueClass">
-      {{ displayValue
-      }}<span class="ml-1 text-sm font-normal text-muted-foreground">{{ unit }}</span>
+    <div class="dashboard-metric-card__label">{{ label }}</div>
+    <div class="dashboard-metric-card__value">
+      {{ displayValue }}<span class="dashboard-metric-card__unit">{{ unit }}</span>
     </div>
-    <div v-if="sub" class="mt-1 text-xs text-muted-foreground">{{ sub }}</div>
-    <div v-if="ratio" class="mt-0.5 text-xs text-muted-foreground">{{ ratio }}</div>
-    <div v-if="hint" class="mt-0.5 text-xs text-muted-foreground/80">{{ hint }}</div>
+    <div v-if="sub || ratio || hint" class="dashboard-metric-card__hint">
+      {{ sub || ratio || hint }}
+    </div>
   </div>
 </template>
 
 <script lang="ts" setup>
-import { computed } from 'vue';
-import type { DashTone } from '../dashboard-types';
+import { computed } from 'vue'
+
+import type { DashTone } from '../dashboard-types'
 
 const props = withDefaults(
   defineProps<{
-    label: string;
-    value: number | null | undefined;
-    unit?: string;
-    digits?: number;
-    sub?: string;
-    ratio?: string;
-    tone?: DashTone;
-    hint?: string;
-    clickable?: boolean;
+    clickable?: boolean
+    digits?: number
+    hint?: string
+    label: string
+    ratio?: string
+    sub?: string
+    tone?: DashTone
+    unit?: string
+    value: number | null | undefined
   }>(),
-  { digits: 2, unit: '', tone: 'none', clickable: false },
-);
+  { clickable: false, digits: 2, tone: 'none', unit: '' },
+)
 
-const emit = defineEmits<{ click: [] }>();
-
-const valueClass = computed(() =>
-  props.tone !== 'none' ? `dash-text-${props.tone}` : 'text-card-foreground',
-);
+const emit = defineEmits<{ click: [] }>()
 
 const displayValue = computed(() => {
-  const v = props.value;
-  if (v == null || Number.isNaN(v)) return '—';
-  return Number(v).toFixed(props.digits);
-});
+  if (props.value == null || Number.isNaN(props.value)) return '???'
+  return Number(props.value).toLocaleString('zh-CN', {
+    minimumFractionDigits: props.digits,
+    maximumFractionDigits: props.digits,
+  })
+})
 
 function handleClick() {
-  if (props.clickable) {
-    emit('click');
-  }
+  if (props.clickable) emit('click')
 }
 </script>

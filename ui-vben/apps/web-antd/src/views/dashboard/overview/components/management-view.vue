@@ -93,38 +93,23 @@
       />
     </div>
 
-    <!-- 管理者行动区 -->
-    <div class="rounded-lg border bg-card p-4 shadow-sm">
-      <div class="mb-3 font-medium text-card-foreground">管理者行动区 · 异常合同关注</div>
-      <div v-if="actionItems.length" class="space-y-2">
-        <div
-          v-for="(item, idx) in actionItems"
-          :key="idx"
-          class="flex items-center justify-between rounded-lg border border-border p-3"
-          :class="`dash-bg-${item.tone}`"
-        >
-          <div class="min-w-0">
-            <div class="text-sm font-medium" :class="`dash-text-${item.tone}`">
-              {{ item.title }}
-            </div>
-            <div class="text-xs text-muted-foreground">{{ item.detail }}</div>
-          </div>
-          <span class="shrink-0 text-xs text-muted-foreground">{{ item.metric }}</span>
-        </div>
-      </div>
-      <div v-else class="py-4 text-center text-sm text-muted-foreground">
-        暂无需关注的异常合同
-      </div>
-    </div>
+    <!-- 管理层需要的风险项目必须能进入真实合同或项目详情。 -->
+    <DashboardActionQueue
+      :actions="overview.risk_actions"
+      empty-text="当前未识别到可下钻的经营风险或到期事项；这不代表不存在未记录的风险。"
+      kicker="管理者行动"
+      title="需优先决策的合同与资金缺口"
+    />
   </div>
 </template>
 
 <script lang="ts" setup>
 import { computed } from 'vue';
-import type { DashboardOverview, RecentContract } from '#/api/dashboard';
+import type { DashboardOverview } from '#/api/dashboard';
 import ContractTypePie from '#/views/dashboard/components/contract-type-pie.vue';
 import TopCustomersBar from '#/views/dashboard/components/top-customers-bar.vue';
 import TrendChart from '#/views/dashboard/components/trend-chart.vue';
+import DashboardActionQueue from './DashboardActionQueue.vue';
 import MetricCard from './metric-card.vue';
 import { FINANCE_SERIES, fmtMoney, pctSafe } from '../dashboard-types';
 
@@ -155,46 +140,5 @@ const concentration = computed(() =>
   ),
 );
 
-interface ActionItem {
-  tone: 'danger' | 'warning';
-  title: string;
-  detail: string;
-  metric: string;
-}
 
-const actionItems = computed<ActionItem[]>(() => {
-  const list: ActionItem[] = [];
-  const rows = props.overview.recent_contracts ?? [];
-  for (const r of rows as RecentContract[]) {
-    if (r.invoice_total > 0 && r.payment_total < r.invoice_total * 0.5) {
-      list.push({
-        tone: 'danger',
-        title: `回款率偏低 · ${r.contract_id}`,
-        detail: r.project_name,
-        metric: `回款率 ${pctSafe(r.payment_total, r.invoice_total)}`,
-      });
-    }
-    if (r.invoice_total > r.contract_amount) {
-      list.push({
-        tone: 'warning',
-        title: `开票率异常 · ${r.contract_id}`,
-        detail: r.project_name,
-        metric: `开票 ${fmtMoney(r.invoice_total)} / 合同 ${fmtMoney(r.contract_amount)}`,
-      });
-    }
-  }
-  // 大额无回款：合同额最大且回款为 0
-  const maxContract = Math.max(0, ...rows.map((r) => r.contract_amount || 0));
-  for (const r of rows as RecentContract[]) {
-    if (maxContract > 0 && r.contract_amount === maxContract && r.payment_total === 0) {
-      list.push({
-        tone: 'warning',
-        title: `大额无回款 · ${r.contract_id}`,
-        detail: r.project_name,
-        metric: `合同额 ${fmtMoney(r.contract_amount)} 万元`,
-      });
-    }
-  }
-  return list;
-});
 </script>

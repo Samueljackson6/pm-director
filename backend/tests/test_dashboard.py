@@ -111,3 +111,63 @@ def test_dashboard_project_execution_aggregation(client: TestClient) -> None:
     assert isinstance(execution["status_distribution"], list)
     assert isinstance(execution["risk_distribution"], list)
     assert execution["recent_projects"][0]["project_id"] == "P-1"
+
+
+
+def test_dashboard_overview_exposes_actions_and_data_contract(client: TestClient) -> None:
+    """Dashboard actions and metrics must retain an explainable, real target."""
+    _seed_project_execution_data(client)
+    import backend.database as db_module
+
+    db = db_module.get_db()
+    db.execute(
+        "INSERT INTO contracts (contract_id, project_name, contract_amount, contract_status) "
+        "VALUES ('C-ACTION', '\u5f85\u6838\u9a8c\u5408\u540c', 100, 'active')"
+    )
+    db.execute(
+        "INSERT INTO invoices (invoice_id, project_id, invoice_type, direction, amount, invoice_date, payment_status) "
+        "VALUES ('101', 'C-ACTION', '\u5ba2\u6237\u56de\u6b3e', 'outbound', 10000, '2026-07-01', '\u672a\u5339\u914d')"
+    )
+    db.commit()
+    db.close()
+
+    response = client.get('/api/dashboard/overview')
+    assert response.status_code == 200
+    data = response.json()['data']
+
+    assert data['data_contract']['verification_summary']['status'] == 'pending_verification'
+    assert data['data_contract']['metrics']
+    for metric in data['data_contract']['metrics']:
+        assert metric['definition']
+        assert metric['source']
+        assert metric['coverage']
+        assert metric['verification_status'] == 'pending_verification'
+        assert 'data_as_of' in metric
+
+    actions = data['task_actions'] + data['risk_actions'] + data['verification_actions']
+    assert actions
+    for action in actions:
+        assert action['object_id']
+        assert action['reason']
+        assert 'due_date' in action
+        assert 'owner' in action
+        assert action['status']
+        assert action['target']['path'].startswith('/')
+        assert action['target']['query'].get('id')
+
+
+def test_dashboard_overview_is_readonly(client: TestClient, tmp_path, monkeypatch) -> None:
+    """The aggregation GET must not initialize tables, commit, or mutate storage."""
+    import hashlib
+    import backend.database as db_module
+
+    db_path = tmp_path / 'dashboard-readonly.db'
+    # client fixture has already created a database for this test, so use its patched path.
+    db_path = db_module.DB_PATH
+    before = hashlib.sha256(db_path.read_bytes()).hexdigest()
+
+    response = client.get('/api/dashboard/overview')
+
+    after = hashlib.sha256(db_path.read_bytes()).hexdigest()
+    assert response.status_code == 200
+    assert before == after

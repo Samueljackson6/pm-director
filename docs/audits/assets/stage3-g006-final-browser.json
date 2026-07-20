@@ -1,0 +1,118 @@
+{
+  "database_before": "45353085257e5ee93cbd98889911631b7a793d51474559c6dbca5eb6859c7c64",
+  "page_errors": [],
+  "request_failed": [
+    "GET http://127.0.0.1:18090/web/js/bootstrap-BOoavj2O.js: net::ERR_ABORTED"
+  ],
+  "http_failures": [],
+  "write_requests": [],
+  "business_flows": {
+    "contracts_list": true,
+    "contracts_detail": true,
+    "contracts_return": true,
+    "projects_list": true,
+    "projects_detail": true,
+    "projects_return": true,
+    "customer_invoices_list": true,
+    "customer_invoices_detail": true,
+    "customer_invoices_return": true,
+    "customer_receipts_list": true,
+    "customer_receipts_detail": true,
+    "customer_receipts_return": true,
+    "suppliers_list": true,
+    "suppliers_detail": true,
+    "suppliers_return": true,
+    "supplier_invoices_state": true,
+    "supplier_payments_state": true
+  },
+  "viewport_checks": {
+    "1440_contracts_list_no_page_overflow": true,
+    "1440_projects_list_no_page_overflow": true,
+    "1440_customer-finance_invoices_no_page_overflow": true,
+    "1440_customer-finance_receipts_no_page_overflow": true,
+    "1440_suppliers_list_no_page_overflow": true,
+    "1440_supplier-finance_invoices_no_page_overflow": true,
+    "1440_supplier-finance_payments_no_page_overflow": true,
+    "1440_dashboard_overview_index_no_page_overflow": true,
+    "1024_contracts_list_no_page_overflow": true,
+    "1024_projects_list_no_page_overflow": true,
+    "1024_customer-finance_invoices_no_page_overflow": true,
+    "1024_customer-finance_receipts_no_page_overflow": true,
+    "1024_suppliers_list_no_page_overflow": true,
+    "1024_supplier-finance_invoices_no_page_overflow": true,
+    "1024_supplier-finance_payments_no_page_overflow": true,
+    "1024_dashboard_overview_index_no_page_overflow": true,
+    "768_contracts_list_no_page_overflow": true,
+    "768_projects_list_no_page_overflow": true,
+    "768_customer-finance_invoices_no_page_overflow": true,
+    "768_customer-finance_receipts_no_page_overflow": true,
+    "768_suppliers_list_no_page_overflow": true,
+    "768_supplier-finance_invoices_no_page_overflow": true,
+    "768_supplier-finance_payments_no_page_overflow": true,
+    "768_dashboard_overview_index_no_page_overflow": true,
+    "390_contracts_list_no_page_overflow": true,
+    "390_projects_list_no_page_overflow": true,
+    "390_customer-finance_invoices_no_page_overflow": true,
+    "390_customer-finance_receipts_no_page_overflow": true,
+    "390_suppliers_list_no_page_overflow": true,
+    "390_supplier-finance_invoices_no_page_overflow": true,
+    "390_supplier-finance_payments_no_page_overflow": true,
+    "390_dashboard_overview_index_no_page_overflow": true
+  },
+  "dashboard_checks": {
+    "initial_single_aggregation": true,
+    "view_switch_no_refetch": true,
+    "action_available": true,
+    "action_drilldown": true,
+    "keyboard_tab_focus": true,
+    "reduced_motion": true
+  },
+  "state_checks": {
+    "weak": true,
+    "error": true,
+    "empty": true,
+    "missing": true,
+    "stale": true,
+    "conflict": true
+  },
+  "axe": [
+    {
+      "name": "contracts",
+      "scope": ".pm-workbench-page",
+      "serious_or_critical": [],
+      "violations": 0
+    },
+    {
+      "name": "projects",
+      "scope": ".pm-workbench-page",
+      "serious_or_critical": [],
+      "violations": 0
+    },
+    {
+      "name": "invoices",
+      "scope": ".pm-workbench-page",
+      "serious_or_critical": [],
+      "violations": 0
+    },
+    {
+      "name": "suppliers",
+      "scope": ".pm-workbench-page",
+      "serious_or_critical": [],
+      "violations": 0
+    },
+    {
+      "name": "dashboard",
+      "scope": ".pm-workbench-page",
+      "serious_or_critical": [],
+      "violations": 0
+    }
+  ],
+  "forbidden_fallback": true,
+  "database_after": "45353085257e5ee93cbd98889911631b7a793d51474559c6dbca5eb6859c7c64",
+  "database_unchanged": true,
+  "boolean_failures": [],
+  "axe_failures": [],
+  "actionable_request_failed": [],
+  "runtime_failures": [],
+  "status": "passed"
+}

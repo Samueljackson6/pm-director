@@ -37,7 +37,6 @@ export namespace BpmProcessInstanceApi {
     billCode?: string;
     companyName?: string;
     deptName?: string;
-    summary?: Array<{ key: string; value: string }>;
   }
 
   /** 流程实例的任务 */

@@ -1,5 +1,6 @@
 <script lang="ts" setup>
-import type { VbenFormSchema, VxeTableGridOptions } from '#/adapter/vxe-table';
+import type { VbenFormSchema } from '#/adapter/form';
+import type { VxeTableGridOptions } from '#/adapter/vxe-table';
 import type { IotDeviceApi } from '#/api/iot/device/device';
 
 import { ref, watch } from 'vue';
@@ -247,7 +248,7 @@ const [AddGrid, addGridApi] = useVbenVxeGrid<IotDeviceApi.Device>({
       refresh: true,
       search: true,
     },
-  },
+  } as VxeTableGridOptions<IotDeviceApi.Device>,
   gridEvents: {
     checkboxAll: handleAddSelectionChange,
     checkboxChange: handleAddSelectionChange,

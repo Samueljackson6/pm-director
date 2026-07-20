@@ -3,7 +3,7 @@ import type { FileApi, FileShareReq, FileShareTarget } from '#/api/oa/file';
 import type { SystemDeptApi } from '#/api/system/dept';
 import type { SystemUserApi } from '#/api/system/user';
 
-import { reactive, ref, watch, withDefaults } from 'vue';
+import { reactive, ref, watch } from 'vue';
 
 import { IconifyIcon } from '@vben/icons';
 

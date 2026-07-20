@@ -279,7 +279,7 @@ function initFormData() {
         ? props.ruleScene.triggers
         : [
             {
-              type: IotRuleSceneTriggerTypeEnum.DEVICE_PROPERTY_POST,
+              type: IotRuleSceneTriggerTypeEnum.DEVICE_PROPERTY_POST.toString(),
               productId: undefined,
               deviceId: undefined,
               identifier: undefined,

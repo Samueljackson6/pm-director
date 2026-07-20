@@ -1,6 +1,3 @@
-import type { PageParam, PageResult } from '@vben/request';
-import type { Dayjs } from 'dayjs';
-
 import { requestClient } from '#/api/request';
 
 export namespace WarehousingApi {
@@ -54,4 +51,4 @@ export function exportWarehousing(params: any) {
   return requestClient.download('/wms/warehousing/export-excel', params);
 }
 
-
+

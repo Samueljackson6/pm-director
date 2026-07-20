@@ -33,6 +33,7 @@ export namespace ErpPurchaseOrderApi {
 
   /** 采购订单项信息 */
   export interface PurchaseOrderItem {
+    seq?: number;
     id?: number; // 订单项编号
     orderId?: number; // 采购订单编号
     productId?: number; // 产品编号

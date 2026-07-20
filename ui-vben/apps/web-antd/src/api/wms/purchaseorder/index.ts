@@ -25,7 +25,6 @@ export namespace PurchaseOrderApi {
   /** 采购订单信息 */
   export interface PurchaseOrder {
 purchaseOrderDetails: PurchaseOrderDetail[] | undefined;
-[x: string]: PurchaseOrderDetail[] | undefined;
     id: number; // 主键
     purchaseOrderCode?: string; // 采购订单编码
     purchaseOrderName: string; // 采购订单名称

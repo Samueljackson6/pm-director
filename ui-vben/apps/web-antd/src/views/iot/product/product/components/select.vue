@@ -1,4 +1,6 @@
 <script lang="ts" setup>
+import type { SelectValue } from 'ant-design-vue/es/select';
+
 import type { IotProductApi } from '#/api/iot/product/product';
 
 import { onMounted, ref } from 'vue';
@@ -24,9 +26,10 @@ const loading = ref(false);
 const productList = ref<IotProductApi.Product[]>([]);
 
 /** 处理选择变化 */
-function handleChange(value?: number) {
-  emit('update:modelValue', value);
-  emit('change', value);
+function handleChange(value: SelectValue) {
+  const productId = typeof value === 'number' ? value : undefined;
+  emit('update:modelValue', productId);
+  emit('change', productId);
 }
 
 /** 获取产品列表 */

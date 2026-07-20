@@ -1,5 +1,7 @@
 """Receipt endpoints — 回款管理和智能匹配."""
 
+import sqlite3
+
 from fastapi import APIRouter, HTTPException
 from backend.database import get_db
 from backend.models import vben_response, vben_list
@@ -11,19 +13,77 @@ router = APIRouter(prefix="/api/receipts", tags=["receipts"])
 def get_receipts(project_id: str = '', page: int = 1, size: int = 50):
     """获取回款列表."""
     db = get_db()
-    where = 'WHERE 1=1'
-    params = []
-    if project_id:
-        where += ' AND project_id = ?'
-        params.append(project_id)
+    try:
+        where = 'WHERE 1=1'
+        params = []
+        if project_id:
+            where += ' AND project_id = ?'
+            params.append(project_id)
 
-    total = db.execute(f'SELECT COUNT(*) FROM receipts {where}', params).fetchone()[0]
-    rows = db.execute(
-        f'SELECT * FROM receipts {where} ORDER BY receipt_date DESC LIMIT ? OFFSET ?',
-        params + [size, (page - 1) * size],
-    ).fetchall()
-    db.close()
-    return vben_list(page, size, total, [dict(r) for r in rows])
+        total = db.execute(f'SELECT COUNT(*) FROM receipts {where}', params).fetchone()[0]
+        rows = db.execute(
+            f'SELECT * FROM receipts {where} ORDER BY receipt_date DESC LIMIT ? OFFSET ?',
+            params + [size, (page - 1) * size],
+        ).fetchall()
+        invalid_receipt_count = db.execute(
+            f'SELECT COUNT(*) FROM receipts {where} AND (amount IS NULL OR amount < 0)',
+            params,
+        ).fetchone()[0]
+        summary = {
+            'currency_unit': '元',
+            'status': 'pending_verification' if invalid_receipt_count else 'available',
+            'receipt_total': None,
+            'matched_total': None,
+            'unmatched_total': None,
+        }
+
+        if total == 0:
+            summary.update({
+                'receipt_total': 0,
+                'matched_total': 0,
+                'unmatched_total': 0,
+                'status': 'available',
+            })
+        elif not invalid_receipt_count:
+            receipt_total = db.execute(
+                f'SELECT COALESCE(SUM(amount), 0) FROM receipts {where}', params
+            ).fetchone()[0]
+            summary['receipt_total'] = receipt_total
+            try:
+                invalid_link_count = db.execute(f'''
+                    SELECT COUNT(*)
+                    FROM invoice_receipt_link irl
+                    INNER JOIN receipts r ON r.receipt_id = irl.receipt_id
+                    {where.replace('project_id', 'r.project_id')}
+                    AND (irl.link_amount IS NULL OR irl.link_amount < 0)
+                ''', params).fetchone()[0]
+                if invalid_link_count:
+                    summary['status'] = 'pending_verification'
+                else:
+                    # 每笔回款最多计入自身金额，避免多张发票关联时重复或超额汇总。
+                    matched_total = db.execute(f'''
+                        SELECT COALESCE(SUM(matched_amount), 0) FROM (
+                            SELECT r.receipt_id,
+                                   MIN(r.amount, MAX(0, COALESCE(SUM(irl.link_amount), 0))) AS matched_amount
+                            FROM receipts r
+                            LEFT JOIN invoice_receipt_link irl ON irl.receipt_id = r.receipt_id
+                            {where.replace('project_id', 'r.project_id')}
+                            GROUP BY r.receipt_id, r.amount
+                        )
+                    ''', params).fetchone()[0]
+                    summary['matched_total'] = matched_total
+                    summary['unmatched_total'] = max(0, receipt_total - matched_total)
+                    summary['status'] = 'available'
+            except sqlite3.OperationalError as exc:
+                if 'no such table: invoice_receipt_link' not in str(exc).lower():
+                    raise
+                summary['status'] = 'pending_verification'
+
+        response = vben_list(page, size, total, [dict(r) for r in rows])
+        response['data']['summary'] = summary
+        return response
+    finally:
+        db.close()
 
 
 @router.post('')

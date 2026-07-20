@@ -14,13 +14,16 @@ export interface ContractItem {
 }
 
 export interface ContractDetail {
+  budgets?: any[]
+  clauses?: any[]
   contract: ContractItem & { service_content: string; service_period: string }
-  stages: any[]
-  payments: any[]
   deliverables: any[]
-  finance: any
-  projects: any[]
   files: any[]
+  finance: any
+  invoices?: any[]
+  payments: any[]
+  projects: any[]
+  stages: any[]
 }
 
 export interface ContractQueryParams {

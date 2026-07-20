@@ -1,24 +1,41 @@
 <template>
-  <div class="p-4">
-    <a-form :model="filters" layout="inline" class="mb-2 flex flex-wrap gap-2">
+  <div class="pm-workbench-page min-h-screen p-4 sm:p-6">
+    <header class="pm-page-header">
+      <p class="pm-section-kicker">合同履约</p>
+      <h1>合同台账</h1>
+      <p class="pm-section-note">从合同签订、履约状态与金额缺口进入履约跟进。</p>
+    </header>
+    <section class="pm-table-surface mb-4 p-4"><a-form :model="filters" layout="inline" class="flex flex-wrap gap-2">
       <a-form-item label="搜索">
         <a-input v-model:value="filters.search" placeholder="合同编号/项目名称" allow-clear style="width:200px" />
       </a-form-item>
       <a-form-item label="项目类型">
-        <a-select v-model:value="filters.project_type" placeholder="全部" allow-clear style="width:120px">
+        <A11ySelect
+          v-model:value="filters.project_type"
+          allow-clear
+          label="按项目类型筛选"
+          placeholder="全部"
+          style="width: 120px"
+        >
           <a-select-option value="科研类">科研类</a-select-option>
           <a-select-option value="服务类">服务类</a-select-option>
           <a-select-option value="物资类">物资类</a-select-option>
           <a-select-option value="施工类">施工类</a-select-option>
-        </a-select>
+        </A11ySelect>
       </a-form-item>
       <a-form-item label="合同状态">
-        <a-select v-model:value="filters.contract_status" placeholder="全部" allow-clear style="width:120px">
+        <A11ySelect
+          v-model:value="filters.contract_status"
+          allow-clear
+          label="按合同状态筛选"
+          placeholder="全部"
+          style="width: 120px"
+        >
           <a-select-option value="signed">已签订</a-select-option>
           <a-select-option value="active">进行中</a-select-option>
           <a-select-option value="completed">已完成</a-select-option>
           <a-select-option value="terminated">已终止</a-select-option>
-        </a-select>
+        </A11ySelect>
       </a-form-item>
       <a-form-item label="金额范围">
         <a-input-number v-model:value="filters.min_amount" placeholder="最小值" :min="0" style="width:100px" />
@@ -26,7 +43,7 @@
         <a-input-number v-model:value="filters.max_amount" placeholder="最大值" :min="0" style="width:100px" />
       </a-form-item>
       <a-form-item>
-        <a-button type="primary" @click="handleSearch">查询</a-button>
+        <a-button aria-label="查询" type="primary" @click="handleSearch">查询</a-button>
         <a-button class="ml-2" @click="handleReset">重置</a-button>
       </a-form-item>
       <a-form-item>
@@ -36,7 +53,7 @@
         <a-button type="primary" @click="openCreateModal">+ 新增合同</a-button>
       </a-form-item>
     </a-form>
-    <Grid />
+    <div ref="gridContainer"><Grid /></div>
 
     <!-- 新增合同弹窗 -->
     <a-modal
@@ -84,6 +101,7 @@
         </div>
       </a-form>
     </a-modal>
+    </section>
   </div>
 </template>
 
@@ -94,11 +112,15 @@
 // ╚══════════════════════════════════════════════════════════╝
 import type { VxeGridProps } from '#/adapter/vxe-table'
 import { useVbenVxeGrid } from '#/adapter/vxe-table'
-import { getContractsApi, type ContractItem, createContractApi } from '#/api/contracts'
-import { useRouter } from 'vue-router'
+import A11ySelect from '#/components/accessibility/a11y-select.vue'
+import { useAccessibleVxeGrid } from '#/composables/use-accessible-vxe-grid'
+import { getContractsApi, type ContractItem, createContractApi, type ContractQueryParams } from '#/api/contracts'
+import { buildDetailLocation } from '#/utils/business-navigation'
+import { useRoute, useRouter } from 'vue-router'
 import { reactive, ref } from 'vue'
 import { message } from 'ant-design-vue'
 
+const route = useRoute()
 const router = useRouter()
 
 const filters = reactive({
@@ -108,6 +130,30 @@ const filters = reactive({
   min_amount: undefined as number | undefined,
   max_amount: undefined as number | undefined,
 })
+const currentPage = ref(1)
+const currentPageSize = ref(20)
+
+function contractDetailLocation(contractId: string) {
+  return buildDetailLocation({
+    from: {
+      name: route.name,
+      query: {
+        ...route.query,
+        contract_status: filters.contract_status,
+        max_amount:
+          filters.max_amount === undefined ? undefined : String(filters.max_amount),
+        min_amount:
+          filters.min_amount === undefined ? undefined : String(filters.min_amount),
+        page: String(currentPage.value),
+        pageSize: String(currentPageSize.value),
+        project_type: filters.project_type,
+        search: filters.search,
+      },
+    },
+    id: contractId,
+    name: 'ContractDetail',
+  })
+}
 
 const gridOptions: VxeGridProps<ContractItem> = {
   columns: [
@@ -121,9 +167,10 @@ const gridOptions: VxeGridProps<ContractItem> = {
       cellRender: {
         name: 'CellRouterLink',
         props: {
-          name: 'ContractDetail',
-          idField: 'contract_id',
           field: 'official_name',
+          name: 'ContractDetail',
+          variableQuery: (row: ContractItem) =>
+            contractDetailLocation(row.contract_id).query,
         },
       },
     },
@@ -166,8 +213,10 @@ const gridOptions: VxeGridProps<ContractItem> = {
     response: { result: 'items', total: 'total' },
     ajax: {
       query: async ({ page }) => {
+        currentPage.value = page.currentPage
+        currentPageSize.value = page.pageSize
         const f = filters
-        const params: Record<string, any> = {
+        const params: ContractQueryParams = {
           page: page.currentPage,
           size: page.pageSize,
         }
@@ -194,20 +243,22 @@ const gridOptions: VxeGridProps<ContractItem> = {
   rowConfig: { keyField: 'contract_id', isHover: true, height: 44 },
 }
 
+const gridContainer = ref<HTMLElement>()
+useAccessibleVxeGrid(gridContainer, '合同台账')
+
 const [Grid, gridApi] = useVbenVxeGrid({
   gridOptions,
   gridEvents: {
-    cellClick({ row }: any) {
-      console.log('cellClick fired', row?.contract_id)
-      if (row?.contract_id) {
-        router.push({ name: 'ContractDetail', query: { id: row.contract_id } })
+    cellClick({ row }: { row: ContractItem }) {
+      if (row.contract_id) {
+        router.push(contractDetailLocation(row.contract_id))
       }
     },
   },
 })
 
 function handleSearch() {
-  gridApi.commitQuery()
+  gridApi.query()
 }
 
 function handleReset() {
@@ -216,7 +267,7 @@ function handleReset() {
   filters.contract_status = ''
   filters.min_amount = undefined
   filters.max_amount = undefined
-  gridApi.commitQuery()
+  gridApi.query()
 }
 
 function handleExport() {
@@ -261,7 +312,7 @@ async function saveCreate() {
     await createContractApi(createForm.value)
     message.success('合同新增成功')
     createModalVisible.value = false
-    gridApi.commitQuery()
+    gridApi.query()
   } catch (e: any) {
     message.error('新增失败: ' + (e?.message || '未知错误'))
   } finally {

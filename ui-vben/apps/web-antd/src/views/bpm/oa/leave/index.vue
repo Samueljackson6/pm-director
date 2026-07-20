@@ -69,7 +69,7 @@ function handleCancel(row: BpmOALeaveApi.Leave) {
         duration: 0,
       });
       try {
-        await cancelProcessInstanceByStartUser(row.id, scope.value);
+        await cancelProcessInstanceByStartUser(String(row.id), String(scope.value));
         message.success('取消成功');
         handleRefresh();
       } catch {

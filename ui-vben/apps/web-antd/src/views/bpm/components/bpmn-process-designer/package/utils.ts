@@ -1,6 +1,10 @@
 const bpmnInstances = () => (window as any)?.bpmnInstances;
 // 创建监听器实例
-export function createListenerObject(options, isTask, prefix) {
+export function createListenerObject(
+  options: Record<string, any>,
+  isTask: boolean,
+  prefix: any,
+) {
   const listenerObj = Object.create(null);
   listenerObj.event = options.event;
   isTask && (listenerObj.id = options.id); // 任务监听器特有的 id 字段
@@ -23,7 +27,7 @@ export function createListenerObject(options, isTask, prefix) {
   }
   // 注入字段
   if (options.fields) {
-    listenerObj.fields = options.fields.map((field) => {
+    listenerObj.fields = options.fields.map((field: Record<string, any>) => {
       return createFieldObject(field, prefix);
     });
   }
@@ -39,7 +43,7 @@ export function createListenerObject(options, isTask, prefix) {
       'bpmn:TimerEventDefinition',
       {
         id: `TimerEventDefinition_${uuid(8)}`,
-        [`time${options.eventDefinitionType.replace(/^\S/, (s) => s.toUpperCase())}`]:
+        [`time${options.eventDefinitionType.replace(/^\S/, (s: string) => s.toUpperCase())}`]:
           timeDefinition,
       },
     );
@@ -52,7 +56,7 @@ export function createListenerObject(options, isTask, prefix) {
 }
 
 // 创建 监听器的注入字段 实例
-export function createFieldObject(option, prefix) {
+export function createFieldObject(option: Record<string, any>, prefix: any) {
   const { name, fieldType, string, expression } = option;
   const fieldConfig =
     fieldType === 'string' ? { name, string } : { name, expression };
@@ -60,7 +64,7 @@ export function createFieldObject(option, prefix) {
 }
 
 // 创建脚本实例
-export function createScriptObject(options, prefix) {
+export function createScriptObject(options: Record<string, any>, prefix: any) {
   const { scriptType, scriptFormat, value, resource } = options;
   const scriptConfig =
     scriptType === 'inlineScript'
@@ -70,7 +74,7 @@ export function createScriptObject(options, prefix) {
 }
 
 // 更新元素扩展属性
-export function updateElementExtensions(element, extensionList) {
+export function updateElementExtensions(element: any, extensionList: any[]) {
   const extensions = bpmnInstances().moddle.create('bpmn:ExtensionElements', {
     values: extensionList,
   });

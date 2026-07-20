@@ -73,6 +73,7 @@
     "vuedraggable": "catalog:"
   },
   "devDependencies": {
+    "axe-core": "^4.12.1",
     "vitest": "^3.2.6"
   }
 }

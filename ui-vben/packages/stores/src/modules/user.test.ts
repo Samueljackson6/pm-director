@@ -21,10 +21,12 @@ describe('useUserStore', () => {
     store.setUserInfo({
       roles: [{ roleName: 'User', value: 'user' }],
     } as any);
+    // 生产鉴权流程分别写入用户信息和角色。
+    store.setUserRoles(['user']);
     expect(store.userInfo).not.toBeNull();
     expect(store.userRoles.length).toBeGreaterThan(0);
 
-    store.setUserInfo(null as any);
+    store.setUserInfo(null);
     expect(store.userInfo).toBeNull();
     expect(store.userRoles).toEqual([]);
   });

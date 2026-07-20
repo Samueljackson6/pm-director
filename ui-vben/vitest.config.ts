@@ -6,6 +6,9 @@ export default defineConfig({
   plugins: [Vue(), VueJsx()],
   test: {
     environment: 'happy-dom',
+    environmentMatchGlobs: [
+      ['apps/web-antd/src/views/**/__tests__/*.test.ts', 'node'],
+    ],
     exclude: [
       ...configDefaults.exclude,
       '**/e2e/**',

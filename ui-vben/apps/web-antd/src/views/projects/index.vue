@@ -1,26 +1,43 @@
 <template>
-  <div class="p-4">
+  <div class="pm-workbench-page min-h-screen p-4 sm:p-6">
+    <header class="pm-page-header">
+      <p class="pm-section-kicker">履约执行</p>
+      <h1>项目台账</h1>
+      <p class="pm-section-note">优先关注进度、风险与负责人缺失的履约任务。</p>
+    </header>
     <!-- 搜索栏 -->
-    <a-card class="mb-4" :bordered="false">
+    <a-card class="pm-table-surface mb-4" :bordered="false">
       <a-row :gutter="16" align="middle">
         <a-col :span="6">
           <a-input v-model:value="searchText" placeholder="搜索项目名称/编号" allow-clear />
         </a-col>
         <a-col :span="4">
-          <a-select v-model:value="statusFilter" placeholder="项目状态" allow-clear style="width: 100%">
+          <A11ySelect
+            v-model:value="statusFilter"
+            allow-clear
+            label="按项目状态筛选"
+            placeholder="项目状态"
+            style="width: 100%"
+          >
             <a-select-option value="active">进行中</a-select-option>
             <a-select-option value="paused">已暂停</a-select-option>
             <a-select-option value="completed">已完成</a-select-option>
             <a-select-option value="cancelled">已取消</a-select-option>
-          </a-select>
+          </A11ySelect>
         </a-col>
         <a-col :span="4">
-          <a-select v-model:value="typeFilter" placeholder="项目类型" allow-clear style="width: 100%">
+          <A11ySelect
+            v-model:value="typeFilter"
+            allow-clear
+            label="按项目类型筛选"
+            placeholder="项目类型"
+            style="width: 100%"
+          >
             <a-select-option value="engineering">工程类</a-select-option>
             <a-select-option value="consulting">咨询类</a-select-option>
             <a-select-option value="research">研发类</a-select-option>
             <a-select-option value="other">其他</a-select-option>
-          </a-select>
+          </A11ySelect>
         </a-col>
         <a-col :span="6">
           <a-space>
@@ -31,7 +48,7 @@
       </a-row>
     </a-card>
 
-    <Grid>
+    <section ref="gridContainer" class="pm-table-surface"><Grid>
       <template #statusSlot="{ row }">
         <a-tag :color="statusColor(row.project_status)">
           {{ statusLabel(row.project_status) }}
@@ -45,23 +62,49 @@
       <template #progressSlot="{ row }">
         <a-progress :percent="row.overall_progress ?? 0" size="small" />
       </template>
-    </Grid>
+    </Grid></section>
   </div>
 </template>
 
 <script lang="ts" setup>
 import type { VxeGridProps } from '#/adapter/vxe-table'
 import { useVbenVxeGrid } from '#/adapter/vxe-table'
+import A11ySelect from '#/components/accessibility/a11y-select.vue'
+import { useAccessibleVxeGrid } from '#/composables/use-accessible-vxe-grid'
 import { getProjectsApi, type ProjectItem } from '#/api/projects'
-import { useRouter } from 'vue-router'
+import { buildDetailLocation } from '#/utils/business-navigation'
+import { useRoute, useRouter } from 'vue-router'
 import { ref } from 'vue'
 
+const route = useRoute()
 const router = useRouter()
 
 // 搜索条件
 const searchText = ref('')
 const statusFilter = ref<string | undefined>()
 const typeFilter = ref<string | undefined>()
+const currentPage = ref(1)
+const currentPageSize = ref(20)
+const gridContainer = ref<HTMLElement>()
+useAccessibleVxeGrid(gridContainer, '项目台账')
+
+function projectDetailLocation(projectId: string) {
+  return buildDetailLocation({
+    from: {
+      name: route.name,
+      query: {
+        ...route.query,
+        page: String(currentPage.value),
+        pageSize: String(currentPageSize.value),
+        search: searchText.value,
+        status: statusFilter.value,
+        type: typeFilter.value,
+      },
+    },
+    id: projectId,
+    name: 'ProjectDetail',
+  })
+}
 
 // 状态标签映射
 const statusColorMap: Record<string, string> = {
@@ -112,7 +155,21 @@ function riskLabel(r: string): string {
 const gridOptions: VxeGridProps<ProjectItem> = {
   columns: [
     { field: 'project_id', title: '项目编号', width: 200, fixed: 'left' },
-    { field: 'project_name', title: '项目名称', minWidth: 200, showOverflow: true },
+    {
+      field: 'project_name',
+      title: '项目名称',
+      minWidth: 200,
+      showOverflow: true,
+      cellRender: {
+        name: 'CellRouterLink',
+        props: {
+          field: 'project_name',
+          name: 'ProjectDetail',
+          variableQuery: (row: ProjectItem) =>
+            projectDetailLocation(row.project_id).query,
+        },
+      },
+    },
     { field: 'customer_name', title: '客户名称', width: 150, showOverflow: true },
     { field: 'project_type', title: '项目类型', width: 100 },
     {
@@ -146,6 +203,8 @@ const gridOptions: VxeGridProps<ProjectItem> = {
     response: { result: 'items', total: 'total' },
     ajax: {
       query: async ({ page }) => {
+        currentPage.value = page.currentPage
+        currentPageSize.value = page.pageSize
         const data = await getProjectsApi({
           page: page.currentPage,
           size: page.pageSize,
@@ -175,7 +234,7 @@ const [Grid, gridApi] = useVbenVxeGrid({
   gridEvents: {
     // 双击行跳转详情
     cellDblclick({ row }: { row: ProjectItem }) {
-      router.push({ name: 'ProjectDetail', query: { id: row.project_id } })
+      router.push(projectDetailLocation(row.project_id))
     },
   },
 })
