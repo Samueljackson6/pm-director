@@ -4,6 +4,7 @@ from fastapi import APIRouter
 
 from backend.database import get_db
 from backend.models import vben_response
+from backend.utils.amount_converter import convert_fields, convert_list_fields
 
 router = APIRouter(tags=["finance"])
 
@@ -29,7 +30,7 @@ def get_stats():
     deliverables = db.execute('SELECT COUNT(*) FROM deliverables').fetchone()[0]
     db.close()
     rate = round(fin['pay'] / fin['inv'] * 100, 1) if fin['inv'] else 0
-    return vben_response({
+    stats = {
         'contract_count': c,
         'total_amount': round(total_amt, 2),
         'invoiced': round(fin['inv'], 2),
@@ -40,7 +41,9 @@ def get_stats():
         'stages': stages,
         'payments': payments,
         'deliverables': deliverables,
-    })
+    }
+    convert_fields(stats, ['total_amount', 'invoiced', 'received', 'sub_invoiced', 'sub_paid'])
+    return vben_response(stats)
 
 
 @router.get('/api/stats/types')
@@ -70,8 +73,11 @@ def get_finance_summary():
             AND fr.record_id IN (SELECT MAX(record_id) FROM finance_records GROUP BY project_id)
         ORDER BY cv.invoice_total DESC
     ''').fetchall()
+    items = [dict(r) for r in rows]
+    for item in items:
+        convert_fields(item, ['contract_amount', 'invoice_total', 'payment_total', 'sub_invoice_total', 'sub_payment_total', 'subcontract_amount'])
     db.close()
-    return vben_response({'items': [dict(r) for r in rows]})
+    return vben_response({'items': items})
 
 
 @router.get('/api/finance/trend')

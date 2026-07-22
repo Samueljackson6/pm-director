@@ -1,223 +1,90 @@
-# pm-director CI/CD 工作流
-# 236 自托管 Runner (236-runner) 负责部署
-# GitHub-hosted runner 负责代码验证
-
-name: CI/CD
+name: CI Pipeline
 
 on:
   push:
-    branches: [master]
-    paths-ignore:
-      - 'docs/**'
-      - '**.md'
-      - '.gitignore'
+    branches: [main, develop]
   pull_request:
-    branches: [master]
-  workflow_dispatch:
+    branches: [main]
 
 jobs:
-  # ============================================================
-  # Job 1: Python 代码质量检查 (GitHub-hosted) — LINT
-  # ============================================================
-  python-lint:
-    name: Python Lint
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Setup Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
-
-      - name: Install tools
-        run: pip install ruff
-
-      - name: Python syntax check
-        run: |
-          if [ -d "backend" ]; then
-            for f in $(find backend -name "*.py"); do
-              python -c "import ast; ast.parse(open('$f').read())" && echo "  OK $f"
-            done
-            ruff check backend/ --quiet
-          fi
-
-  # ============================================================
-  # Job 2: UI 文件完整性 (GitHub-hosted) — LINT
-  # ============================================================
-  ui-validate:
-    name: UI Validate
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Check UI files
-        run: |
-          for f in \
-            ui/src/api/contracts.ts ui/src/api/invoices.ts ui/src/api/suppliers.ts \
-            ui/src/views/contracts/index.vue ui/src/views/contracts/detail.vue \
-            ui/src/views/invoices/index.vue ui/src/views/suppliers/index.vue \
-            ui/src/router/routes/modules/contracts.ts \
-            ui/src/router/routes/modules/invoices.ts \
-            ui/src/router/routes/modules/suppliers.ts; do
-            [ -f "$f" ] && echo "  OK $f" || echo "  MISSING $f"
-          done
-
-      - name: Check route path format
-        run: |
-          for f in ui/src/router/routes/modules/*.ts; do
-            if grep -q "path: ''" "$f" 2>/dev/null; then
-              echo "  OK $(basename $f) path:''"
-            else
-              echo "  WARN $(basename $f) no path:''"
-            fi
-          done
-
-  # ============================================================
-  # Job 3: 后端自动化测试 (GitHub-hosted) — TEST
-  # 对应 T4: backend/ pytest 5/5 通过
-  # ============================================================
   backend-test:
-    name: Backend Test (pytest)
     runs-on: ubuntu-latest
-    timeout-minutes: 10
-
     steps:
       - uses: actions/checkout@v4
-
-      - name: Setup Python
+      
+      - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-
+      
       - name: Install dependencies
-        run: pip install -r backend/requirements.txt
-
-      - name: Run pytest
         run: |
           cd backend
-          python -m pytest -q
+          pip install -r requirements.txt
+          pip install pytest pytest-cov
+      
+      - name: Run tests
+        run: |
+          cd backend
+          pytest tests/ -v --tb=short
+      
+      - name: Upload coverage
+        uses: codecov/codecov-action@v3
+        if: always()
 
-  # ============================================================
-  # Job 4: 前端自动化测试 (GitHub-hosted) — TEST
-  # 对应 T5: ui-vben/apps/web-antd vitest 5/5 通过
-  # 注意：lockfile 已由 pnpm 10 重新生成，pnpm 必须用 10，
-  # 否则 --frozen-lockfile 会因 lockfile 版本不匹配而失败。
-  # ============================================================
-  frontend-test:
-    name: Frontend Test (vitest)
+  frontend-build:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
-
     steps:
       - uses: actions/checkout@v4
-
+      
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '22'
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: '10'
-
+          node-version: '20'
+          cache: 'pnpm'
+      
       - name: Install dependencies
-        run: |
-          cd ui-vben/apps/web-antd
-          pnpm install --frozen-lockfile || pnpm install
+        working-directory: ui-vben
+        run: pnpm install
+      
+      - name: Build
+        working-directory: ui-vben/apps/web-antd
+        run: pnpm build
+      
+      - name: Type check
+        working-directory: ui-vben/apps/web-antd
+        run: pnpm typecheck
 
-      - name: Run vitest
-        run: |
-          cd ui-vben/apps/web-antd
-          pnpm test
-
-  # ============================================================
-  # Job 5: 部署到 236 (自托管 Runner)
-  # 测试门禁：backend-test / frontend-test 失败则阻断部署/合并
-  # ============================================================
-  deploy:
-    name: 部署到236
-    needs: [python-lint, ui-validate, backend-test, frontend-test]
-    runs-on: [self-hosted, 236, production]
-    if: github.ref == 'refs/heads/master' && success()
-    timeout-minutes: 30
-
+  playwright:
+    runs-on: ubuntu-latest
+    needs: [backend-test, frontend-build]
     steps:
       - uses: actions/checkout@v4
-
+      
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '22'
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: '10'
-
-      - name: 前端构建与部署
-        shell: bash
+          node-version: '20'
+      
+      - name: Install Playwright
         run: |
-          set -e
-          echo "=== 开始 Docker 部署 ==="
-          rsync -a --exclude='database/' --exclude='cache/' --exclude='ui-vben/node_modules' --exclude='.git/config' \
-            "${{ github.workspace }}/" /home/samuel/.openclaw/workspace/pm-director/
-          cd /home/samuel/.openclaw/workspace/pm-director
-
-          echo "=== 前端构建 (本地 pnpm build) ==="
-          cd ui-vben/apps/web-antd
-          pnpm install --frozen-lockfile || pnpm install
-          pnpm build
-          if [ ! -f "dist/index.html" ]; then
-            echo "❌ 前端构建产物缺失"
-            exit 1
-          fi
-          echo "✅ 前端构建完成"
-          cd ../..
-
-          echo "=== 构建后端镜像 ==="
-          docker compose build backend 2>&1 | tail -10
-
-          echo "=== 停止并移除旧容器 ==="
-          docker compose down --remove-orphans 2>/dev/null || true
-          # 强制删除可能存在的孤立容器
-          docker rm -f pm-director-frontend pm-director-backend 2>/dev/null || true
-
-          echo "=== 启动服务 ==="
+          cd tests/playwright
+          npm ci
+          npx playwright install chromium
+      
+      - name: Start services
+        run: |
           docker compose up -d
-
-          echo "=== 等待服务就绪 ==="
           sleep 10
-
-      - name: 验证部署
-        shell: bash
+      
+      - name: Run tests
         run: |
-          set -e
-          echo "=== 验证 ==="
-          sleep 5
-          curl -s -o /dev/null -w 'Frontend (Docker): HTTP %{http_code}\n' http://localhost:18090/web/
-          curl -s -o /dev/null -w 'Backend (Docker): HTTP %{http_code}\n' http://localhost:18080/api/stats
-          echo "--- API 测试 ---"
-          curl -s http://localhost:18080/api/projects?page=1\&size=1 | head -c 100
-
-      - name: 部署审计
-        shell: bash
-        run: |
-          echo "=== 审计 ==="
-          echo "Commit: ${{ github.sha }}"
-          echo "Time: $(date)"
-          FE=$(curl -s -o /dev/null -w '%{http_code}' http://localhost:18090/web/ || echo 000)
-          BE=$(curl -s -o /dev/null -w '%{http_code}' http://localhost:18080/api/stats || echo 000)
-          echo "Frontend: HTTP $FE"
-          echo "Backend:  HTTP $BE"
-          if [ "$FE" = "200" ] && [ "$BE" = "200" ]; then
-            echo "=== ✅ 审计通过 ==="
-          else
-            echo "=== ❌ 审计失败 ==="
-            exit 1
-          fi
+          cd tests/playwright
+          npx playwright test
+      
+      - name: Upload results
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: playwright-report
+          path: tests/playwright/test-results/

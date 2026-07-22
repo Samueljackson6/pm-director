@@ -113,7 +113,10 @@ function goBack() {
   )
 }
 function editPayment() { message.info('编辑功能开发中') }
-function fmtMoney(n: number | null | undefined): string { return n == null ? '0.00' : n.toFixed(2) }
+function fmtMoney(n: number | null | undefined): string {
+  if (n == null) return '-'
+  return (Number(n) / 10000).toFixed(2)
+}
 
 onMounted(load)
 watch(() => route.query.id, (n, o) => { if (n && n !== o) load() })

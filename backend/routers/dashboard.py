@@ -18,6 +18,7 @@ from fastapi import APIRouter, Query
 
 from backend.database import get_readonly_db
 from backend.models import vben_response
+from backend.utils.amount_converter import convert_fields, convert_list_fields
 
 router = APIRouter(prefix="/api/dashboard", tags=["dashboard"])
 
@@ -163,7 +164,7 @@ def get_dashboard_overview(
         "uninvoiced_amount": uninvoiced_amount,
         "sub_invoiced_amount": sub_invoiced_amount,
         "sub_paid_amount": sub_paid_amount,
-        "currency_unit": "万元",
+        "currency_unit": "元",
     }
 
     # ------------------------------------------------------------------
@@ -580,6 +581,15 @@ def get_dashboard_overview(
         )
     recent_changes.sort(key=lambda item: item["changed_at"] or "", reverse=True)
     recent_changes = recent_changes[:10]
+
+    # Convert summary amounts from \u4e07\u5143 to \u5143
+    summary['contract_total_amount'] = round(summary['contract_total_amount'] * 10000, 2)
+    summary['invoiced_amount'] = round(summary['invoiced_amount'] * 10000, 2)
+    summary['received_amount'] = round(summary['received_amount'] * 10000, 2)
+    summary['unreceived_amount'] = round(summary['unreceived_amount'] * 10000, 2)
+    summary['uninvoiced_amount'] = round(summary['uninvoiced_amount'] * 10000, 2)
+    summary['sub_invoiced_amount'] = round(summary['sub_invoiced_amount'] * 10000, 2)
+    summary['sub_paid_amount'] = round(summary['sub_paid_amount'] * 10000, 2)
 
     generated_at = datetime.now(timezone.utc).isoformat()
     data_contract = {

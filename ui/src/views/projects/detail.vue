@@ -11,7 +11,7 @@
         <a-descriptions-item label="项目名称" :span="2">{{ project.project_name }}</a-descriptions-item>
         <a-descriptions-item label="客户名称">{{ project.customer_name }}</a-descriptions-item>
         <a-descriptions-item label="项目类型">{{ project.project_type }}</a-descriptions-item>
-        <a-descriptions-item label="合同总额">{{ project.total_contract_amount?.toFixed(2) }} 万元</a-descriptions-item>
+        <a-descriptions-item label="合同总额">{{ formatWanYuan(project.total_contract_amount) }} 万元</a-descriptions-item>
         <a-descriptions-item label="项目状态">
           <a-tag :color="statusColor(project.project_status)">{{ statusLabel(project.project_status) }}</a-tag>
         </a-descriptions-item>
@@ -55,7 +55,7 @@
           >
             <p class="font-medium">{{ p.payment_stage }}</p>
             <p v-if="p.payment_condition" class="text-gray-500">{{ p.payment_condition }}</p>
-            <p>金额：{{ (p.planned_amount ?? 0).toFixed(2) }} 万元</p>
+            <p>金额：{{ formatWanYuan(p.planned_amount) }} 万元</p>
             <p>状态：{{ p.status === 'paid' ? '已付款' : '待付款' }}</p>
           </a-timeline-item>
         </a-timeline>
@@ -71,6 +71,7 @@
 
 <script lang="ts" setup>
 import { ref, onMounted, computed } from 'vue'
+import { formatWanYuan } from '@/utils/formatAmount'
 import { useRoute, useRouter } from 'vue-router'
 import type { VxeGridProps } from '#/adapter/vxe-table'
 import { useVbenVxeGrid } from '#/adapter/vxe-table'
@@ -148,7 +149,7 @@ const contractColumns: VxeGridProps<ProjectContract>['columns'] = [
   { field: 'contract_id', title: '合同编号', width: 200 },
   { field: 'project_name', title: '项目名称', minWidth: 200, showOverflow: true },
   { field: 'contract_amount', title: '金额(万元)', width: 130, align: 'right',
-    formatter: ({ cellValue }) => (cellValue ?? 0).toFixed(2) },
+    formatter: ({ cellValue }) => formatWanYuan(cellValue) },
   { field: 'sign_date', title: '签订日期', width: 110 },
 ]
 

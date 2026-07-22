@@ -66,28 +66,28 @@ const gridOptions: VxeGridProps<SupplierItem> = {
       width: 130,
       align: 'right',
       sortable: true,
-      formatter: ({ cellValue }) => (cellValue ?? 0).toFixed(2),
+      formatter: ({ cellValue }) => formatWan(cellValue),
     },
     {
       field: 'total_invoiced',
       title: '已开票',
       width: 120,
       align: 'right',
-      formatter: ({ cellValue }) => (cellValue ?? 0).toFixed(2),
+      formatter: ({ cellValue }) => formatWan(cellValue),
     },
     {
       field: 'total_paid',
       title: '已付款',
       width: 120,
       align: 'right',
-      formatter: ({ cellValue }) => (cellValue ?? 0).toFixed(2),
+      formatter: ({ cellValue }) => formatWan(cellValue),
     },
     {
       field: 'total_unpaid',
       title: '未付款',
       width: 120,
       align: 'right',
-      formatter: ({ cellValue }) => (cellValue ?? 0).toFixed(2),
+      formatter: ({ cellValue }) => formatWan(cellValue),
     },
     { field: 'contract_count', title: '合同数', width: 80, align: 'right' },
     {
@@ -115,4 +115,9 @@ const gridOptions: VxeGridProps<SupplierItem> = {
 }
 
 const [Grid] = useVbenVxeGrid({ gridOptions })
+
+function formatWan(value: number | null | undefined): string {
+  if (value == null) return '-'
+  return (Number(value) / 10000).toFixed(2)
+}
 </script>

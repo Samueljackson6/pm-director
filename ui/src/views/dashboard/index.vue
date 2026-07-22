@@ -56,6 +56,7 @@
 import { onMounted, ref } from 'vue'
 import { getContractsApi } from '#/api/contracts'
 import { getStatsApi } from '#/api/contracts'
+import { formatWanYuan } from '@/utils/formatAmount'
 
 interface StatsData {
   contract_count: number
@@ -73,8 +74,7 @@ const stats = ref<StatsData>({
 const recentContracts = ref<any[]>([])
 
 function formatMoney(v: number | undefined | null): string {
-  if (v == null) return '-'
-  return v.toFixed(2)
+  return formatWanYuan(v)
 }
 
 onMounted(async () => {

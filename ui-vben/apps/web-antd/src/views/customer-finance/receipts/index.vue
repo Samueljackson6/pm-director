@@ -56,7 +56,7 @@
               <a class="text-blue-600 hover:underline cursor-pointer" @click="viewDetail(record)">{{ record.project_id }}</a>
             </template>
             <template v-else-if="column.key === 'amount'">
-              <span class="font-mono">{{ (record.amount || 0).toFixed(2) }}</span>
+              <span class="font-mono">{{ formatWan(record.amount) }}</span>
             </template>
             <template v-else-if="column.key === 'action'">
               <div class="flex flex-wrap gap-2">
@@ -308,6 +308,11 @@ async function autoMatch() {
 }
 
 onMounted(loadData)
+
+function formatWan(value: number | null | undefined): string {
+  if (value == null) return '-'
+  return (Number(value) / 10000).toFixed(2)
+}
 </script>
 
 <style scoped>

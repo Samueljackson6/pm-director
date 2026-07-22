@@ -177,7 +177,7 @@ const gridOptions: VxeGridProps<ProjectItem> = {
       title: '合同总额(万元)',
       width: 140,
       align: 'right',
-      formatter: ({ cellValue }) => (cellValue ?? 0).toFixed(2),
+      formatter: ({ cellValue }) => formatWan(cellValue),
     },
     {
       field: 'project_status',
@@ -248,5 +248,10 @@ function handleReset() {
   statusFilter.value = undefined
   typeFilter.value = undefined
   gridApi.query()
+}
+
+function formatWan(value: number | null | undefined): string {
+  if (value == null) return '-'
+  return (Number(value) / 10000).toFixed(2)
 }
 </script>

@@ -2,7 +2,7 @@
 
 import sqlite3
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Query
 from backend.database import get_db
 from backend.models import vben_response, vben_list
 
@@ -60,7 +60,6 @@ def get_receipts(project_id: str = '', page: int = 1, size: int = 50):
                 if invalid_link_count:
                     summary['status'] = 'pending_verification'
                 else:
-                    # 每笔回款最多计入自身金额，避免多张发票关联时重复或超额汇总。
                     matched_total = db.execute(f'''
                         SELECT COALESCE(SUM(matched_amount), 0) FROM (
                             SELECT r.receipt_id,
@@ -175,7 +174,10 @@ def delete_receipt(receipt_id: int):
 
 @router.post('/auto-match')
 def auto_match_receipts(project_id: str = ''):
-    """智能匹配发票和回款."""
+    """智能匹配发票和回款.
+
+    ⚠️ 此接口会写入数据库，仅用于测试/演示。生产环境应通过业务确认后再执行。
+    """
     db = get_db()
 
     # 获取所有项目或指定项目
@@ -255,42 +257,10 @@ def auto_match_receipts(project_id: str = ''):
                 if abs(closest['amount'] - receipt_amount) / closest['amount'] < 0.1:  # 10%误差
                     db.execute('''
                         INSERT INTO invoice_receipt_link (invoice_id, receipt_id, link_amount, link_type)
-                        VALUES (?, ?, ?, 'auto')
+                        VALUES (?, ?, ?, 'auto_partial')
                     ''', (closest['invoice_id'], receipt['receipt_id'], receipt_amount))
                     matched += 1
 
     db.commit()
     db.close()
     return vben_response({'matched': matched})
-
-
-@router.get('/project/{project_id}/summary')
-def get_project_receipt_summary(project_id: str):
-    """获取项目的发票回款汇总."""
-    db = get_db()
-
-    # 发票总额
-    invoice_total = db.execute('''
-        SELECT COALESCE(SUM(amount), 0) FROM invoices
-        WHERE project_id = ? AND invoice_type = '客户开票'
-    ''', (project_id,)).fetchone()[0]
-
-    # 回款总额
-    receipt_total = db.execute('''
-        SELECT COALESCE(SUM(amount), 0) FROM receipts WHERE project_id = ?
-    ''', (project_id,)).fetchone()[0]
-
-    # 已匹配金额
-    matched_total = db.execute('''
-        SELECT COALESCE(SUM(link_amount), 0) FROM invoice_receipt_link
-        WHERE invoice_id IN (SELECT invoice_id FROM invoices WHERE project_id = ?)
-    ''', (project_id,)).fetchone()[0]
-
-    db.close()
-    return vben_response({
-        'invoice_total': invoice_total,
-        'receipt_total': receipt_total,
-        'matched_total': matched_total,
-        'unmatched_invoice': invoice_total - matched_total,
-        'unmatched_receipt': receipt_total - matched_total,
-    })

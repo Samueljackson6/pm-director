@@ -180,21 +180,21 @@ const gridOptions: VxeGridProps<ContractItem> = {
       title: '金额(万元)',
       width: 130,
       align: 'right',
-      formatter: ({ cellValue }) => (cellValue ?? 0).toFixed(2),
+      formatter: ({ cellValue }) => formatWan(cellValue),
     },
     {
       field: 'invoice_total',
       title: '已开票(万元)',
       width: 130,
       align: 'right',
-      formatter: ({ cellValue }) => (cellValue ?? 0).toFixed(2),
+      formatter: ({ cellValue }) => formatWan(cellValue),
     },
     {
       field: 'payment_total',
       title: '已回款(万元)',
       width: 130,
       align: 'right',
-      formatter: ({ cellValue }) => (cellValue ?? 0).toFixed(2),
+      formatter: ({ cellValue }) => formatWan(cellValue),
     },
     {
       field: 'sign_date',
@@ -318,5 +318,10 @@ async function saveCreate() {
   } finally {
     createSaving.value = false
   }
+}
+
+function formatWan(value: number | null | undefined): string {
+  if (value == null) return '-'
+  return (Number(value) / 10000).toFixed(2)
 }
 </script>

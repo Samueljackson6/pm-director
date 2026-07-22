@@ -12,6 +12,10 @@ export interface InvoiceItem {
   invoice_no?: string
   supplier_id?: string
   supplier_name?: string
+  direction?: string
+  payment_status?: string
+  verification_status?: string
+  notes?: string
 }
 
 export interface InvoiceSummaryItem {
@@ -22,6 +26,26 @@ export interface InvoiceSummaryItem {
   received: number
   inv_count: number
   pay_count: number
+}
+
+export interface UnmatchedInvoiceItem extends InvoiceItem {
+  project_name?: string
+  supplier_name?: string
+}
+
+export interface MatchingSuggestion {
+  payment_id: number
+  supplier_id?: string
+  project_id: string
+  payment_date: string
+  amount: number
+  match_reason: string
+}
+
+export interface AutoMatchResult {
+  matched: boolean
+  matches: Array<{ payment_id: number; match_type: string; amount: number }>
+  message: string
 }
 
 /** 发票详情 */
@@ -63,4 +87,29 @@ export async function createInvoiceApi(data: Record<string, any>) {
 /** 删除发票 */
 export async function deleteInvoiceApi(id: number) {
   return requestClient.delete('/api/invoices/' + id)
+}
+
+/** 获取未匹配的供应商发票 */
+export async function getUnmatchedInvoicesApi(params?: { page?: number; size?: number }) {
+  return requestClient.get('/api/supplier-invoices/unmatched', { params })
+}
+
+/** 获取发票匹配建议 */
+export async function getMatchingSuggestionsApi(invoiceId: number) {
+  return requestClient.get(`/api/supplier-invoices/matching-suggestions/${invoiceId}`)
+}
+
+/** 自动匹配发票到付款 */
+export async function autoMatchInvoiceApi(invoiceId: number) {
+  return requestClient.post<AutoMatchResult>(`/api/supplier-invoices/auto-match/${invoiceId}`)
+}
+
+/** 更新发票状态 */
+export async function updateInvoiceStatusApi(id: number, status: string) {
+  return requestClient.put(`/api/supplier-invoices/${id}/status`, { status })
+}
+
+/** 获取发票关联的付款记录 */
+export async function getLinkedPaymentsApi(invoiceId: number) {
+  return requestClient.get(`/api/supplier-invoices/${invoiceId}/linked-payments`)
 }

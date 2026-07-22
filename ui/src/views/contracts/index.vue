@@ -48,6 +48,7 @@ import { getContractsApi, type ContractItem } from '#/api/contracts'
 import { useRouter } from 'vue-router'
 import { reactive } from 'vue'
 import { message } from 'ant-design-vue'
+import { formatWanYuan } from '@/utils/formatAmount'
 
 const router = useRouter()
 
@@ -83,21 +84,21 @@ const gridOptions: VxeGridProps<ContractItem> = {
       title: '金额(万元)',
       width: 130,
       align: 'right',
-      formatter: ({ cellValue }) => (cellValue ?? 0).toFixed(2),
+      formatter: ({ cellValue }) => formatWanYuan(cellValue),
     },
     {
       field: 'invoice_total',
       title: '已开票(万元)',
       width: 130,
       align: 'right',
-      formatter: ({ cellValue }) => (cellValue ?? 0).toFixed(2),
+      formatter: ({ cellValue }) => formatWanYuan(cellValue),
     },
     {
       field: 'payment_total',
       title: '已回款(万元)',
       width: 130,
       align: 'right',
-      formatter: ({ cellValue }) => (cellValue ?? 0).toFixed(2),
+      formatter: ({ cellValue }) => formatWanYuan(cellValue),
     },
     {
       field: 'sign_date',

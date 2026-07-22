@@ -54,7 +54,7 @@ def test_dashboard_overview_structure(client: TestClient) -> None:
     assert isinstance(summary.get("invoiced_amount"), (int, float))
     assert isinstance(summary.get("received_amount"), (int, float))
     assert isinstance(summary.get("receipt_rate"), (int, float))
-    assert summary.get("currency_unit") == "万元"
+    assert summary.get("currency_unit") == "元"
 
     # Collection sections must be present and be lists.
     for key in (
