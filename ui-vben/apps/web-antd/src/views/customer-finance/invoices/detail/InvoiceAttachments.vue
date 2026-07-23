@@ -23,8 +23,21 @@
         class="hidden"
         accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
         @change="handleFileChange"
-      /><template v-if="invoiceFiles.length"
-        ><div class="space-y-2">
+      />
+
+      <!-- 统一错误提示 -->
+      <a-alert
+        v-if="errorMsg"
+        :type="errorType"
+        :message="errorMsg"
+        class="mb-3"
+        show-icon
+        closable
+        @close="errorMsg = ''"
+      />
+
+      <template v-if="invoiceFiles.length">
+        <div class="space-y-2">
           <div
             v-for="file in invoiceFiles"
             :key="file.file_id"
@@ -56,8 +69,9 @@
               >
             </div>
           </div>
-        </div></template
-      ><a-empty v-else description="暂无发票文件" />
+        </div>
+      </template>
+      <a-empty v-else description="暂无发票文件" />
     </div>
   </section>
 </template>
@@ -67,6 +81,9 @@ import { ref } from 'vue';
 import type { InvoiceFile } from './types';
 
 const fileInput = ref<HTMLInputElement>();
+const errorMsg = ref('');
+const errorType = ref<'error' | 'warning'>('error');
+
 const emit = defineEmits<{
   uploadFile: [event: Event];
   downloadFile: [file: InvoiceFile];
@@ -77,7 +94,31 @@ defineProps<{
   readonly fileIcon: (value: string | undefined) => string;
   readonly formatSize: (value: number | undefined) => string;
 }>();
+
 function handleFileChange(event: Event): void {
+  const input = event.target as HTMLInputElement;
+  if (!input.files || input.files.length === 0) return;
+
+  const file = input.files[0];
+  const maxSize = 50 * 1024 * 1024; // 50MB
+  const allowedExts = ['.pdf', '.jpg', '.jpeg', '.png', '.doc', '.docx'];
+  const ext = '.' + (file.name.split('.').pop() || '').toLowerCase();
+
+  if (!allowedExts.includes(ext)) {
+    errorMsg.value = `不支持的文件类型「.${ext.replace('.', '')}」，请上传 PDF/JPG/PNG/DOC/DOCX 格式`;
+    errorType.value = 'error';
+    input.value = '';
+    return;
+  }
+
+  if (file.size > maxSize) {
+    errorMsg.value = `文件大小 ${formatSize(file.size)} 超过限制（最大 50MB），请压缩后重新上传`;
+    errorType.value = 'warning';
+    input.value = '';
+    return;
+  }
+
+  errorMsg.value = '';
   emit('uploadFile', event);
 }
 </script>

@@ -11,6 +11,7 @@ from fastapi.responses import FileResponse
 
 from backend.database import get_db
 from backend.models import vben_response, vben_list
+from backend.utils.amount_converter import convert_fields, convert_list_fields
 
 router = APIRouter(prefix="/api/contracts", tags=["contracts"])
 
@@ -100,8 +101,10 @@ def get_contracts(
         ''',
         params + [size, offset],
     ).fetchall()
+    items = [dict(r) for r in rows]
+    convert_list_fields(items, ['contract_amount', 'invoice_total', 'payment_total', 'estimated_amount'])
     db.close()
-    return vben_list(page, size, total, [dict(r) for r in rows])
+    return vben_list(page, size, total, items)
 
 
 @router.get('/categories')
@@ -113,8 +116,10 @@ def get_contract_categories():
         LEFT JOIN contracts c ON cta.contract_id = c.contract_id
         ORDER BY c.contract_amount DESC
     ''').fetchall()
+    items = [dict(r) for r in rows]
+    convert_list_fields(items, ['contract_amount'])
     db.close()
-    return {'items': [dict(r) for r in rows]}
+    return {'items': items}
 
 
 @router.get('/{contract_id}')
@@ -226,6 +231,13 @@ def get_contract(contract_id: str):
     ]
     # 如果合同缺少 service_period，用最后一个阶段的日期兜底
     c = dict(row)
+    # Convert amounts from 万元 to 元
+    convert_fields(c, ["contract_amount", "estimated_amount"])
+    convert_list_fields(payments, ["planned_amount", "paid_amount", "actual_amount"])
+    if finance:
+        convert_fields(finance, ["contract_amount", "invoice_total", "payment_total", "sub_invoice_total", "sub_payment_total"])
+
+    # 科研类合同：如果缺少 expiry_date，用最后一个阶段的结束时间兜底
     if not c.get('service_period') and stages:
         last_stage = stages[-1]
         end_time = last_stage.get('end_time') or last_stage.get('expected_end')

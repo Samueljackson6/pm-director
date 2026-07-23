@@ -1,0 +1,28 @@
+Get-Content : 找不到与参数名称“Line”匹配的参数。
+所在位置 行:1 字符: 154
++ ... h-Object { Write-Output "$_ : $(Get-Content $_.FullName -Line) lines" ...
++                                                             ~~~~~
+    + CategoryInfo          : InvalidArgument: (:) [Get-Content]，ParameterBindingException
+    + FullyQualifiedErrorId : NamedParameterNotFound,Microsoft.PowerShell.Commands.GetContentCommand
+ 
+Get-Content : 找不到与参数名称“Line”匹配的参数。
+所在位置 行:1 字符: 154
++ ... h-Object { Write-Output "$_ : $(Get-Content $_.FullName -Line) lines" ...
++                                                             ~~~~~
+    + CategoryInfo          : InvalidArgument: (:) [Get-Content]，ParameterBindingException
+    + FullyQualifiedErrorId : NamedParameterNotFound,Microsoft.PowerShell.Commands.GetContentCommand
+ 
+Get-Content : 找不到与参数名称“Line”匹配的参数。
+所在位置 行:1 字符: 154
++ ... h-Object { Write-Output "$_ : $(Get-Content $_.FullName -Line) lines" ...
++                                                             ~~~~~
+    + CategoryInfo          : InvalidArgument: (:) [Get-Content]，ParameterBindingException
+    + FullyQualifiedErrorId : NamedParameterNotFound,Microsoft.PowerShell.Commands.GetContentCommand
+ 
+Get-Content : 找不到与参数名称“Line”匹配的参数。
+所在位置 行:1 字符: 154
++ ... h-Object { Write-Output "$_ : $(Get-Content $_.FullName -Line) lines" ...
++                                                             ~~~~~
+    + CategoryInfo          : InvalidArgument: (:) [Get-Content]，ParameterBindingException
+    + FullyQualifiedErrorId : NamedParameterNotFound,Microsoft.PowerShell.Commands.GetContentCommand
+ 

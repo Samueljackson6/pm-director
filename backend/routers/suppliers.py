@@ -6,6 +6,7 @@ import sqlite3
 from fastapi import APIRouter, HTTPException
 from backend.database import get_db, get_readonly_db
 from backend.models import vben_response, vben_list
+from backend.utils.amount_converter import convert_fields, convert_list_fields
 from backend.qcc_mcp_client import get_qcc_client
 
 router = APIRouter(prefix="/api/suppliers", tags=["suppliers"])
@@ -485,8 +486,10 @@ def get_suppliers():
         SELECT * FROM suppliers WHERE status='active' AND total_contract_amount > 0
         ORDER BY total_contract_amount DESC
     ''').fetchall()
+    items = [dict(r) for r in rows]
+    convert_list_fields(items, ['total_contract_amount'])
     db.close()
-    return vben_response({'items': [dict(r) for r in rows]})
+    return vben_response({'items': items})
 
 
 @router.get('/{supplier_id}')

@@ -55,6 +55,7 @@ import { useVbenVxeGrid } from '#/adapter/vxe-table'
 import { getProjectsApi, type ProjectItem } from '#/api/projects'
 import { useRouter } from 'vue-router'
 import { ref, onMounted } from 'vue'
+import { formatWanYuan } from '@/utils/formatAmount'
 
 const router = useRouter()
 
@@ -120,7 +121,7 @@ const gridOptions: VxeGridProps<ProjectItem> = {
       title: '合同总额(万元)',
       width: 140,
       align: 'right',
-      formatter: ({ cellValue }) => (cellValue ?? 0).toFixed(2),
+      formatter: ({ cellValue }) => formatWanYuan(cellValue),
     },
     {
       field: 'project_status',

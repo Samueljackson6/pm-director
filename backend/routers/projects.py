@@ -4,6 +4,7 @@ from fastapi import APIRouter, HTTPException
 
 from backend.database import get_db
 from backend.models import vben_response, vben_list
+from backend.utils.amount_converter import convert_fields, convert_list_fields
 
 router = APIRouter(prefix="/api/projects", tags=["projects"])
 
@@ -63,8 +64,10 @@ def get_projects(
         f'SELECT p.* FROM projects p {where} ORDER BY {order} LIMIT ? OFFSET ?',
         params + [size, offset],
     ).fetchall()
+    items = [dict(r) for r in rows]
+    convert_list_fields(items, ['total_contract_amount'])
     db.close()
-    return vben_list(page, size, total, [dict(r) for r in rows])
+    return vben_list(page, size, total, items)
 
 
 @router.get('/{project_id}')
@@ -127,6 +130,9 @@ def get_project(project_id: str):
     ).fetchall()
     deliverable_summary = {d['status']: d['cnt'] for d in deliv_statuses}
 
+    convert_fields(project, ['total_contract_amount'])
+    for contract in contracts:
+        convert_fields(contract, ['contract_amount'])
     db.close()
     return vben_response({
         'project': project,
@@ -242,6 +248,9 @@ def get_project_progress(project_id: str):
 
     # Overall progress (weighted: 40% stages + 30% payments + 30% deliverables)
     overall = round(stage_rate * 0.4 + payment_rate * 0.3 + deliv_rate * 0.3, 1)
+
+    progress['payment_progress']['planned'] = round(progress['payment_progress']['planned'] * 10000, 2) if progress['payment_progress']['planned'] else 0
+    progress['payment_progress']['paid'] = round(progress['payment_progress']['paid'] * 10000, 2) if progress['payment_progress']['paid'] else 0
 
     db.close()
     return vben_response({

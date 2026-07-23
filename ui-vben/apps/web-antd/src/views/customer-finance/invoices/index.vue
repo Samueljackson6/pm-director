@@ -18,7 +18,7 @@
         <div class="flex items-center justify-between">
           <div>
             <div class="text-xs text-gray-600 mb-1">累计开票</div>
-            <div class="text-2xl font-bold text-gray-900">{{ summary.totalInvoiced.toFixed(2) }}</div>
+            <div class="text-2xl font-bold text-gray-900">{{ formatWan(summary.totalInvoiced) }}</div>
             <div class="text-xs text-gray-600 mt-1">万元</div>
           </div>
           <div class="flex h-10 w-10 items-center justify-center rounded-full bg-blue-50">
@@ -30,7 +30,7 @@
         <div class="flex items-center justify-between">
           <div>
             <div class="text-xs text-gray-600 mb-1">累计回款</div>
-            <div class="text-2xl font-bold text-green-800">{{ summary.totalReceived.toFixed(2) }}</div>
+            <div class="text-2xl font-bold text-green-800">{{ formatWan(summary.totalReceived) }}</div>
             <div class="text-xs text-gray-600 mt-1">万元</div>
           </div>
           <div class="flex h-10 w-10 items-center justify-center rounded-full bg-green-50">
@@ -53,7 +53,7 @@
         <div class="flex items-center justify-between">
           <div>
             <div class="text-xs text-gray-600 mb-1">未开票金额</div>
-            <div class="text-2xl font-bold text-orange-800">{{ summary.pendingAmount.toFixed(2) }}</div>
+            <div class="text-2xl font-bold text-orange-800">{{ formatWan(summary.pendingAmount) }}</div>
             <div class="text-xs text-gray-600 mt-1">万元</div>
           </div>
           <div class="flex h-10 w-10 items-center justify-center rounded-full bg-orange-50">
@@ -335,7 +335,7 @@ const outboundGridOptions: VxeGridProps<InvoiceItem> = {
       width: 140,
       align: 'right',
       sortable: true,
-      formatter: ({ cellValue }) => (cellValue ?? 0).toFixed(2),
+      formatter: ({ cellValue }) => formatWan(cellValue),
     },
     {
       field: 'tax_rate',
@@ -353,7 +353,7 @@ const outboundGridOptions: VxeGridProps<InvoiceItem> = {
       title: '税额(万元)',
       width: 130,
       align: 'right',
-      formatter: ({ cellValue }) => (cellValue ?? 0).toFixed(2),
+      formatter: ({ cellValue }) => formatWan(cellValue),
     },
     {
       field: 'status',
@@ -410,7 +410,7 @@ const inboundGridOptions: VxeGridProps<InvoiceItem> = {
       width: 140,
       align: 'right',
       sortable: true,
-      formatter: ({ cellValue }) => (cellValue ?? 0).toFixed(2),
+      formatter: ({ cellValue }) => formatWan(cellValue),
     },
     {
       field: 'tax_rate',
@@ -428,7 +428,7 @@ const inboundGridOptions: VxeGridProps<InvoiceItem> = {
       title: '税额(万元)',
       width: 130,
       align: 'right',
-      formatter: ({ cellValue }) => (cellValue ?? 0).toFixed(2),
+      formatter: ({ cellValue }) => formatWan(cellValue),
     },
     {
       field: 'status',
@@ -461,6 +461,11 @@ const inboundGridOptions: VxeGridProps<InvoiceItem> = {
 
 const [OutboundGrid] = useVbenVxeGrid({ gridOptions: outboundGridOptions })
 const [InboundGrid] = useVbenVxeGrid({ gridOptions: inboundGridOptions })
+
+function formatWan(value: number | null | undefined): string {
+  if (value == null) return '-'
+  return (Number(value) / 10000).toFixed(2)
+}
 </script>
 
 <style scoped>

@@ -6,13 +6,13 @@
         <a-col :span="6">
           <div class="summary-item">
             <div class="summary-label">累计开票 (万元)</div>
-            <div class="summary-value text-blue">{{ summary.totalInvoiced.toFixed(2) }}</div>
+            <div class="summary-value text-blue">{{ formatWanYuan(summary.totalInvoiced) }}</div>
           </div>
         </a-col>
         <a-col :span="6">
           <div class="summary-item">
             <div class="summary-label">累计回款 (万元)</div>
-            <div class="summary-value text-green">{{ summary.totalReceived.toFixed(2) }}</div>
+            <div class="summary-value text-green">{{ formatWanYuan(summary.totalReceived) }}</div>
           </div>
         </a-col>
         <a-col :span="6">
@@ -26,7 +26,7 @@
         <a-col :span="6">
           <div class="summary-item">
             <div class="summary-label">未开票金额 (万元)</div>
-            <div class="summary-value text-orange">{{ summary.pendingAmount.toFixed(2) }}</div>
+            <div class="summary-value text-orange">{{ formatWanYuan(summary.pendingAmount) }}</div>
           </div>
         </a-col>
       </a-row>
@@ -61,6 +61,7 @@
 
 <script lang="ts" setup>
 import { ref, reactive, onMounted } from 'vue'
+import { formatWanYuan } from '@/utils/formatAmount'
 import type { VxeGridProps } from '#/adapter/vxe-table'
 import { useVbenVxeGrid } from '#/adapter/vxe-table'
 import {
@@ -127,7 +128,7 @@ const outboundGridOptions: VxeGridProps<InvoiceItem> = {
       width: 130,
       align: 'right',
       sortable: true,
-      formatter: ({ cellValue }) => (cellValue ?? 0).toFixed(2),
+      formatter: ({ cellValue }) => formatWanYuan(cellValue),
     },
     {
       field: 'tax_rate',
@@ -145,7 +146,7 @@ const outboundGridOptions: VxeGridProps<InvoiceItem> = {
       title: '税额(万元)',
       width: 120,
       align: 'right',
-      formatter: ({ cellValue }) => (cellValue ?? 0).toFixed(2),
+      formatter: ({ cellValue }) => formatWanYuan(cellValue),
     },
     {
       field: 'status',
@@ -191,7 +192,7 @@ const inboundGridOptions: VxeGridProps<InvoiceItem> = {
       width: 130,
       align: 'right',
       sortable: true,
-      formatter: ({ cellValue }) => (cellValue ?? 0).toFixed(2),
+      formatter: ({ cellValue }) => formatWanYuan(cellValue),
     },
     {
       field: 'tax_rate',
@@ -209,7 +210,7 @@ const inboundGridOptions: VxeGridProps<InvoiceItem> = {
       title: '税额(万元)',
       width: 120,
       align: 'right',
-      formatter: ({ cellValue }) => (cellValue ?? 0).toFixed(2),
+      formatter: ({ cellValue }) => formatWanYuan(cellValue),
     },
     {
       field: 'status',

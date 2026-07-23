@@ -156,7 +156,7 @@
                 <div class="font-medium text-sm truncate">{{ c.project_name || c.contract_id }}</div>
                 <div class="flex justify-between items-center mt-1">
                   <span class="text-xs text-gray-400">{{ c.contract_id }}</span>
-                  <span class="font-semibold text-sm" v-if="c.contract_amount">¥{{ (c.contract_amount || 0).toFixed(2) }} 万</span>
+                  <span class="font-semibold text-sm" v-if="c.contract_amount">¥{{ formatWan(c.contract_amount) }} 万</span>
                 </div>
               </div>
               <a-empty v-if="!contracts.length" description="暂无关联合同" />
@@ -211,7 +211,7 @@ const riskLabelMap: Record<string, string> = { low: '低风险', medium: '中风
 function riskColor(r: string): string { return riskColorMap[r] || '#666' }
 function riskLabel(r: string): string { return riskLabelMap[r] || r || '-' }
 
-function fmtMoney(n: any): string { return (n ?? 0).toFixed(2) }
+function fmtMoney(n: any): string { return formatWan(n) }
 
 function parseCriteriaText(c: string | null): string {
   if (!c) return ''
@@ -259,5 +259,10 @@ function goBack() {
       fallbackName: 'ProjectList',
     }),
   )
+}
+
+function formatWan(value: number | null | undefined): string {
+  if (value == null) return '-'
+  return (Number(value) / 10000).toFixed(2)
 }
 </script>
